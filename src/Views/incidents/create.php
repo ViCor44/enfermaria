@@ -57,32 +57,50 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 
     <form method="post" action="<?= $baseUrl ?>?route=incidents_store">
         <div class="row">
-            <div>
+            <!-- TIPO DE INCIDENTE (input com datalist) -->
+            <div style="margin-right: 24px;">
                 <label>Tipo de incidente *</label>
-                <select name="incident_type_id" required>
-                    <option value="">-- Selecionar --</option>
+                <input
+                    list="incident-types-list"
+                    name="incident_type_input"
+                    id="incident_type_input"
+                    placeholder="Escreva ou escolha..."
+                    required
+                    autocomplete="off"
+                >
+                <datalist id="incident-types-list">
                     <?php foreach ($types as $t): ?>
-                        <option value="<?= (int)$t['id'] ?>"><?= htmlspecialchars($t['name']) ?></option>
+                        <option value="<?= htmlspecialchars($t['name']) ?>" data-id="<?= (int)$t['id'] ?>"></option>
                     <?php endforeach; ?>
-                </select>
+                </datalist>
+                <input type="hidden" name="incident_type_id" id="incident_type_id" value="">
             </div>
             
-            <div>
-                <label>Local / Atração *</label>
-                <select name="location_id">
-                    <option value="">-- Selecionar da lista --</option>
-                    <?php foreach ($locations as $loc): ?>
-                        <option value="<?= (int)$loc['id'] ?>"><?= htmlspecialchars($loc['name']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <small style="font-size:.8rem;color:#666;">
-                    Pode escolher um local existente ou indicar um novo campo ao lado.
-                </small>
-            </div>
             <div style="margin-right: 24px;">
-                <label>Outro local (se não estiver na lista)</label>
-                <input type="text" name="new_location" placeholder="Ex.: Zona de refeições nova">
+                <label>Local / Atração *</label>
+
+                <!-- input com datalist — o utilizador pode escrever ou escolher -->
+                <input
+                    list="locations-list"
+                    name="location_input"
+                    id="location_input"
+                    placeholder="Escreva ou escolha..."
+                    required
+                    autocomplete="off"
+                >
+
+                <datalist id="locations-list">
+                    <?php foreach ($locations as $loc): ?>
+                        <option value="<?= htmlspecialchars($loc['name']) ?>" data-id="<?= (int)$loc['id'] ?>"></option>
+                    <?php endforeach; ?>
+                </datalist>
+
+                <!-- hidden com o id (preenchido pelo JS se escolher uma sugestão) -->
+                <input type="hidden" name="location_id" id="location_id" value="">
+
+                <div class="small">Pode escrever o nome do local ou escolher da lista — se não existir será criado.</div>
             </div>
+
         </div>
         
 
@@ -120,22 +138,32 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 
         <div class="section-title">
             Tratamento aplicado (opcional)
-            <label style="font-weight:600; font-size:.9rem; margin-left:.5rem;">
-                <input type="checkbox" id="toggle-treatment">
-                Adicionar tratamento agora
-            </label>
+            <div class="form-check" style="display:flex; align-items:center; gap:10px; margin: 10px 0 20px;">
+                <input type="checkbox" id="toggle-treatment" name="add_treatment" style="width:18px; height:18px;">
+                <label for="add_treatment" style="cursor:pointer; font-size:16px;">
+                    Adicionar tratamento agora
+                </label>
+            </div>
         </div>
 
         <div id="treatment-block" style="display:none;">
             <div class="row">
-                <div>
+                <!-- TIPO DE TRATAMENTO (no bloco de tratamento) -->
+                <div style="margin-right: 24px;">
                     <label>Tipo de tratamento</label>
-                    <select name="treatment_type_id" id="treatment_type_id">
-                        <option value="">-- Selecionar --</option>
+                    <input
+                        list="treatment-types-list"
+                        name="treatment_type_input"
+                        id="treatment_type_input"
+                        placeholder="Escreva ou escolha..."
+                        autocomplete="off"
+                    >
+                    <datalist id="treatment-types-list">
                         <?php foreach ($treatmentTypes as $tt): ?>
-                            <option value="<?= (int)$tt['id'] ?>"><?= htmlspecialchars($tt['name']) ?></option>
+                            <option value="<?= htmlspecialchars($tt['name']) ?>" data-id="<?= (int)$tt['id'] ?>"></option>
                         <?php endforeach; ?>
-                    </select>
+                    </datalist>
+                    <input type="hidden" name="treatment_type_id" id="treatment_type_id" value="">
                 </div>
                 <div style="max-width:180px;">
                     <label>Estado</label>
@@ -154,22 +182,22 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                 <strong>Dados do utente (para envio ao hospital)</strong>
 
                 <div class="row">
-                    <div>
+                    <div style="margin-right: 24px;">
                         <label>Nome completo do utente *</label>
                         <input type="text" name="patient_name">
                     </div>
-                    <div>
+                    <div style="margin-right: 24px;">
                         <label>Nacionalidade (opcional)</label>
                         <input type="text" name="patient_nationality">
                     </div>
                 </div>
 
                 <div class="row">
-                    <div>
+                    <div style="margin-right: 24px;">
                         <label>Hotel (opcional)</label>
                         <input type="text" name="patient_hotel">
                     </div>
-                    <div>
+                    <div style="margin-right: 24px;">
                         <label>Nº de quarto (opcional)</label>
                         <input type="text" name="patient_room">
                     </div>
@@ -191,27 +219,146 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         const treatmentType   = document.getElementById('treatment_type_id');
         const patientBlock    = document.getElementById('patient-block');
 
-        // ID do tipo "Enviado para hospital" vindo do PHP
-        const hospitalTypeId = <?= $hospitalTreatmentTypeId ? (int)$hospitalTreatmentTypeId : 'null' ?>;
+        function wireDatalist(inputId, datalistId, hiddenId) {
+            const input = document.getElementById(inputId);
+            const datalist = document.getElementById(datalistId);
+            const hidden = document.getElementById(hiddenId);
 
-        toggleTreatment.addEventListener('change', function () {
-            treatmentBlock.style.display = this.checked ? 'block' : 'none';
-            if (!this.checked) {
-                patientBlock.style.display = 'none';
-                if (treatmentType) treatmentType.value = '';
+            function buildMap() {
+                const map = new Map();
+                datalist.querySelectorAll('option').forEach(opt => {
+                    const v = opt.value?.trim();
+                    const id = opt.getAttribute('data-id');
+                    if (v) map.set(v, id);
+                });
+                return map;
             }
-        });
 
-        if (treatmentType && hospitalTypeId) {
-            treatmentType.addEventListener('change', function () {
-                if (String(this.value) === String(hospitalTypeId)) {
-                    patientBlock.style.display = 'block';
+            let map = buildMap();
+
+            input.addEventListener('input', () => {
+                const v = input.value.trim();
+                if (map.has(v)) {
+                    hidden.value = map.get(v);
                 } else {
-                    patientBlock.style.display = 'none';
+                    hidden.value = '';
                 }
             });
+
+            const obs = new MutationObserver(() => { map = buildMap(); });
+            obs.observe(datalist, { childList: true, subtree: true });
         }
+        wireDatalist('incident_type_input', 'incident-types-list', 'incident_type_id');
+        wireDatalist('location_input', 'locations-list', 'location_id');
+        wireDatalist('treatment_type_input', 'treatment-types-list', 'treatment_type_id');
     </script>
+    <script>
+// ID do tipo "Enviado para hospital" vindo do PHP
+const hospitalTypeId = <?= isset($hospitalTreatmentTypeId) && $hospitalTreatmentTypeId ? (int)$hospitalTreatmentTypeId : 'null' ?>;
+const hospitalTypeName = 'Enviado para hospital';
+
+// estes campos podem existir em versões diferentes da view
+const treatmentInput  = document.getElementById('treatment_type_input'); // input (datalist)
+const treatmentHidden = document.getElementById('treatment_type_id');    // hidden id (preenchido pelo wireDatalist)
+const treatmentSelect = document.getElementById('treatment_type_id_select'); // caso tenhas um select com outro id
+
+// função para obter o id actual do tipo de tratamento (se houver)
+function getSelectedTreatmentId() {
+    // 1) se existir um hidden com valor -> usa-o
+    if (treatmentHidden && treatmentHidden.value && treatmentHidden.value.trim() !== '') {
+        return treatmentHidden.value.trim();
+    }
+
+    // 2) se existir um select (id distinto) e tem valor -> usa-o
+    if (treatmentSelect && treatmentSelect.value) {
+        return treatmentSelect.value;
+    }
+
+    // 3) se existir o input (datalist) tenta encontrar a option correspondente com data-id
+    if (treatmentInput) {
+        const val = treatmentInput.value.trim();
+        if (val === '') return null;
+
+        // procurar option no datalist com value igual e data-id
+        const datalistId = treatmentInput.getAttribute('list');
+        if (datalistId) {
+            const dl = document.getElementById(datalistId);
+            if (dl) {
+                const opts = dl.querySelectorAll('option');
+                for (const opt of opts) {
+                    if (opt.value && opt.value.trim() === val) {
+                        const id = opt.getAttribute('data-id');
+                        if (id) return id;
+                    }
+                }
+            }
+        }
+
+        // 4) fallback: se o texto coincidir com o nome conhecido do tipo hospital
+        if (val.toLowerCase() === hospitalTypeName.toLowerCase()) {
+            return 'name-match'; // especial — sinaliza match por nome
+        }
+    }
+
+    return null;
+}
+
+// decide mostrar/esconder patientBlock
+function updatePatientBlockVisibility() {
+    // se o bloco de tratamento estiver escondido, esconder patientBlock
+    if (!toggleTreatment || !toggleTreatment.checked) {
+        patientBlock.style.display = 'none';
+        return;
+    }
+
+    const selId = getSelectedTreatmentId();
+
+    if (!selId) {
+        patientBlock.style.display = 'none';
+        return;
+    }
+
+    // se temos hospitalTypeId numérico compare, ou se foi name-match
+    if ((hospitalTypeId !== null && hospitalTypeId !== 'null' && String(selId) === String(hospitalTypeId)) ||
+        selId === 'name-match') {
+        patientBlock.style.display = 'block';
+    } else {
+        patientBlock.style.display = 'none';
+    }
+}
+
+// listeners
+if (toggleTreatment) {
+    toggleTreatment.addEventListener('change', () => {
+        treatmentBlock.style.display = toggleTreatment.checked ? 'block' : 'none';
+        updatePatientBlockVisibility();
+    });
+}
+
+// se tens o input do datalist
+if (treatmentInput) {
+    treatmentInput.addEventListener('input', () => {
+        // se wireDatalist preenche o hidden, o getSelectedTreatmentId já o detecta
+        updatePatientBlockVisibility();
+    });
+}
+
+// se tens o hidden (wireDatalist atualiza-o), observa mudanças no hidden
+if (treatmentHidden) {
+    const obs = new MutationObserver(() => updatePatientBlockVisibility());
+    obs.observe(treatmentHidden, { attributes: true, attributeFilter: ['value'] });
+    // também chama uma vez no load
+}
+
+// se tens um select (caso legazy), ouve change
+if (treatmentSelect) {
+    treatmentSelect.addEventListener('change', updatePatientBlockVisibility);
+}
+
+// chamar logo para reflectir estado inicial (útil quando a página é re-carregada com valores)
+document.addEventListener('DOMContentLoaded', updatePatientBlockVisibility);
+updatePatientBlockVisibility();
+</script>
         
 </main>
 </body>

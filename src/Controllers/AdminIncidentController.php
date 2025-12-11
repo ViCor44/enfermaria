@@ -11,20 +11,20 @@ class AdminIncidentController
 
     public function index(): void
     {
-        // Só Administrador vê esta lista
-         Auth::requireRole(['Administrador', 'Manager', 'Enfermeiro']);
+        Auth::requireRole(['Administrador', 'Manager', 'Enfermeiro']); // já tens isto
 
         $fromDate   = $_GET['from'] ?? '';
         $toDate     = $_GET['to'] ?? '';
         $locationId = isset($_GET['location_id']) ? (int)$_GET['location_id'] : 0;
 
-        $locations  = Location::allActive();
+        $locations  = \App\Models\Location::allActive();
 
-        $incidents = Incident::searchForAdmin(
-            $fromDate !== '' ? $fromDate : null,
-            $toDate   !== '' ? $toDate   : null,
-            $locationId > 0 ? $locationId : null
-        );
+        $incidents = \App\Models\Incident::search([
+            'fromDate'   => $fromDate !== '' ? $fromDate : null,
+            'toDate'     => $toDate !== '' ? $toDate : null,
+            'locationId' => $locationId > 0 ? $locationId : null,
+            // sem userId -> devolve todos
+        ]);
 
         require __DIR__ . '/../Views/admin/incidents_list.php';
     }

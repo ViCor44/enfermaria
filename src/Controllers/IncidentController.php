@@ -155,8 +155,24 @@ class IncidentController
         $user   = Auth::user();
         $userId = (int)$user['id'];
 
-        $incidents = Incident::listByUser($userId);
+        // aceitamos os mesmos filtros (data / local) via GET, para o enfermeiro poder filtrar a sua lista
+        $fromDate   = $_GET['from'] ?? '';
+        $toDate     = $_GET['to'] ?? '';
+        $locationId = isset($_GET['location_id']) ? (int)$_GET['location_id'] : 0;
 
+        $locations = \App\Models\Location::allActive();
+
+        $incidents = \App\Models\Incident::search([
+            'fromDate'   => $fromDate !== '' ? $fromDate : null,
+            'toDate'     => $toDate !== '' ? $toDate : null,
+            'locationId' => $locationId > 0 ? $locationId : null,
+            'userId'     => $userId, // aqui fazemos o filtro por enfermeiro logado
+        ]);
+
+        // Reutiliza a mesma view da lista "admin/incidents_list.php" ou cria uma view identica em incidents/my_list.php
+        // Se reutilizares a view admin, podes passar uma flag para esconder colunas que só o admin vê.
+        $canSeePatient = false; // enfermeiro não vê pacientes nesta listagem (detalhe decide)
         require __DIR__ . '/../Views/incidents/my_list.php';
     }
+
 }

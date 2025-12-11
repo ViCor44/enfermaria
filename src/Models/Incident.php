@@ -77,8 +77,19 @@ class Incident
         return $row ?: null;
     }
 
-    public static function searchForAdmin(?string $fromDate, ?string $toDate, ?int $locationId): array
+    /**
+     * Pesquisar incidentes com filtros reutilizáveis.
+     * $fromDate / $toDate no formato 'YYYY-MM-DD' (ou null)
+     * $locationId opcional
+     * $userId opcional -> quando fornecido filtra só incidentes desse user
+     */
+    public static function search(array $opts = []): array
     {
+        $fromDate   = $opts['fromDate'] ?? null;
+        $toDate     = $opts['toDate'] ?? null;
+        $locationId = $opts['locationId'] ?? null;
+        $userId     = isset($opts['userId']) ? (int)$opts['userId'] : null;
+
         $pdo = Database::getConnection();
 
         $sql = "
@@ -110,12 +121,17 @@ class Incident
             $params[':locationId'] = $locationId;
         }
 
+        if ($userId) {
+            $sql .= " AND i.user_id = :userId";
+            $params[':userId'] = $userId;
+        }
+
         $sql .= " ORDER BY i.occurred_at DESC";
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     public static function findWithDetailsForAdmin(int $id): ?array
@@ -170,5 +186,6 @@ class Incident
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+    
 
 }
