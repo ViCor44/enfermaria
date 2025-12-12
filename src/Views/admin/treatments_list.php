@@ -102,6 +102,7 @@ tr:last-child td { border-bottom:none; }
                     <tr>
                         <td style="padding:.8rem;"><?= htmlspecialchars($tr['created_at'] ?? $tr['created_at']) ?></td>
                         <td>
+                            <a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$tr['incident_id'] ?>">
                             <?= htmlspecialchars($tr['incident_type_name']) ?><br>
                             <small><?= htmlspecialchars($tr['incident_occurred_at']) ?></small>
                         </td>
