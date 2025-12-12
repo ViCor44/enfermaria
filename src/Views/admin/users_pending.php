@@ -121,6 +121,9 @@ $baseUrl = '/enfermaria/public/index.php';
             </tbody>
         </table>
     <?php endif; ?>
+    <div class="top-links">
+        <a href="<?= $baseUrl ?>?route=admin_users_list">Ver Utilizadores →</a>
+    </div>
 </main>
 
 </body>
