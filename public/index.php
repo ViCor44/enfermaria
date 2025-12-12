@@ -106,6 +106,12 @@ if ($route === 'login') {
 } elseif ($route === 'treatments_change_status' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new App\Controllers\TreatmentController();
     $controller->changeStatus();
+} elseif ($route === 'admin_treatments') {
+    $controller = new App\Controllers\AdminTreatmentController();
+    $controller->index();
+} elseif ($route === 'treatment_conclude') {
+    $controller = new App\Controllers\TreatmentController();
+    $controller->conclude();
 
 } else {
     http_response_code(404);

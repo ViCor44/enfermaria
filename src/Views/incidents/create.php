@@ -6,7 +6,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<title>Registar Incidente</title>
+<title>Registar Acidente</title>
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>
@@ -47,7 +47,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 <body>
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 <main>
-    <h1>Registar novo incidente</h1>
+    <h1>Registar novo Acidente</h1>
 
     <?php if (!empty($_SESSION['error'])): ?>
         <div class="flash-error">
@@ -57,9 +57,9 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 
     <form method="post" action="<?= $baseUrl ?>?route=incidents_store">
         <div class="row">
-            <!-- TIPO DE INCIDENTE (input com datalist) -->
+            <!-- TIPO DE Acidente (input com datalist) -->
             <div style="margin-right: 24px;">
-                <label>Tipo de incidente *</label>
+                <label>Tipo de Acidente *</label>
                 <input
                     list="incident-types-list"
                     name="incident_type_input"
@@ -74,6 +74,8 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                     <?php endforeach; ?>
                 </datalist>
                 <input type="hidden" name="incident_type_id" id="incident_type_id" value="">
+                <div class="small">Pode escrever novo tipo de acidente ou escolher da lista — se não existir será criado.</div>
+
             </div>
             
             <div style="margin-right: 24px;">
@@ -134,10 +136,9 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         </div>
 
         <label>Descrição / Observações (opcional)</label>
-        <textarea name="description" placeholder="Descrição sucinta do incidente, sem dados de identificação desnecessários."></textarea>
+        <textarea name="description" placeholder="Descrição sucinta do Acidente, sem dados de identificação desnecessários."></textarea>
 
         <div class="section-title">
-            Tratamento aplicado (opcional)
             <div class="form-check" style="display:flex; align-items:center; gap:10px; margin: 10px 0 20px;">
                 <input type="checkbox" id="toggle-treatment" name="add_treatment" style="width:18px; height:18px;">
                 <label for="add_treatment" style="cursor:pointer; font-size:16px;">
@@ -184,7 +185,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                 <div class="row">
                     <div style="margin-right: 24px;">
                         <label>Nome completo do utente *</label>
-                        <input type="text" name="patient_name">
+                        <input type="text" name="patient_name" id="patient_name">
                     </div>
                     <div style="margin-right: 24px;">
                         <label>Nacionalidade (opcional)</label>
@@ -192,25 +193,49 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                     </div>
                 </div>
 
-                <div class="row">
+                <div class="row" style="margin-top:1rem;">
                     <div style="margin-right: 24px;">
-                        <label>Hotel (opcional)</label>
-                        <input type="text" name="patient_hotel">
+                        <label>Morada *</label>
+                        <input type="text" name="patient_address" id="patient_address">
                     </div>
                     <div style="margin-right: 24px;">
-                        <label>Nº de quarto (opcional)</label>
-                        <input type="text" name="patient_room">
+                        <label>Telefone *</label>
+                        <input type="text" name="patient_phone" id="patient_phone" placeholder="+351 912 345 678">
                     </div>
                 </div>
+
+                <div class="row" style="margin-top:1rem;">
+                    <div style="margin-right: 24px;">
+                        <label>Data de Nascimento</label>
+                        <input type="date" name="patient_dob" id="patient_dob">
+                    </div>
+                    <div style="margin-right: 24px;">
+                        <label>Tipo de Identificação</label>
+                        <select name="patient_id_type" id="patient_id_type">
+                            <option value="">-- Selecionar --</option>
+                            <option value="CC">Cartão de Cidadão (CC)</option>
+                            <option value="Passaporte">Passaporte</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top:1rem;">
+                    <div style="margin-right: 24px;">
+                        <label>Número de Identificação</label>
+                        <input type="text" name="patient_id_number" id="patient_id_number" placeholder="Número do CC ou do Passaporte">
+                    </div>
+                </div>
+
                 <div class="small">
                     Estes dados só serão visíveis para o administrador e para o enfermeiro responsável.
                 </div>
             </div>
+
         </div>
 
         <!-- --- Fim: bloco de Tratamento Aplicado --- -->
 
-        <button type="submit" style="margin-top:1.5rem;">Guardar incidente</button>
+        <button type="submit" style="margin-top:1.5rem;">Guardar Acidente</button>
     </form>
 
     <script>

@@ -15,14 +15,14 @@ class TreatmentController
 
         $incidentId = (int)($_GET['incident_id'] ?? 0);
         if ($incidentId <= 0) {
-            $_SESSION['error'] = 'Incidente inválido.';
+            $_SESSION['error'] = 'Acidente inválido.';
             header('Location: ' . $this->baseUrl . '?route=incidents_my');
             return;
         }
 
         $incident = Incident::findById($incidentId);
         if (!$incident) {
-            $_SESSION['error'] = 'Incidente não encontrado.';
+            $_SESSION['error'] = 'Acidente não encontrado.';
             header('Location: ' . $this->baseUrl . '?route=incidents_my');
             return;
         }
@@ -120,6 +120,39 @@ class TreatmentController
             $_SESSION['error'] = 'Erro ao atualizar estado.';
         }
 
+        header('Location: ' . $this->baseUrl . '?route=treatments_my');
+        exit;
+    }
+
+    public function conclude(): void
+    {
+        // verifica role (enfermeiros e admins podem concluir)
+        Auth::requireRole(['Enfermeiro', 'Administrador']);
+
+        $user = Auth::user();
+        $userId = (int)$user['id'];
+
+        // CSRF protection recomendada (ver se tens token)
+        $treatmentId = isset($_POST['treatment_id']) ? (int)$_POST['treatment_id'] : 0;
+        if ($treatmentId <= 0) {
+            $_SESSION['error'] = 'Tratamento inválido.';
+            header('Location: ' . $this->baseUrl . '?route=treatments_my');
+            exit;
+        }
+
+        try {
+            $ok = Treatment::conclude($treatmentId, $userId);
+            if ($ok) {
+                $_SESSION['success'] = 'Tratamento concluído com sucesso.';
+            } else {
+                $_SESSION['info'] = 'O tratamento já estava concluído.';
+            }
+        } catch (\Throwable $e) {
+            $_SESSION['error'] = 'Erro ao concluir tratamento.';
+            // error_log($e->getMessage()); // opcional
+        }
+
+        // volta para a lista dos tratamentos (ou para a página que achas melhor)
         header('Location: ' . $this->baseUrl . '?route=treatments_my');
         exit;
     }

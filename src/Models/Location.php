@@ -30,4 +30,23 @@ class Location
 
         return (int)$pdo->lastInsertId();
     }
+
+    public static function createIfNotExists(string $name): int
+    {
+        $name = trim($name);
+        if ($name === '') return 0;
+
+        $pdo = Database::getConnection();
+
+        // procurar por nome (case-insensitive)
+        $stmt = $pdo->prepare("SELECT id FROM locations WHERE LOWER(name) = LOWER(?) LIMIT 1");
+        $stmt->execute([$name]);
+        $found = $stmt->fetchColumn();
+        if ($found) return (int)$found;
+
+        // inserir novo local
+        $ins = $pdo->prepare("INSERT INTO locations (name, active) VALUES (?, 1)");
+        $ins->execute([$name]);
+        return (int)$pdo->lastInsertId();
+    }
 }

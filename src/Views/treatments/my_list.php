@@ -45,7 +45,7 @@ tr:last-child td { border-bottom:none; }
             <thead>
                 <tr>
                     <th>Data registo</th>
-                    <th>Incidente</th>
+                    <th>Acidente</th>
                     <th>Local</th>
                     <th>Tipo de tratamento</th>
                     <th>Estado</th>

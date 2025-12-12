@@ -10,45 +10,22 @@ class DashboardController
 {
     public function index(): void
     {
-        Auth::requireLogin();
+        $role = $_SESSION['role'] ?? '';
+        $user = $_SESSION['user_id'] ?? null;
 
-        $user = Auth::user();
-        $userId = (int)$user['id'];
-        $nome   = $user['name'] ?? 'Utilizador';
-        $role   = $user['role'] ?? '';
-
-        $pdo = Database::getConnection();
-
-        // Incidentes de hoje
-        if ($role === 'Enfermeiro') {
-            // enfermeiro vê só os incidentes registados por si
-            $stmt = $pdo->prepare("
-                SELECT COUNT(*)
-                FROM incidents
-                WHERE user_id = ?
-                  AND DATE(occurred_at) = CURDATE()
-            ");
-            $stmt->execute([$userId]);
+        if ($role === 'Enfermeiro' && $user) {
+            $AcidentesHoje = \App\Models\Incident::countToday((int)$user);
+            $tratamentosEmCurso = \App\Models\Treatment::countInProgress((int)$user);
         } else {
-            // Admin / Manager vêem o total global de hoje
-            $stmt = $pdo->query("
-                SELECT COUNT(*)
-                FROM incidents
-                WHERE DATE(occurred_at) = CURDATE()
-            ");
-        }
-        $incidentsToday = (int)$stmt->fetchColumn();
-
-        // Tratamentos em curso – por agora ainda não temos tabela de tratamentos
-        if ($role === 'Enfermeiro') {
-            $treatmentsInProgress = \App\Models\Treatment::countInProgress($userId);
-        } else {
-            $treatmentsInProgress = \App\Models\Treatment::countInProgress(null); // total global
+            // Admin / Manager / outros veem números globais
+            $AcidentesHoje = \App\Models\Incident::countToday(null);
+            $tratamentosEmCurso = \App\Models\Treatment::countInProgress(null);
         }
 
-        // Último acesso anterior ao login atual
-        $lastLogin = $_SESSION['last_login'] ?? null;
+        $ultimoAcesso = $_SESSION['last_login'] ?? null; // ou busca no model/users
 
+        // garantir que a view tem as variáveis
         require __DIR__ . '/../Views/dashboard/index.php';
     }
+
 }

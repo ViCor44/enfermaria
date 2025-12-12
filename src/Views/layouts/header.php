@@ -13,7 +13,7 @@ $route = $_GET['route'] ?? 'dashboard';
             <div class="brand-logo">E</div>
             <div>
                 <div class="brand-text-title">Enfermaria • Parque Aquático</div>
-                <div class="brand-text-sub">Gestão de incidentes e tratamentos</div>
+                <div class="brand-text-sub">Gestão de Acidentes e tratamentos</div>
             </div>
         </div>
 
@@ -27,7 +27,11 @@ $route = $_GET['route'] ?? 'dashboard';
             <?php if ($role === 'Administrador'): ?>
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
                    class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
-                    Incidentes
+                    Acidentes
+                </a>
+                <a href="<?= $baseUrl ?>?route=admin_treatments"
+                   class="nav-link <?= $route === 'admin_treatments' ? 'active' : '' ?>">
+                    Tratamentos
                 </a>
                 <a href="<?= $baseUrl ?>?route=admin_users"
                    class="nav-link <?= $route === 'admin_users' ? 'active' : '' ?>">
@@ -38,26 +42,30 @@ $route = $_GET['route'] ?? 'dashboard';
             <?php if ($role === 'Enfermeiro'): ?>
                 <a href="<?= $baseUrl ?>?route=incidents_new"
                 class="nav-link <?= $route === 'incidents_new' ? 'active' : '' ?>">
-                    Novo incidente
+                    Novo Acidente
                 </a>
                 <a href="<?= $baseUrl ?>?route=incidents_my"
                 class="nav-link <?= $route === 'incidents_my' ? 'active' : '' ?>">
-                    Meus incidentes
+                    Meus Acidentes
                 </a>
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
                 class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
-                    Todos os incidentes
+                    Acidentes
                 </a>
                 <a href="<?= $baseUrl ?>?route=treatments_my"
                 class="nav-link <?= $route === 'treatments_my' ? 'active' : '' ?>">
-                    Meus tratamentos
+                    Meus Tratamentos
+                </a>
+                <a href="<?= $baseUrl ?>?route=admin_treatments"
+                class="nav-link <?= $route === 'admin_treatments' ? 'active' : '' ?>">
+                    Tratamentos
                 </a>
             <?php endif; ?>
 
             <?php if ($role === 'Manager'): ?>
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
                    class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
-                    Estatísticas
+                    Acidentes
                 </a>
             <?php endif; ?>
         </nav>

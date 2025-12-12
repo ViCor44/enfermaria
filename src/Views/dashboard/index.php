@@ -1,8 +1,15 @@
 <?php
     $nome = $nome ?? ($_SESSION['user_name'] ?? 'Utilizador');
     $role = $role ?? ($_SESSION['role'] ?? '');
-    $lastLogin = $lastLogin ?? ($_SESSION['last_login'] ?? null);
+    $lastLogin = $lastLogin ?? ($_SESSION['last_login'] ?? null);    
+    $baseUrl = $baseUrl ?? '/enfermaria/public/index.php';
+
+    // valores que já calculas no controller
+    $today = date('Y-m-d');
+    $AcidentesHoje = $AcidentesHoje ?? 0;
+    $tratamentosEmCurso = $tratamentosEmCurso ?? 0;    
 ?>
+
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -73,6 +80,39 @@
             color: #777;
             font-size: .95rem;
         }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 24px;
+        }
+
+        .dashboard-card {
+            background: #fff;
+            padding: 22px;
+            border-radius: 12px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+        }
+
+        .link-card {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+        }
+
+        .link-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.09);
+        }
+
+        .big-number {
+            font-size: 28px;
+            font-weight: 700;
+            margin-top: 12px;
+        }
+
     </style>
 </head>
 <body>
@@ -82,26 +122,45 @@
     <h1>Dashboard</h1>
     <p class="subtitle">
         Bem-vindo, <?= htmlspecialchars($nome) ?>.
-        Aqui vais ter um resumo rápido dos incidentes e tratamentos.
+        Aqui vais ter um resumo rápido dos Acidentes e tratamentos.
     </p>
 
-    <div class="cards">
-        <div class="card">
-            <h2>Incidentes de hoje</h2>
-            <div class="value"><?= isset($incidentsToday) ? (int)$incidentsToday : 0 ?></div>
-        </div>
-        <div class="card">
-            <h2>Tratamentos em curso</h2>
-            <div class="value"><?= isset($treatmentsInProgress) ? (int)$treatmentsInProgress : 0 ?></div>
+    <div class="dashboard-grid">
 
-        </div>
-        <div class="card">
-            <h2>Último acesso</h2>
-            <div class="value">
-                <?= $lastLogin ? htmlspecialchars($lastLogin) : '—' ?>
-            </div>
-        </div>
+    <!-- Acidentes de hoje -->
+    <?php
+    if ($role === 'Enfermeiro') {
+        $AcidentesHref = $baseUrl . '?route=incidents_my&from=' . $today . '&to=' . $today;
+    } else {
+        // Admin / Manager / outros
+        $AcidentesHref = $baseUrl . '?route=admin_incidents&from=' . $today . '&to=' . $today;
+    }
+    ?>
+    <a class="dashboard-card link-card" href="<?= htmlspecialchars($AcidentesHref) ?>">
+        <h3>Acidentes de hoje</h3>
+        <div class="big-number"><?= (int)$AcidentesHoje ?></div>
+    </a>
+
+    <!-- Tratamentos em curso -->
+    <?php
+    if ($role === 'Enfermeiro') {
+        $tratamentosHref = $baseUrl . '?route=treatments_my&status=em_curso';
+    } else {
+        $tratamentosHref = $baseUrl . '?route=admin_treatments&status=em_curso';
+    }
+    ?>
+    <a class="dashboard-card link-card" href="<?= htmlspecialchars($tratamentosHref) ?>">
+        <h3>Tratamentos em curso</h3>
+        <div class="big-number"><?= (int)$tratamentosEmCurso ?></div>
+    </a>
+
+    <!-- Último acesso (sem link) -->
+    <div class="dashboard-card">
+        <h3>Último acesso</h3>
+        <div class="big-number"><?= htmlspecialchars($lastLogin) ?></div>
     </div>
+
+</div>
 </main>
 
 </body>

@@ -42,7 +42,7 @@ button:hover { background:#1557c0; }
     <h1>Registar tratamento</h1>
 
     <div class="incident-box">
-        <strong>Incidente:</strong>
+        <strong>Acidente:</strong>
         <?= htmlspecialchars($incident['incident_type_name']) ?>
         em <span class="badge"><?= htmlspecialchars($incident['location_name']) ?></span><br>
         <strong>Data/hora:</strong> <?= htmlspecialchars($incident['occurred_at']) ?><br>

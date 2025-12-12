@@ -10,7 +10,7 @@ $locationId = isset($_GET['location_id']) ? (int)$_GET['location_id'] : 0;
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<title>Enfermaria · Incidentes (Admin)</title>
+<title>Enfermaria · Acidentes (Admin)</title>
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>
@@ -61,12 +61,17 @@ tr:last-child td { border-bottom:none; }
 
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 <main>
-    <h1>Incidentes</h1>
+    <h1>Acidentes</h1>
     <p class="subtitle">Pesquisa por intervalo de datas e local (apenas visão de administração, com dados agregados).</p>
 
     <div class="filters">
         <form method="get" action="<?= $baseUrl ?>">
             <input type="hidden" name="route" value="admin_incidents">
+
+            <div>
+                <label>Episódio (ID)</label>
+                <input type="text" name="episode" value="<?= htmlspecialchars($_GET['episode'] ?? '') ?>" placeholder="Pesquisar por episódio">
+            </div>
 
             <div>
                 <label>Data inicial</label>
@@ -98,14 +103,15 @@ tr:last-child td { border-bottom:none; }
     </div>
 
     <?php if (empty($incidents)): ?>
-        <p>Não foram encontrados incidentes com os critérios selecionados.</p>
+        <p>Não foram encontrados Acidentes com os critérios selecionados.</p>
     <?php else: ?>
         <table>
             <thead>
                 <tr>
+                    <th>Episódio</th>
                     <th>Data / Hora</th>
                     <th>Local</th>
-                    <th>Tipo de incidente</th>
+                    <th>Tipo de Acidente</th>
                     <th>Idade</th>
                     <th>Género</th>
                     <th>Enfermeiro</th>
@@ -114,8 +120,12 @@ tr:last-child td { border-bottom:none; }
             <tbody>
             <?php foreach ($incidents as $i): ?>
                 <tr>
+                    <td><a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$i['id'] ?>">
+                            <?= (int)$i['id'] ?>
+                        </a>
+                    </td>
                     <td>
-                        <a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$i['id'] ?>">
+                        <a>
                             <?= htmlspecialchars($i['occurred_at']) ?>
                         </a>
                     </td>

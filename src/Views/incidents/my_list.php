@@ -9,7 +9,7 @@
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<title>Meus Incidentes</title>
+<title>Meus Acidentes</title>
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>
@@ -107,10 +107,15 @@ tr:last-child td { border-bottom:none; }
 <body>
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 <main>
-    <h1>Meus incidentes</h1>
+    <h1>Meus Acidentes</h1>
 
     <form method="get" action="<?= $baseUrl ?>" class="filter-bar">
         <input type="hidden" name="route" value="incidents_my">
+
+        <div class="filter-group">
+            <label>Episódio (ID)</label>
+            <input type="text" name="episode" value="<?= htmlspecialchars($_GET['episode'] ?? '') ?>" placeholder="Pesquisar por episódio">
+        </div>
 
         <div class="filter-group">
             <label>Data inicial</label>
@@ -141,11 +146,12 @@ tr:last-child td { border-bottom:none; }
     </form>
 
     <?php if (empty($incidents)): ?>
-        <p>Não foram encontrados incidentes.</p>
+        <p>Não foram encontrados Acidentes.</p>
     <?php else: ?>
         <table>
             <thead>
                 <tr>
+                    <th>Episódio</th>
                     <th>Data/Hora</th>
                     <th>Tipo</th>
                     <th>Local</th>
@@ -158,7 +164,11 @@ tr:last-child td { border-bottom:none; }
             <tbody>
                 <?php foreach ($incidents as $i): ?>
                 <tr>
-                    <td><a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$i['id'] ?>"><?= htmlspecialchars($i['occurred_at']) ?></a></td>
+                    <td><a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$i['id'] ?>">
+                            <?= (int)$i['id'] ?>
+                        </a>
+                    </td>
+                    <td><a ><?= htmlspecialchars($i['occurred_at']) ?></a></td>
                     <td><span class="badge"><?= htmlspecialchars($i['incident_type_name']) ?></span></td>
                     <td><?= htmlspecialchars($i['location_name']) ?></td>
                     <td><?= $i['patient_age'] !== null ? (int)$i['patient_age'] : '—' ?></td>

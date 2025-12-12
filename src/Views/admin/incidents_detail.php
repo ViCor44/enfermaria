@@ -8,7 +8,7 @@ $currentUserId = $_SESSION['user_id'] ?? null;
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<title>Incidente #<?= (int)$incident['id'] ?> · Detalhes</title>
+<title>Acidente #<?= (int)$incident['id'] ?> · Detalhes</title>
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>
@@ -60,13 +60,13 @@ h1 { margin-top:0; }
 
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 <main>
-    <a href="<?= $baseUrl ?>?route=admin_incidents" class="back-link">← Voltar à lista de incidentes</a>
+    <a href="<?= $baseUrl ?>?route=admin_incidents" class="back-link">← Voltar à lista de Acidentes</a>
 
-    <h1>Incidente #<?= (int)$incident['id'] ?></h1>
+    <h1>Acidente #<?= (int)$incident['id'] ?></h1>
 
-    <!-- Dados do incidente -->
+    <!-- Dados do Acidente -->
     <div class="card">
-        <h2>Dados do incidente</h2>
+        <h2>Dados do Acidente</h2>
         <div class="row">
             <div>
                 <div class="label">Data / Hora</div>
@@ -77,7 +77,7 @@ h1 { margin-top:0; }
                 <div class="value"><?= htmlspecialchars($incident['location_name']) ?></div>
             </div>
             <div>
-                <div class="label">Tipo de incidente</div>
+                <div class="label">Tipo de Acidente</div>
                 <div class="value"><span class="badge"><?= htmlspecialchars($incident['incident_type_name']) ?></span></div>
             </div>
         </div>
@@ -111,13 +111,13 @@ h1 { margin-top:0; }
 
         <?php if (empty($incident['patient_name'])): ?>
             <p class="subtitle">
-                Não existe registo de envio para hospital / dados de utente associados a este incidente.
+                Não existe registo de envio para hospital / dados de utente associados a este Acidente.
             </p>
 
         <?php else: ?>
             <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
                 <!-- Admin ou enfermeiro que tratou vêem os dados -->
-                <div class="row">
+                <div class="row" style="margin-top:1rem;">
                     <div>
                         <div class="label">Nome completo</div>
                         <div class="value"><?= htmlspecialchars($incident['patient_name']) ?></div>
@@ -132,19 +132,29 @@ h1 { margin-top:0; }
 
                 <div class="row" style="margin-top:1rem;">
                     <div>
-                        <div class="label">Hotel</div>
-                        <div class="value">
-                            <?= $incident['patient_hotel'] ? htmlspecialchars($incident['patient_hotel']) : '—' ?>
-                        </div>
+                        <div class="label">Morada</div>
+                        <div class="value"><?= htmlspecialchars($incident['patient_address'] ?? '—') ?></div>
                     </div>
                     <div>
-                        <div class="label">Nº de quarto</div>
-                        <div class="value">
-                            <?= $incident['patient_room'] ? htmlspecialchars($incident['patient_room']) : '—' ?>
-                        </div>
+                        <div class="label">Telefone</div>
+                        <div class="value"><?= htmlspecialchars($incident['patient_phone'] ?? '—') ?></div>
                     </div>
                 </div>
 
+                <div class="row" style="margin-top:1rem;">
+                    <div>
+                        <div class="label">Data de Nascimento</div>
+                        <div class="value">
+                            <?= !empty($incident['patient_dob']) ? htmlspecialchars($incident['patient_dob']) : '—' ?>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="label">Identificação</div>
+                        <div class="value">
+                            <?= !empty($incident['patient_id_type']) ? htmlspecialchars($incident['patient_id_type']) . ' • ' . htmlspecialchars($incident['patient_id_number']) : '—' ?>
+                        </div>
+                    </div>
+                </div>
                 <p class="subtitle" style="margin-top:1rem;">
                     Estes dados são visíveis apenas à administração e ao enfermeiro responsável, por motivos de RGPD.
                 </p>
@@ -152,7 +162,7 @@ h1 { margin-top:0; }
             <?php else: ?>
                 <!-- Manager e outros enfermeiros apenas sabem que os dados existem -->
                 <p class="subtitle">
-                    Existem dados de utente associados a este incidente, mas não tem permissão para os visualizar.
+                    Existem dados de utente associados a este Acidente, mas não tem permissão para os visualizar.
                 </p>
             <?php endif; ?>
         <?php endif; ?>
@@ -162,7 +172,7 @@ h1 { margin-top:0; }
     <div class="card">
         <h2>Tratamentos associados</h2>
         <?php if (empty($treatments)): ?>
-            <p class="subtitle">Não existem tratamentos registados para este incidente.</p>
+            <p class="subtitle">Não existem tratamentos registados para este Acidente.</p>
         <?php else: ?>
             <table class="table">
                 <thead>

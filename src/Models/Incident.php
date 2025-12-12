@@ -78,10 +78,10 @@ class Incident
     }
 
     /**
-     * Pesquisar incidentes com filtros reutilizáveis.
+     * Pesquisar Acidentes com filtros reutilizáveis.
      * $fromDate / $toDate no formato 'YYYY-MM-DD' (ou null)
      * $locationId opcional
-     * $userId opcional -> quando fornecido filtra só incidentes desse user
+     * $userId opcional -> quando fornecido filtra só Acidentes desse user
      */
     public static function search(array $opts = []): array
     {
@@ -89,16 +89,17 @@ class Incident
         $toDate     = $opts['toDate'] ?? null;
         $locationId = $opts['locationId'] ?? null;
         $userId     = isset($opts['userId']) ? (int)$opts['userId'] : null;
+        $episode    = isset($opts['episode']) && $opts['episode'] !== '' ? (int)$opts['episode'] : null;
 
         $pdo = Database::getConnection();
 
         $sql = "
             SELECT i.*,
-                t.name AS incident_type_name,
-                l.name AS location_name,
+                it.name AS incident_type_name,
+                l.name  AS location_name,
                 u.full_name AS nurse_name
             FROM incidents i
-            JOIN incident_types t ON t.id = i.incident_type_id
+            JOIN incident_types it ON it.id = i.incident_type_id
             JOIN locations l ON l.id = i.location_id
             JOIN users u ON u.id = i.user_id
             WHERE 1 = 1
@@ -126,6 +127,11 @@ class Incident
             $params[':userId'] = $userId;
         }
 
+        if ($episode !== null) {
+            $sql .= " AND i.id = :episode";
+            $params[':episode'] = $episode;
+        }
+
         $sql .= " ORDER BY i.occurred_at DESC";
 
         $stmt = $pdo->prepare($sql);
@@ -136,31 +142,36 @@ class Incident
 
     public static function findWithDetailsForAdmin(int $id): ?array
     {
-        $pdo = Database::getConnection();
+        $pdo = \App\Core\Database::getConnection();
 
         $sql = "
-            SELECT 
+            SELECT
                 i.*,
-                t.name  AS incident_type_name,
+                it.name AS incident_type_name,
                 l.name  AS location_name,
                 u.full_name AS nurse_name,
-                p.full_name        AS patient_name,
-                p.nationality      AS patient_nationality,
-                p.hotel            AS patient_hotel,
-                p.room_number      AS patient_room
+
+                -- dados do paciente (LEFT JOIN porque pode não existir)
+                p.full_name   AS patient_name,
+                p.nationality AS patient_nationality,
+                p.address     AS patient_address,
+                p.phone       AS patient_phone,
+                p.dob         AS patient_dob,
+                p.id_type     AS patient_id_type,
+                p.id_number   AS patient_id_number
+
             FROM incidents i
-            JOIN incident_types t ON t.id = i.incident_type_id
-            JOIN locations l      ON l.id = i.location_id
-            JOIN users u          ON u.id = i.user_id
-            LEFT JOIN patients p  ON p.incident_id = i.id
+            LEFT JOIN incident_types it ON it.id = i.incident_type_id
+            LEFT JOIN locations l ON l.id = i.location_id
+            LEFT JOIN users u ON u.id = i.user_id
+            LEFT JOIN patients p ON p.incident_id = i.id
             WHERE i.id = :id
             LIMIT 1
         ";
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([':id' => $id]);
-
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
 
         return $row ?: null;
     }
@@ -186,6 +197,60 @@ class Incident
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
-    
+
+    public static function countToday(?int $userId = null): int
+    {
+        $pdo = \App\Core\Database::getConnection();
+        $sql = "SELECT COUNT(*) FROM incidents WHERE DATE(occurred_at) = CURDATE()";
+        $params = [];
+
+        if ($userId !== null) {
+            $sql .= " AND user_id = :user_id";
+            $params[':user_id'] = $userId;
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public static function countInProgress(?int $userId = null): int
+    {
+        $pdo = \App\Core\Database::getConnection();
+
+        // assumimos que o campo status guarda 'em_curso' para tratamentos em curso
+        $sql = "SELECT COUNT(*) FROM treatments WHERE status = 'em_curso'";
+        $params = [];
+
+        if ($userId !== null) {
+            $sql .= " AND user_id = :user_id";
+            $params[':user_id'] = $userId;
+        }
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public static function createTypeIfNotExists(string $name): int
+    {
+        $name = trim($name);
+        if ($name === '') return 0;
+
+        $pdo = Database::getConnection();
+
+        // Procurar (case-insensitive)
+        $stmt = $pdo->prepare("SELECT id FROM incident_types WHERE LOWER(name) = LOWER(?) LIMIT 1");
+        $stmt->execute([$name]);
+        $found = $stmt->fetchColumn();
+        if ($found) {
+            return (int)$found;
+        }
+
+        // Inserir novo tipo
+        $ins = $pdo->prepare("INSERT INTO incident_types (name) VALUES (?)");
+        $ins->execute([$name]);
+        return (int)$pdo->lastInsertId();
+    }
 
 }

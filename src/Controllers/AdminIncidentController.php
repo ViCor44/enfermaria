@@ -11,11 +11,12 @@ class AdminIncidentController
 
     public function index(): void
     {
-        Auth::requireRole(['Administrador', 'Manager', 'Enfermeiro']); // já tens isto
+        Auth::requireRole(['Administrador', 'Manager', 'Enfermeiro']);
 
         $fromDate   = $_GET['from'] ?? '';
         $toDate     = $_GET['to'] ?? '';
         $locationId = isset($_GET['location_id']) ? (int)$_GET['location_id'] : 0;
+        $episode    = isset($_GET['episode']) ? trim($_GET['episode']) : '';
 
         $locations  = \App\Models\Location::allActive();
 
@@ -23,7 +24,7 @@ class AdminIncidentController
             'fromDate'   => $fromDate !== '' ? $fromDate : null,
             'toDate'     => $toDate !== '' ? $toDate : null,
             'locationId' => $locationId > 0 ? $locationId : null,
-            // sem userId -> devolve todos
+            'episode'    => $episode !== '' ? $episode : null,
         ]);
 
         require __DIR__ . '/../Views/admin/incidents_list.php';
@@ -35,7 +36,7 @@ class AdminIncidentController
 
         $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
         if ($id <= 0) {
-            $_SESSION['error'] = 'Incidente inválido.';
+            $_SESSION['error'] = 'Acidente inválido.';
             header('Location: ' . $this->baseUrl . '?route=admin_incidents');
             exit;
         }
@@ -43,7 +44,7 @@ class AdminIncidentController
         $incident = Incident::findWithDetailsForAdmin($id);
 
         if (!$incident) {
-            $_SESSION['error'] = 'Incidente não encontrado.';
+            $_SESSION['error'] = 'Acidente não encontrado.';
             header('Location: ' . $this->baseUrl . '?route=admin_incidents');
             exit;
         }
@@ -59,7 +60,7 @@ class AdminIncidentController
             $canSeePatient = true;
 
         } elseif ($role === 'Enfermeiro') {
-            // Enfermeiro só vê se tiver tratado este incidente
+            // Enfermeiro só vê se tiver tratado este Acidente
             foreach ($treatments as $tr) {
                 if ((int)$tr['user_id'] === $currentUserId) {
                     $canSeePatient = true;
