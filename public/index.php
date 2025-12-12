@@ -83,9 +83,6 @@ if ($route === 'login') {
     $controller = new App\Controllers\IncidentController();
     $controller->store();
 
-} elseif ($route === 'incidents_my') {
-    $controller = new App\Controllers\IncidentController();
-    $controller->myIncidents();
 } elseif ($route === 'treatments_new') {
     $controller = new App\Controllers\TreatmentController();
     $controller->create();
@@ -93,10 +90,6 @@ if ($route === 'login') {
 } elseif ($route === 'treatments_store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new App\Controllers\TreatmentController();
     $controller->store();
-
-} elseif ($route === 'treatments_my') {
-    $controller = new App\Controllers\TreatmentController();
-    $controller->myTreatments(); 
 
 } elseif ($route === 'admin_incidents') {
     $controller = new App\Controllers\AdminIncidentController();

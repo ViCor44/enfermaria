@@ -66,18 +66,6 @@ class TreatmentController
         header('Location: ' . $this->baseUrl . '?route=treatments_my');
     }
 
-    public function myTreatments(): void
-    {
-        Auth::requireRole(['Enfermeiro']);
-
-        $user = Auth::user();
-        $userId = (int)$user['id'];
-
-        $treatments = Treatment::listByUser($userId);
-
-        require __DIR__ . '/../Views/treatments/my_list.php';
-    }
-
     public function changeStatus(): void
     {
         // Só enfermeiros podem alterar o estado dos tratamentos

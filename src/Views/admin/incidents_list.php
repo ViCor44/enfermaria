@@ -115,6 +115,9 @@ tr:last-child td { border-bottom:none; }
                     <th>Idade</th>
                     <th>Género</th>
                     <th>Enfermeiro</th>
+                    <?php if ($role === 'Enfermeiro'): ?>
+                    <th>Ações</th>
+                    <?php endif; ?>
                 </tr>
             </thead>
             <tbody>
@@ -134,6 +137,9 @@ tr:last-child td { border-bottom:none; }
                     <td><?= $i['patient_age'] !== null ? (int)$i['patient_age'] : '—' ?></td>
                     <td><?= $i['patient_gender'] ?: '—' ?></td>
                     <td><?= htmlspecialchars($i['nurse_name'] ?? '') ?></td>
+                    <?php if ($role === 'Enfermeiro'): ?>
+                    <td><a href="<?= $baseUrl ?>?route=treatments_new&incident_id=<?= (int)$i['id'] ?>">Adicionar tratamento</a></td>
+                    <?php endif; ?>
                 </tr>
             <?php endforeach; ?>
             </tbody>

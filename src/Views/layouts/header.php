@@ -43,18 +43,10 @@ $route = $_GET['route'] ?? 'dashboard';
                 <a href="<?= $baseUrl ?>?route=incidents_new"
                 class="nav-link <?= $route === 'incidents_new' ? 'active' : '' ?>">
                     Novo Acidente
-                </a>
-                <a href="<?= $baseUrl ?>?route=incidents_my"
-                class="nav-link <?= $route === 'incidents_my' ? 'active' : '' ?>">
-                    Meus Acidentes
-                </a>
+                </a>                
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
                 class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
                     Acidentes
-                </a>
-                <a href="<?= $baseUrl ?>?route=treatments_my"
-                class="nav-link <?= $route === 'treatments_my' ? 'active' : '' ?>">
-                    Meus Tratamentos
                 </a>
                 <a href="<?= $baseUrl ?>?route=admin_treatments"
                 class="nav-link <?= $route === 'admin_treatments' ? 'active' : '' ?>">

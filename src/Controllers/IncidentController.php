@@ -218,30 +218,6 @@ class IncidentController
             exit;
         }
     }
-
-    public function myIncidents(): void
-    {
-        Auth::requireRole(['Enfermeiro']);
-
-        $user   = Auth::user();
-        $userId = (int)$user['id'];
-
-        $fromDate   = $_GET['from'] ?? '';
-        $toDate     = $_GET['to'] ?? '';
-        $locationId = isset($_GET['location_id']) ? (int)$_GET['location_id'] : 0;
-        $episode    = isset($_GET['episode']) ? trim($_GET['episode']) : '';
-
-        $locations = \App\Models\Location::allActive();
-
-        $incidents = \App\Models\Incident::search([
-            'fromDate'   => $fromDate !== '' ? $fromDate : null,
-            'toDate'     => $toDate !== '' ? $toDate : null,
-            'locationId' => $locationId > 0 ? $locationId : null,
-            'userId'     => $userId,
-            'episode'    => $episode !== '' ? $episode : null,
-        ]);
-
-        require __DIR__ . '/../Views/incidents/my_list.php';
-    }
+  
 
 }
