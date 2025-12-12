@@ -140,4 +140,31 @@ class User
         $stmt->execute([$roleId, $userId]);
     }
 
+    // marcar deleted_at = NOW()
+    public static function softDelete(int $userId): bool
+    {
+        $pdo = \App\Core\Database::getConnection();
+        $stmt = $pdo->prepare("UPDATE users SET deleted_at = NOW() WHERE id = :id");
+        try {
+            return $stmt->execute([':id' => $userId]);
+        } catch (\PDOException $e) {
+            error_log("softDelete error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    // restaurar (deleted_at = NULL)
+    public static function restore(int $userId): bool
+    {
+        $pdo = \App\Core\Database::getConnection();
+        $stmt = $pdo->prepare("UPDATE users SET deleted_at = NULL WHERE id = :id");
+        try {
+            return $stmt->execute([':id' => $userId]);
+        } catch (\PDOException $e) {
+            error_log("restore error: " . $e->getMessage());
+            return false;
+        }
+    }
+
+
 }

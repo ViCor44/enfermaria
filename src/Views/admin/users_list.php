@@ -67,7 +67,7 @@ $baseUrl = '/enfermaria/public/index.php';
             <tr><th>Nome</th><th>Email</th><th>Perfil</th><th>Aprovado</th><th>Ações</th></tr>
         </thead>
         <tbody>
-            <?php foreach ($users as $u): ?>
+            <?php foreach ($users as $u): $isDeleted = !empty($u['deleted_at']); ?>
                 <tr>
                     <td><?= htmlspecialchars($u['full_name'] ?? '') ?></td>
                     <td><?= htmlspecialchars($u['email']) ?></td>
@@ -85,7 +85,24 @@ $baseUrl = '/enfermaria/public/index.php';
                         </form>
                     </td>
                     <td><?= $u['approved'] ? 'Sim' : 'Não' ?></td>
-                    <td><button class="btn btn-approve" type="submit">Guardar</button></td>
+                    <td>
+                        <button class="btn btn-approve" type="submit">Guardar</button>
+                        <form method="post" action="<?= $baseUrl ?>?route=admin_user_delete" style="display:inline-block;margin-left:8px;">
+                            <input type="hidden" name="id" value="<?= (int)$u['id'] ?>">
+                            <?php if ($isDeleted): ?>
+                                <input type="hidden" name="action" value="restore">
+                                <button class="btn btn-outline" type="submit">Restaurar</button>
+                            <?php else: ?>
+                                <input type="hidden" name="action" value="delete">
+                                <!-- impede apagar se este for tu próprio na view (apagar via controller também valida) -->
+                                <?php if ((int)($_SESSION['user_id'] ?? 0) === (int)$u['id']): ?>
+                                    <button class="btn btn-danger" disabled>Apagar</button>
+                                <?php else: ?>
+                                    <button class="btn btn-danger" type="submit" onclick="return confirm('Confirmar remoção do utilizador?')">Apagar</button>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                        </form>
+                    </td>
                 </tr>
             <?php endforeach; ?>
         </tbody>

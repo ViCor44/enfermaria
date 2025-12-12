@@ -63,10 +63,11 @@ class AdminUserController
         Auth::requireRole(['Administrador']);
         $pdo = \App\Core\Database::getConnection();
         $stmt = $pdo->query("
-            SELECT u.id, u.email, u.full_name, u.role_id, r.name AS role_name, u.approved
+            SELECT u.id, u.email, u.full_name, u.role_id, r.name AS role_name, u.approved, u.created_at, u.deleted_at                      
             FROM users u
-            JOIN roles r ON r.id = u.role_id
-            ORDER BY u.created_at DESC
+            LEFT JOIN roles r ON r.id = u.role_id
+            WHERE u.deleted_at IS NULL
+            ORDER BY u.full_name ASC
         ");
         $users = $stmt->fetchAll(\PDO::FETCH_ASSOC);
 
@@ -93,6 +94,46 @@ class AdminUserController
         \App\Models\User::setUserRole($userId, $roleId);
         $_SESSION['success'] = 'Perfil atualizado com sucesso.';
         header('Location: /enfermaria/public/index.php?route=admin_users_list');
+        exit;
+    }
+    public function deleteUser(): void
+    {
+        \App\Core\Auth::requireRole(['Administrador']);
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo 'Método não permitido';
+            exit;
+        }
+
+        $userId = isset($_POST['id']) ? (int)$_POST['id'] : 0;
+        $action = $_POST['action'] ?? ''; // 'delete' ou 'restore'
+        $currentUserId = (int)($_SESSION['user_id'] ?? 0);
+
+        if ($userId <= 0) {
+            $_SESSION['error'] = 'Utilizador inválido.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
+
+        // Impedir apagar a si próprio
+        if ($userId === $currentUserId && $action === 'delete') {
+            $_SESSION['error'] = 'Não podes apagar a tua própria conta.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
+
+        if ($action === 'delete') {
+            $ok = \App\Models\User::softDelete($userId);
+            $_SESSION[$ok ? 'success' : 'error'] = $ok ? 'Utilizador removido (soft delete).' : 'Erro ao remover utilizador.';
+        } elseif ($action === 'restore') {
+            $ok = \App\Models\User::restore($userId);
+            $_SESSION[$ok ? 'success' : 'error'] = $ok ? 'Utilizador restaurado.' : 'Erro ao restaurar utilizador.';
+        } else {
+            $_SESSION['error'] = 'Ação inválida.';
+        }
+
+        header('Location: ' . $this->baseUrl . '?route=admin_users_list');
         exit;
     }
 

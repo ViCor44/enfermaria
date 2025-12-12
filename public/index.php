@@ -71,6 +71,9 @@ if ($route === 'login') {
 } elseif ($route === 'admin_users_change_role' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new App\Controllers\AdminUserController();
     $controller->changeRoleAction();
+} elseif ($route === 'admin_user_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new App\Controllers\AdminUserController();
+    $controller->deleteUser();
 
 } elseif ($route === 'incidents_new') {
     $controller = new App\Controllers\IncidentController();
