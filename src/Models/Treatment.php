@@ -242,5 +242,34 @@ class Treatment
         }
     }
 
+    public static function findByIncidentId(int $incidentId): array
+    {
+        $pdo = \App\Core\Database::getConnection();
+
+        $sql = "
+            SELECT 
+                t.id,
+                t.incident_id,
+                t.user_id,
+                t.treatment_type_id,
+                t.status,
+                t.notes,
+                t.created_at,
+                t.concluded_by,
+                t.concluded_at,
+                tt.name AS treatment_type_name,
+                u.full_name AS nurse_name
+            FROM treatments t
+            LEFT JOIN treatment_types tt ON tt.id = t.treatment_type_id
+            LEFT JOIN users u ON u.id = t.user_id
+            WHERE t.incident_id = :incidentId
+            ORDER BY t.created_at ASC
+        ";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute(['incidentId' => $incidentId]);
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
 
 }

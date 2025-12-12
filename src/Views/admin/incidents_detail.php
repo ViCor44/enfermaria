@@ -61,6 +61,9 @@ h1 { margin-top:0; }
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 <main>
     <a href="<?= $baseUrl ?>?route=admin_incidents" class="back-link">← Voltar à lista de Acidentes</a>
+    <a class="btn btn-outline" href="<?= $baseUrl ?>?route=admin_incident_print&id=<?= (int)$incident['id'] ?>" target="_blank">
+        Imprimir PDF
+    </a>
 
     <h1>Acidente #<?= (int)$incident['id'] ?></h1>
 
