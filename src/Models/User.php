@@ -93,7 +93,7 @@ class User
         $pdo->commit();
     }
 
-        public static function createUser(string $email, string $password, string $fullName, string $roleName = 'Enfermeiro'): int
+        public static function createUser(string $email, string $password, string $fullName, string $phone, string $roleName = 'Enfermeiro'): int
     {
         $pdo = Database::getConnection();
 
@@ -118,10 +118,10 @@ class User
 
         // Criar utilizador com approved = 0
         $ins = $pdo->prepare('
-            INSERT INTO users (email, password_hash, role_id, full_name, approved)
-            VALUES (?,?,?,?,0)
+            INSERT INTO users (email, password_hash, role_id, full_name, phone approved)
+            VALUES (?,?,?,?,?,0)
         ');
-        $ins->execute([$email, $hash, $roleId, $fullName]);
+        $ins->execute([$email, $hash, $roleId, $fullName, $phone]);
         $userId = (int)$pdo->lastInsertId();
 
         // Criar registo em user_approvals

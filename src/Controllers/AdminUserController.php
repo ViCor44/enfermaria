@@ -63,7 +63,7 @@ class AdminUserController
         Auth::requireRole(['Administrador']);
         $pdo = \App\Core\Database::getConnection();
         $stmt = $pdo->query("
-            SELECT u.id, u.email, u.full_name, u.role_id, r.name AS role_name, u.approved, u.created_at, u.deleted_at                      
+            SELECT u.id, u.email, u.full_name, u.phone, u.role_id, r.name AS role_name, u.approved, u.created_at, u.deleted_at                      
             FROM users u
             LEFT JOIN roles r ON r.id = u.role_id
             WHERE u.deleted_at IS NULL

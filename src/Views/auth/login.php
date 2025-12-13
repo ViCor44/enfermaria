@@ -187,7 +187,10 @@
             <footer>
                 Não tem conta?
                 <a href="/enfermaria/public/index.php?route=register">Registe-se</a>
-            </footer>
+                <p style="text-align:center; margin-top:1rem;">
+                    <a href="?route=forgot_password">Esqueci-me da password</a>
+                </p>
+            </footer>            
         </div>
     </div>
 

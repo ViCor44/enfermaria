@@ -114,6 +114,25 @@ if ($route === 'login') {
 } elseif ($route === 'admin_stats') {
     $controller = new App\Controllers\AdminStatsController();
     $controller->index();
+} elseif ($route === 'forgot_password') {
+    // Mostrar formulário para pedir recuperação
+    $controller = new App\Controllers\AuthController();
+    $controller->forgotPassword();
+
+} elseif ($route === 'forgot_submit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Submeter pedido e enviar email
+    $controller = new App\Controllers\AuthController();
+    $controller->forgot_submit();
+
+} elseif ($route === 'reset_password' && isset($_GET['token'])) {
+    // Mostrar formulário de nova password
+    $controller = new App\Controllers\AuthController();
+    $controller->showResetPasswordForm();
+
+} elseif ($route === 'reset_submit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Submeter nova password
+    $controller = new App\Controllers\AuthController();
+    $controller->reset_submit();
 
 } else {
     http_response_code(404);

@@ -64,12 +64,13 @@ $baseUrl = '/enfermaria/public/index.php';
 
     <table>
         <thead>
-            <tr><th>Nome</th><th>Email</th><th>Perfil</th><th>Aprovado</th><th>Ações</th></tr>
+            <tr><th>Nome</th><th>Telefone</th><th>Email</th><th>Perfil</th><th>Aprovado</th><th>Ações</th></tr>
         </thead>
         <tbody>
             <?php foreach ($users as $u): $isDeleted = !empty($u['deleted_at']); ?>
                 <tr>
                     <td><?= htmlspecialchars($u['full_name'] ?? '') ?></td>
+                    <td><?= htmlspecialchars($u['phone'] ?? '—') ?></td>
                     <td><?= htmlspecialchars($u['email']) ?></td>
                     <td>
                         <form method="post" action="<?= $baseUrl ?>?route=admin_users_change_role" style="display:flex;gap:.5rem;align-items:center;">

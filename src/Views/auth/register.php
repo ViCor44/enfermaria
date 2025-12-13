@@ -190,6 +190,9 @@ $baseUrl = '/enfermaria/public/index.php';
                 <label>Nome completo</label>
                 <input type="text" name="full_name" required>
 
+                <label>Telefone</label>
+                <input type="text" name="phone" required>
+
                 <label>Email</label>
                 <input type="email" name="email" required>
 

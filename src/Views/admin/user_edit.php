@@ -68,6 +68,10 @@ $baseUrl = '/enfermaria/public/index.php';
             <input type="email" name="email" value="<?= htmlspecialchars($user['email']) ?>" class="form-control" required>
         </div>
         <div class="form-group">
+            <label>Telefone</label>
+            <input type="text" name="phone" value="<?= htmlspecialchars($user['phone'] ?? '') ?>">
+        </div>
+        <div class="form-group">
             <label>Perfil</label>
             <select name="role_id" class="form-control" required>
                 <?php foreach ($roles as $r): ?>

@@ -85,12 +85,19 @@ class AuthController
     public function register(): void
     {
         $fullName = trim($_POST['full_name'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
         $email    = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
         $confirm  = $_POST['password_confirmation'] ?? '';
 
         if ($fullName === '' || $email === '' || $password === '' || $confirm === '') {
             $_SESSION['error'] = 'Preencha todos os campos.';
+            header('Location: ' . $this->baseUrl . '?route=register');
+            exit;
+        }
+
+        if (empty($phone)) {
+            $_SESSION['error'] = 'O telefone é obrigatório.';
             header('Location: ' . $this->baseUrl . '?route=register');
             exit;
         }
@@ -115,7 +122,7 @@ class AuthController
 
         try {
             // Todos registados como “Enfermeiro” por defeito
-            \App\Models\User::createUser($email, $password, $fullName, 'Enfermeiro');
+            \App\Models\User::createUser($email, $password, $fullName, $phone, 'Enfermeiro');
 
             $_SESSION['success_register'] = 'Registo efetuado. Aguarde aprovação do administrador.';
             header('Location: ' . $this->baseUrl . '?route=login');
@@ -131,4 +138,107 @@ class AuthController
         }
     }
 
+    public function forgot_submit()
+    {
+        $email = trim($_POST['email'] ?? '');
+
+        $user = \App\Models\User::findByEmail($email);
+        $_SESSION['msg'] = "Se o email existir, enviámos um link de recuperação.";
+
+        if (!$user) {
+            header("Location: ?route=forgot_password");
+            exit;
+        }
+
+        // Gerar token
+        $token = bin2hex(random_bytes(32));
+        $expires = date('Y-m-d H:i:s', time() + 3600);
+
+        $db = \App\Core\Database::getConnection();
+        $stmt = $db->prepare("INSERT INTO password_resets (email, token, expires_at)
+                            VALUES (:email, :token, :expires)");
+        $stmt->execute([
+            ':email'   => $email,
+            ':token'   => $token,
+            ':expires' => $expires
+        ]);
+
+        // Link
+        $link = "http://localhost/enfermaria/public/index.php?route=reset_password&token=$token";
+
+        // ENVIAR EMAIL VIA SMTP
+        $mailer = new \App\Core\Mailer();
+
+        $html = "
+            <h2>Recuperação de Password</h2>
+            <p>Recebemos um pedido para redefinir a sua password.</p>
+            <p>Para definir uma nova password, clique no link:</p>
+            <p><a href='$link'>$link</a></p>
+            <br>
+            <p>Se não pediu isto, ignore o email.</p>
+        ";
+
+        $mailer->send($email, "Recuperar Password - SAE", $html);
+
+        header("Location: ?route=forgot_password");
+        exit;
+    }
+
+
+    public function reset_submit()
+    {
+        $token = $_POST['token'] ?? '';
+        $password = $_POST['password'] ?? '';
+        $confirm = $_POST['password_confirmation'] ?? '';
+
+        if ($password !== $confirm) {
+            $_SESSION['msg'] = "As passwords não coincidem.";
+            header("Location: ?route=reset_password&token=$token");
+            exit;
+        }
+
+        $db = \App\Core\Database::getConnection();
+
+        // Validar token
+        $stmt = $db->prepare("SELECT * FROM password_resets WHERE token = :token AND expires_at > NOW()");
+        $stmt->execute([':token' => $token]);
+        $row = $stmt->fetch();
+
+        if (!$row) {
+            $_SESSION['msg'] = "Token inválido ou expirado.";
+            header("Location: ?route=forgot_password");
+            exit;
+        }
+
+        $email = $row['email'];
+
+        // Atualizar password
+        $hash = password_hash($password, PASSWORD_DEFAULT);
+        $stmt = $db->prepare("UPDATE users SET password_hash = :hash WHERE email = :email");
+        $stmt->execute([':hash' => $hash, ':email' => $email]);
+
+        // Apagar token usado
+        $db->prepare("DELETE FROM password_resets WHERE email = :email")->execute([':email' => $email]);
+
+        $_SESSION['msg'] = "Password alterada com sucesso!";
+        header("Location: ?route=login");
+        exit;
+    }
+
+    public function forgotPassword()
+    {
+        require __DIR__ . '/../Views/auth/forgot_password.php';
+    }
+
+    public function showResetPasswordForm()
+    {
+        $token = $_GET['token'] ?? null;
+
+        if (!$token) {
+            echo "Token inválido.";
+            exit;
+        }
+
+        require __DIR__ . '/../Views/auth/reset_password.php';
+    }
 }
