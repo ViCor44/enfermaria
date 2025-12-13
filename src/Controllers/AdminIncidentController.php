@@ -55,19 +55,19 @@ class AdminIncidentController
         $role          = $_SESSION['role'] ?? '';
         $currentUserId = (int)($_SESSION['user_id'] ?? 0);
 
-        $canSeePatient = false;
-
+                // 1. Administrador vê sempre
         if ($role === 'Administrador') {
-            // Admin vê sempre
             $canSeePatient = true;
+        }
+        // 2. Enfermeiro responsável pelo acidente
+        elseif ($role === 'Enfermeiro') {
 
-        } elseif ($role === 'Enfermeiro') {
-            // Enfermeiro só vê se tiver tratado este Acidente
-            foreach ($treatments as $tr) {
-                if ((int)$tr['user_id'] === $currentUserId) {
-                    $canSeePatient = true;
-                    break;
-                }
+            // confirmar como está o nome do campo que guarda o ID do enfermeiro no acidente
+            // assumo 'nurse_user_id' mas modifica se necessário
+            $responsavelId = (int)($incident['user_id'] ?? 0);
+
+            if ($responsavelId === $currentUserId) {
+                $canSeePatient = true;
             }
         }
 
@@ -97,21 +97,21 @@ class AdminIncidentController
 
         $canSeePatient = false;
 
+        // 1. Administrador vê sempre
         if ($role === 'Administrador') {
-            // Admin vê sempre
             $canSeePatient = true;
+        }
+        // 2. Enfermeiro responsável pelo acidente
+        elseif ($role === 'Enfermeiro') {
 
-        } elseif ($role === 'Enfermeiro') {
-            // Enfermeiro só vê se tiver tratado este Acidente
-            foreach ($treatments as $tr) {
-                if ((int)$tr['user_id'] === $currentUserId) {
-                    $canSeePatient = true;
-                    break;
-                }
+            // confirmar como está o nome do campo que guarda o ID do enfermeiro no acidente
+            // assumo 'nurse_user_id' mas modifica se necessário
+            $responsavelId = (int)($incident['user_id'] ?? 0);
+
+            if ($responsavelId === $currentUserId) {
+                $canSeePatient = true;
             }
         }
-
-        $treatments = \App\Models\Treatment::findByIncidentId($id);
 
         // Carregar HTML da view
         $viewFile = __DIR__ . '/../Views/admin/incident_pdf.php';
@@ -133,112 +133,47 @@ class AdminIncidentController
         $options->set('isHtml5ParserEnabled', true);
 
         try {
-    $dompdf = new \Dompdf\Dompdf($options);
-    $dompdf->loadHtml($html);
+            $dompdf = new \Dompdf\Dompdf($options);
+            $dompdf->loadHtml($html);
 
-    $dompdf->setPaper('A4');
-    $dompdf->render();
+            $dompdf->setPaper('A4');
+            $dompdf->render();
 
-    // Limpar qualquer buffer de saída existente (importantíssimo)
-    while (ob_get_level() > 0) {
-        ob_end_clean();
-    }
-
-    // Gera conteúdo PDF em memória
-    $pdfContent = $dompdf->output();
-
-    // Guarda para debug / confirmação
-    $outPath = sys_get_temp_dir() . '/acidente-' . $id . '.pdf';
-    file_put_contents($outPath, $pdfContent);
-
-    // Verifica o prefixo "%PDF-"
-    $starts = substr($pdfContent, 0, 5);
-    if ($starts !== '%PDF-') {
-        // grava ficheiro de debug com o conteúdo textual para inspecionar
-        file_put_contents(sys_get_temp_dir() . "/acidente-{$id}-bad.txt", substr($pdfContent, 0, 500));
-        throw new \Exception("O PDF gerado não começa com %PDF- (prefixo='$starts'). Verifique $outPath e arquivo de debug.");
-    }
-
-    // Enviar ficheiro para o browser com headers limpos
-    header('Content-Type: application/pdf');
-    header('Content-Length: ' . filesize($outPath));
-    header('Content-Disposition: attachment; filename="acidente-' . $id . '.pdf"');
-    readfile($outPath);
-    exit;
-
-} catch (\Exception $e) {
-    http_response_code(500);
-    echo "<h2>Erro ao gerar PDF</h2>";
-    echo "<pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
-    echo "<p>Ficheiro de debug: " . htmlspecialchars($outPath) . "</p>";
-    // grava stack trace
-    file_put_contents(sys_get_temp_dir() . '/incident-' . $id . '-error.txt', $e->getMessage() . "\n\n" . $e->getTraceAsString());
-    exit;
-}
-
-    }
-    // src/Controllers/AdminIncidentController.php
-    public function print(): void
-    {
-        // check permissions (só admins/managers? ajusta conforme regras)
-        \App\Core\Auth::requireRole(['Administrador', 'Manager', 'Enfermeiro']);
-
-        $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
-        if ($id <= 0) {
-            http_response_code(400);
-            echo 'ID inválido';
-            return;
-        }
-
-        // carregar modelo de incidente e tratamentos (usa os teus métodos existentes)
-        $incident = \App\Models\Incident::findWithDetailsForAdmin($id);
-        if (!$incident) {
-            http_response_code(404);
-            echo 'Acidente não encontrado';
-            return;
-        }
-
-        // buscar tratamentos (cria Treatment::findByIncidentId se não existir)
-        $treatments = \App\Models\Treatment::findByIncidentId($id);
-
-        // decidir se o utilizador actual pode ver dados do paciente
-        $currentUserId = $_SESSION['user_id'] ?? null;
-        $role = $_SESSION['role'] ?? '';
-        $canSeePatient = false;
-
-        if ($role === 'Administrador') {
-            // Admin vê sempre
-            $canSeePatient = true;
-
-        } elseif ($role === 'Enfermeiro') {
-            // Enfermeiro só vê se tiver tratado este Acidente
-            foreach ($treatments as $tr) {
-                if ((int)$tr['user_id'] === $currentUserId) {
-                    $canSeePatient = true;
-                    break;
-                }
+            // Limpar qualquer buffer de saída existente (importantíssimo)
+            while (ob_get_level() > 0) {
+                ob_end_clean();
             }
+
+            // Gera conteúdo PDF em memória
+            $pdfContent = $dompdf->output();
+
+            // ===================================================
+            // NOVO BLOCO — GRAVAR PDF NO SERVIDOR + ABRIR NA ABA
+            // ===================================================
+
+            $publicDir = realpath(__DIR__ . '/../../public');
+            $pdfDir = $publicDir . '/pdfs/';
+
+            if (!is_dir($pdfDir)) {
+                mkdir($pdfDir, 0777, true);
+            }
+
+            $filename = 'acidente-' . $id . '.pdf';
+            $filePath = $pdfDir . $filename;
+
+            file_put_contents($filePath, $pdfContent);
+
+            $pdfUrl = '/enfermaria/public/pdfs/' . $filename;
+
+            header("Location: $pdfUrl");
+            exit;
+
+        } catch (\Exception $e) {
+            http_response_code(500);
+            echo "<h2>Erro ao gerar PDF</h2>";
+            echo "<pre>" . htmlspecialchars($e->getMessage()) . "</pre>";
+            exit;
         }
 
-        // renderizar o template de impressão para uma string (output buffering)
-        $viewFile = __DIR__ . '/../Views/admin/incident_print.php';
-        ob_start();
-        require $viewFile; // este ficheiro deve usar $incident, $treatments, $canSeePatient
-        $html = ob_get_clean();
-
-        // gerar PDF com Dompdf
-        $options = new \Dompdf\Options();
-        $options->set('isRemoteEnabled', true); // se usas imagens ou css externos
-        $options->set('defaultFont', 'Arial'); // garantir Arial
-        $dompdf = new \Dompdf\Dompdf($options);
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->loadHtml($html);
-        $dompdf->render();
-
-        // stream (forçar download) ou inline exibir no browser
-        $filename = 'acidente-' . $id . '.pdf';
-        $dompdf->stream($filename, ['Attachment' => false]); // false = abre inline
     }
-
-
 }
