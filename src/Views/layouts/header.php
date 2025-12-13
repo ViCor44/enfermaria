@@ -6,14 +6,30 @@ $role    = $role    ?? ($_SESSION['role'] ?? '');
 $roleLabel = $role;
 $route = $_GET['route'] ?? 'dashboard';
 ?>
+<style>
+    .brand-logo {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 12px;
+    }
+
+    .logo-sae {
+        height: 48px;      /* Ajustável conforme preferir */
+        width: auto;
+        display: block;
+    }
+</style>
 <header class="topbar">
     <div class="topbar-inner">
         <!-- Marca -->
         <div class="brand">
-            <div class="brand-logo">E</div>
+            <div class="brand-logo">
+                <img src="/enfermaria/public/assets/img/logo-sae.png" alt="SAE" class="logo-sae">
+            </div>
             <div>
-                <div class="brand-text-title">Enfermaria • Parque Aquático</div>
-                <div class="brand-text-sub">Gestão de Acidentes e tratamentos</div>
+                <div class="brand-text-title">Sistema de Apoio à Enfermaria</div>
+                <div class="brand-text-sub">Gestão de Acidentes e Tratamentos</div>
             </div>
         </div>
 
