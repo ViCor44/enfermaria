@@ -232,13 +232,26 @@ class AuthController
 
     public function showResetPasswordForm()
     {
-        $token = $_GET['token'] ?? null;
+        $token = $_GET['token'] ?? '';
 
-        if (!$token) {
-            echo "Token inválido.";
+        $db = \App\Core\Database::getConnection();
+
+        $stmt = $db->prepare("SELECT id, expires_at FROM password_resets WHERE token = ?");
+        $stmt->execute([$token]);
+        $row = $stmt->fetch();
+
+        // Token inexistente ou expirado → mostrar página dedicada
+        if (!$row || strtotime($row['expires_at']) < time()) {
+            
+            // Apagar tokens inválidos
+            $del = $db->prepare("DELETE FROM password_resets WHERE token = ?");
+            $del->execute([$token]);
+
+            require __DIR__ . '/../Views/auth/token_expired.php';
             exit;
         }
 
+        // Token válido → mostrar formulário
         require __DIR__ . '/../Views/auth/reset_password.php';
     }
 }
