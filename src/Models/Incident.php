@@ -253,4 +253,55 @@ class Incident
         return (int)$pdo->lastInsertId();
     }
 
+    public static function statsByAge(): array
+    {
+        $db = Database::getConnection();
+        $sql = "
+            SELECT 
+                CASE 
+                    WHEN patient_age < 5 THEN '0-4'
+                    WHEN patient_age BETWEEN 5 AND 12 THEN '5-12'
+                    WHEN patient_age BETWEEN 13 AND 17 THEN '13-17'
+                    WHEN patient_age BETWEEN 18 AND 30 THEN '18-30'
+                    WHEN patient_age BETWEEN 31 AND 50 THEN '31-50'
+                    ELSE '50+' 
+                END AS faixa,
+                COUNT(*) AS total
+            FROM incidents
+            GROUP BY faixa
+            ORDER BY faixa;
+        ";
+        return $db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public static function statsByGender(): array
+    {
+        $db = Database::getConnection();
+        $sql = "SELECT patient_gender AS genero, COUNT(*) AS total 
+                FROM incidents 
+                GROUP BY patient_gender";
+        return $db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public static function statsByLocation(): array
+    {
+        $db = Database::getConnection();
+        $sql = "SELECT l.name AS local, COUNT(*) AS total
+                FROM incidents i
+                JOIN locations l ON i.location_id = l.id
+                GROUP BY l.name";
+        return $db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public static function statsByIncidentType(): array
+    {
+        $db = Database::getConnection();
+        $sql = "SELECT t.name AS tipo, COUNT(*) AS total
+                FROM incidents i
+                JOIN incident_types t ON i.incident_type_id = t.id
+                GROUP BY t.name";
+        return $db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+
 }

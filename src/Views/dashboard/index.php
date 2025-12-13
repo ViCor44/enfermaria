@@ -129,12 +129,10 @@
 
     <!-- Acidentes de hoje -->
     <?php
-    if ($role === 'Enfermeiro') {
-        $AcidentesHref = $baseUrl . '?route=incidents_my&from=' . $today . '&to=' . $today;
-    } else {
-        // Admin / Manager / outros
+    
+        
         $AcidentesHref = $baseUrl . '?route=admin_incidents&from=' . $today . '&to=' . $today;
-    }
+    
     ?>
     <a class="dashboard-card link-card" href="<?= htmlspecialchars($AcidentesHref) ?>">
         <h3>Acidentes de hoje</h3>
@@ -143,11 +141,9 @@
 
     <!-- Tratamentos em curso -->
     <?php
-    if ($role === 'Enfermeiro') {
-        $tratamentosHref = $baseUrl . '?route=treatments_my&status=em_curso';
-    } else {
+    
         $tratamentosHref = $baseUrl . '?route=admin_treatments&status=em_curso';
-    }
+    
     ?>
     <a class="dashboard-card link-card" href="<?= htmlspecialchars($tratamentosHref) ?>">
         <h3>Tratamentos em curso</h3>

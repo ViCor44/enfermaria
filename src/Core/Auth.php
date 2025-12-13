@@ -40,4 +40,16 @@ class Auth
             exit;
         }
     }
+
+    public static function requireAdmin(): void
+    {
+        self::requireLogin();
+
+        if (!isset($_SESSION['role'])) {
+            http_response_code(403);
+            echo "Acesso restrito. Apenas administradores.";
+            exit;
+        }
+    }
+
 }

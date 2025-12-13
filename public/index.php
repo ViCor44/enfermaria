@@ -111,6 +111,9 @@ if ($route === 'login') {
 } elseif ($route === 'admin_incident_print') {
     $controller = new App\Controllers\AdminIncidentController();
     $controller->printPdf();
+} elseif ($route === 'admin_stats') {
+    $controller = new App\Controllers\AdminStatsController();
+    $controller->index();
 
 } else {
     http_response_code(404);

@@ -37,6 +37,10 @@ $route = $_GET['route'] ?? 'dashboard';
                    class="nav-link <?= $route === 'admin_users' ? 'active' : '' ?>">
                     Utilizadores
                 </a>
+                <a href="/enfermaria/public/index.php?route=admin_stats"
+                    class="nav-link <?= ($_GET['route'] ?? '') === 'admin_stats' ? 'active' : '' ?>">
+                    Estatísticas
+                </a>
             <?php endif; ?>
 
             <?php if ($role === 'Enfermeiro'): ?>
@@ -58,6 +62,10 @@ $route = $_GET['route'] ?? 'dashboard';
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
                    class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
                     Acidentes
+                </a>
+                <a href="/enfermaria/public/index.php?route=admin_stats"
+                    class="nav-link <?= ($_GET['route'] ?? '') === 'admin_stats' ? 'active' : '' ?>">
+                    Estatísticas
                 </a>
             <?php endif; ?>
         </nav>

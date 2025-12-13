@@ -75,7 +75,7 @@ $currentUserId = $_SESSION['user_id'] ?? null;
         Gerar PDF
     </a>
 
-    <h1>Acidente #<?= (int)$incident['id'] ?></h1>
+    <h1>Episódio #<?= (int)$incident['id'] ?></h1>
 
     <!-- Dados do Acidente -->
     <div class="card">

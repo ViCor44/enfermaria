@@ -272,4 +272,14 @@ class Treatment
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    public static function statsByType(): array
+    {
+        $db = Database::getConnection();
+        $sql = "SELECT tt.name AS tipo, COUNT(*) AS total
+                FROM treatments tr
+                JOIN treatment_types tt ON tr.treatment_type_id = tt.id
+                GROUP BY tt.name";
+        return $db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
 }
