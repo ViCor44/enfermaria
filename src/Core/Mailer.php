@@ -17,7 +17,7 @@ class Mailer {
         $this->mail->Host       = 'smtp.gmail.com';  // Ex: Gmail, sendgrid, empresa, etc
         $this->mail->SMTPAuth   = true;
         $this->mail->Username   = 'slide.rocketchat@gmail.com';
-        $this->mail->Password   = 'abel jacr oqpd hdit';
+        $this->mail->Password   = 'YOUR_KEY';
         $this->mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $this->mail->Port       = 587;
 
