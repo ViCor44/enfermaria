@@ -12,15 +12,10 @@ class DashboardController
     {
         $role = $_SESSION['role'] ?? '';
         $user = $_SESSION['user_id'] ?? null;
-
-        if ($role === 'Enfermeiro' && $user) {
-            $AcidentesHoje = \App\Models\Incident::countToday((int)$user);
-            $tratamentosEmCurso = \App\Models\Treatment::countInProgress((int)$user);
-        } else {
-            // Admin / Manager / outros veem números globais
-            $AcidentesHoje = \App\Models\Incident::countToday(null);
-            $tratamentosEmCurso = \App\Models\Treatment::countInProgress(null);
-        }
+        
+        // Admin / Manager / outros veem números globais
+        $AcidentesHoje = \App\Models\Incident::countToday(null);
+        $tratamentosEmCurso = \App\Models\Treatment::countInProgress(null);        
 
         $ultimoAcesso = $_SESSION['last_login'] ?? null; // ou busca no model/users
 

@@ -63,7 +63,7 @@ class TreatmentController
         ]);
 
         $_SESSION['success'] = 'Tratamento registado com sucesso.';
-        header('Location: ' . $this->baseUrl . '?route=treatments_my');
+        header('Location: ' . $this->baseUrl . '?route=admin:treatments');
     }
 
     public function changeStatus(): void
@@ -72,7 +72,7 @@ class TreatmentController
         Auth::requireRole(['Enfermeiro']);
 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            header('Location: ' . $this->baseUrl . '?route=treatments_my');
+            header('Location: ' . $this->baseUrl . '?route=admin_treatments');
             exit;
         }
 
@@ -81,7 +81,7 @@ class TreatmentController
 
         if ($treatmentId <= 0 || !in_array($newStatus, ['em_curso','concluido'], true)) {
             $_SESSION['error'] = 'Pedido inválido.';
-            header('Location: ' . $this->baseUrl . '?route=treatments_my');
+            header('Location: ' . $this->baseUrl . '?route=admin_treatments');
             exit;
         }
 
@@ -96,7 +96,7 @@ class TreatmentController
 
         if ($ownerId !== $userId) {
             $_SESSION['error'] = 'Só o enfermeiro responsável pode alterar este tratamento.';
-            header('Location: ' . $this->baseUrl . '?route=treatments_my');
+            header('Location: ' . $this->baseUrl . '?route=admin_treatments');
             exit;
         }
 
@@ -108,7 +108,7 @@ class TreatmentController
             $_SESSION['error'] = 'Erro ao atualizar estado.';
         }
 
-        header('Location: ' . $this->baseUrl . '?route=treatments_my');
+        header('Location: ' . $this->baseUrl . '?route=admin_treatments');
         exit;
     }
 
@@ -124,7 +124,7 @@ class TreatmentController
         $treatmentId = isset($_POST['treatment_id']) ? (int)$_POST['treatment_id'] : 0;
         if ($treatmentId <= 0) {
             $_SESSION['error'] = 'Tratamento inválido.';
-            header('Location: ' . $this->baseUrl . '?route=treatments_my');
+            header('Location: ' . $this->baseUrl . '?route=admin_treatments');
             exit;
         }
 
@@ -141,7 +141,7 @@ class TreatmentController
         }
 
         // volta para a lista dos tratamentos (ou para a página que achas melhor)
-        header('Location: ' . $this->baseUrl . '?route=treatments_my');
+        header('Location: ' . $this->baseUrl . '?route=admin_treatments');
         exit;
     }
 

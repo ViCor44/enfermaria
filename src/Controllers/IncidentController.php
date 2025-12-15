@@ -207,7 +207,7 @@ class IncidentController
             $pdo->commit();
 
             $_SESSION['success'] = 'Incidente registado com sucesso.' . ($treatmentTypeId > 0 ? ' Tratamento também registado.' : '') . ($isHospitalTreatment ? ' Utente enviado para hospital registado.' : '');
-            header('Location: ' . $this->baseUrl . '?route=incidents_my');
+            header('Location: ' . $this->baseUrl . '?route=admin_incidents');
             exit;
 
         } catch (\Throwable $e) {
