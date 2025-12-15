@@ -16,32 +16,47 @@ class AuthController
     {
         $email = trim($_POST['email'] ?? '');
         $password = $_POST['password'] ?? '';
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
+        // 1) Campos vazios
         if ($email === '' || $password === '') {
+
+            \App\Helpers\Logger::login("FAIL (missing fields) | email='{$email}' | ip='{$ip}'");
+
             $_SESSION['error'] = 'Preencha todos os campos.';
             header('Location: ' . $this->baseUrl . '?route=login');
             exit;
         }
 
+        // 2) Procurar utilizador
         $user = User::findByEmail($email);
 
         if (!$user || !password_verify($password, $user['password_hash'])) {
+
+            \App\Helpers\Logger::login("FAIL (invalid credentials) | email='{$email}' | ip='{$ip}'");
+
             $_SESSION['error'] = 'Credenciais inválidas.';
             header('Location: ' . $this->baseUrl . '?route=login');
             exit;
         }
 
+        // 3) Conta não aprovada
         if ((int)$user['approved'] !== 1) {
+
+            \App\Helpers\Logger::login("FAIL (account not approved) | email='{$email}' | user_id='{$user['id']}' | ip='{$ip}'");
+
             $_SESSION['error'] = 'Conta ainda não aprovada pelo administrador.';
             header('Location: ' . $this->baseUrl . '?route=login');
             exit;
         }
 
+        // SUCESSO
+        \App\Helpers\Logger::login("SUCCESS | email='{$email}' | user_id='{$user['id']}' | ip='{$ip}'");
+
+        // Sessão
         session_regenerate_id(true);
 
-        // guardar último acesso ANTES de atualizar
-        $_SESSION['last_login'] = $user['last_login']; // pode ser null na 1ª vez
-
+        $_SESSION['last_login'] = $user['last_login'];
         $_SESSION['user_id']   = $user['id'];
         $_SESSION['role']      = $user['role_name'];
         $_SESSION['user_name'] = $user['full_name'];
@@ -50,7 +65,6 @@ class AuthController
 
         header('Location: ' . $this->baseUrl . '?route=dashboard');
         exit;
-
     }
 
     public function logout(): void
@@ -254,4 +268,44 @@ class AuthController
         // Token válido → mostrar formulário
         require __DIR__ . '/../Views/auth/reset_password.php';
     }
+
+    public function login_submit()
+{
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    $ip = \App\Helpers\IP::get();
+
+    $db = \App\Core\Database::getConnection();
+
+    // Procurar utilizador
+    $stmt = $db->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
+    $stmt->execute(['email' => $email]);
+    $user = $stmt->fetch();
+
+    // Falha: email não existe
+    if (!$user) {
+        \App\Helpers\Logger::login("FAIL (email not found) | email={$email} | ip={$ip}");
+        $_SESSION['error'] = "Credenciais inválidas.";
+        header("Location: index.php?route=login");
+        exit;
+    }
+
+    // Falha: password errada
+    if (!password_verify($password, $user['password'])) {
+        \App\Helpers\Logger::login("FAIL (wrong password) | email={$email} | user_id={$user['id']} | ip={$ip}");
+        $_SESSION['error'] = "Credenciais inválidas.";
+        header("Location: index.php?route=login");
+        exit;
+    }
+
+    // Sucesso
+    \App\Helpers\Logger::login("SUCCESS | email={$email} | user_id={$user['id']} | ip={$ip}");
+
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['user_name'] = $user['full_name'];
+    $_SESSION['role'] = $user['role'];
+
+    header("Location: index.php?route=dashboard");
+    exit;
+}
 }
