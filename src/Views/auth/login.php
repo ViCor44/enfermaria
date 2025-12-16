@@ -1,3 +1,6 @@
+<?php
+$baseUrl = '/enfermaria/public/index.php';
+?>
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -136,7 +139,7 @@
 
         <!-- Logo SAE (SVG direto) -->
         <div class="logo">
-            <svg viewBox="0 0 300 360">
+            <svg href="<?= $baseUrl ?>?route=about" viewBox="0 0 300 360">
                 <rect x="55" y="20" width="190" height="150" rx="20" stroke="#a8d4ff" stroke-width="12" fill="none"/>
                 <rect x="95" y="120" width="30" height="50" fill="#a8d4ff"/>
                 <rect x="135" y="90" width="30" height="80" fill="#a8d4ff"/>
@@ -160,6 +163,8 @@
         <p>
             Aceda ao painel para gerir acidentes, tratamentos e utilizadores de forma simples e rápida.
         </p>
+        <a href="<?= $baseUrl ?>?route=about" class="nav-link <?= $route === 'about' ? 'active' : '' ?>">Sobre</a>
+
     </div>
 
     <!-- PAINEL DIREITO -->

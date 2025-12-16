@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+date_default_timezone_set('Europe/Lisbon');
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -133,6 +134,8 @@ if ($route === 'login') {
     // Submeter nova password
     $controller = new App\Controllers\AuthController();
     $controller->reset_submit();
+} elseif ($route === 'about') {
+    require __DIR__ . '/../src/Views/about.php';
 
 } else {
     http_response_code(404);

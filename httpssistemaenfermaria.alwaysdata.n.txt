@@ -1,0 +1,13 @@
+https://sistemaenfermaria.alwaysdata.net/
+
+Administrador:
+admin@parque,pt
+admin123
+
+Enfermeiro:
+pinto@gmail.com
+123456
+
+Manager:
+j@gmail.com
+123456

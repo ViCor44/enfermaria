@@ -25,7 +25,7 @@ $route = $_GET['route'] ?? 'dashboard';
         <!-- Marca -->
         <div class="brand">
             <div class="brand-logo">
-                <img src="/enfermaria/public/assets/img/logo-sae.png" alt="SAE" class="logo-sae">
+                <img href="<?= $baseUrl ?>?route=about" src="/enfermaria/public/assets/img/logo-sae.png" alt="SAE" class="logo-sae">
             </div>
             <div>
                 <div class="brand-text-title">Sistema de Apoio à Enfermaria</div>
