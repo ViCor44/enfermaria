@@ -163,7 +163,7 @@ $baseUrl = '/enfermaria/public/index.php';
         <p>
             Aceda ao painel para gerir acidentes, tratamentos e utilizadores de forma simples e rápida.
         </p>
-        <a href="<?= $baseUrl ?>?route=about" class="nav-link <?= $route === 'about' ? 'active' : '' ?>">Sobre</a>
+        <a href="<?= $baseUrl ?>?route=about" class="nav-link">Sobre</a>
 
     </div>
 

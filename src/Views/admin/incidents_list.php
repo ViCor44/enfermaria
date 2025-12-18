@@ -14,47 +14,178 @@ $locationId = isset($_GET['location_id']) ? (int)$_GET['location_id'] : 0;
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>
-body { margin:0; font-family:system-ui,sans-serif; background:#f3f6fb; }
-header {
-    background:#1f6feb; color:#fff; padding:1rem 2rem;
-    display:flex; justify-content:space-between; align-items:center;
+body { 
+    margin: 0; 
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
+    background: #f5f7fb; 
+    color: #333; 
 }
-main { max-width:1200px; margin:0 auto; padding:2rem; }
-h1 { margin-top:0; }
+header {
+    background: #1f6feb; 
+    color: #fff; 
+    padding: 1rem 2rem;
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+.logo {
+    font-weight: 700;
+    letter-spacing: .03em;
+    font-size: 1.2rem;
+}
+.user-info {
+    font-size: .9rem;
+    text-align: right;
+}
+.user-info a {
+    color: #fff;
+    text-decoration: underline;
+    margin-left: .5rem;
+}
+main { 
+    max-width: 1200px; 
+    margin: 0 auto; 
+    padding: 2rem; 
+    text-align: center; /* Centraliza para consistência com login e dashboard */
+}
+h1 { 
+    margin-top: 0; 
+    font-size: 2rem;
+    color: #1f6feb;
+}
+.subtitle { 
+    font-size: 1rem; 
+    color: #777; 
+    margin-bottom: 2rem; 
+}
 
 .filters {
-    background:#fff; padding:1rem 1.5rem; border-radius:12px;
-    box-shadow:0 8px 20px rgba(0,0,0,.06);
-    margin-bottom:1.5rem;
+    background: #fff; 
+    padding: 1.5rem; 
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    margin-bottom: 1.5rem;
+    text-align: left; /* Alinha filtros à esquerda para melhor usabilidade */
 }
-.filters form { display:flex; flex-wrap:wrap; gap:1rem; align-items:flex-end; }
-.filters label { display:block; font-size:.85rem; font-weight:600; color:#555; }
+.filters form { 
+    display: flex; 
+    flex-wrap: wrap; 
+    gap: 1rem; 
+    align-items: flex-end; 
+}
+.filters label { 
+    display: block; 
+    font-size: .9rem; 
+    font-weight: 600; 
+    color: #555; 
+    margin-bottom: 0.3rem;
+}
 .filters input, .filters select {
-    padding:.4rem .5rem; border-radius:6px; border:1px solid #ccc; min-width:160px;
+    padding: 0.6rem 0.8rem; 
+    border-radius: 8px; 
+    border: 1px solid #ddd; 
+    min-width: 180px;
+    background: #fff;
+    transition: border-color 0.2s ease;
+}
+.filters input:focus, .filters select:focus {
+    border-color: #1f6feb;
+    outline: none;
 }
 .filters button {
-    padding:.5rem 1rem; border:none; border-radius:8px; cursor:pointer;
-    background:#1f6feb; color:#fff; font-size:.9rem;
+    padding: 0.6rem 1.2rem; 
+    border: none; 
+    border-radius: 8px; 
+    cursor: pointer;
+    background: #1f6feb; 
+    color: #fff; 
+    font-size: .95rem;
+    transition: background 0.2s ease;
+}
+.filters button:hover {
+    background: #0f5bdb;
 }
 .filters a.btn-reset {
-    padding:.5rem 1rem; border-radius:8px; font-size:.85rem; text-decoration:none;
-    border:1px solid #ccc; color:#555; background:#f8f9fb;
+    padding: 0.6rem 1.2rem; 
+    border-radius: 8px; 
+    font-size: .95rem; 
+    text-decoration: none;
+    border: 1px solid #ddd; 
+    color: #555; 
+    background: #f8f9fb;
+    transition: background 0.2s ease;
+}
+.filters a.btn-reset:hover {
+    background: #e9ecef;
 }
 
 table {
-    width:100%; border-collapse:collapse; background:#fff;
-    border-radius:12px; overflow:hidden;
-    box-shadow:0 8px 20px rgba(0,0,0,.06);
+    width: 100%; 
+    border-collapse: collapse; 
+    background: #fff;
+    border-radius: 12px; 
+    overflow: hidden;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    margin: 0 auto;
 }
-th,td { padding:.7rem .8rem; border-bottom:1px solid #eee; font-size:.9rem; text-align:left; }
-th { background:#f0f4ff; }
-tr:last-child td { border-bottom:none; }
+th, td { 
+    padding: 0.8rem 1rem; 
+    border-bottom: 1px solid #eee; 
+    font-size: .95rem; 
+    text-align: left; 
+}
+th { 
+    background: #f0f4ff; 
+    font-weight: 600;
+    color: #555;
+}
+tr:last-child td { 
+    border-bottom: none; 
+}
+tr:hover {
+    background: #f8faff;
+}
+a {
+    color: #1f6feb;
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
 
 .badge {
-    display:inline-block; padding:.15rem .5rem; border-radius:999px;
-    font-size:.75rem; background:#e5f2ff; color:#1f6feb;
+    display: inline-block; 
+    padding: 0.3rem 0.7rem; 
+    border-radius: 999px;
+    font-size: .8rem; 
+    background: #e5f2ff; 
+    color: #1f6feb;
+    font-weight: 500;
 }
-.subtitle { font-size:.9rem; color:#666; margin-bottom:.5rem; }
+
+.separator {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 2rem 0;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    main {
+        padding: 1rem;
+    }
+    .filters form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filters div {
+        width: 100%;
+    }
+    table {
+        font-size: 0.85rem;
+    }
+}
 </style>
 </head>
 <body>
@@ -63,6 +194,8 @@ tr:last-child td { border-bottom:none; }
 <main>
     <h1>Acidentes</h1>
     <p class="subtitle">Pesquisa por intervalo de datas e local (apenas visão de administração, com dados agregados).</p>
+
+    <hr class="separator"> <!-- Adicionado para consistência com login e dashboard -->
 
     <div class="filters">
         <form method="get" action="<?= $baseUrl ?>">

@@ -10,44 +10,168 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>
-    body { margin:0; font-family:system-ui,sans-serif; background:#f3f6fb; }
+    body { 
+        margin: 0; 
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
+        background: #f5f7fb; 
+        color: #333; 
+    }
     header {
-        background:#1f6feb; color:#fff; padding:1rem 2rem;
-        display:flex; justify-content:space-between; align-items:center;
+        background: #1f6feb; 
+        color: #fff; 
+        padding: 1rem 2rem;
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
-    main { max-width:900px; margin:0 auto; padding:2rem; }
-    h1 { margin-top:0; }
+    .logo {
+        font-weight: 700;
+        letter-spacing: .03em;
+        font-size: 1.2rem;
+    }
+    .user-info {
+        font-size: .9rem;
+        text-align: right;
+    }
+    .user-info a {
+        color: #fff;
+        text-decoration: underline;
+        margin-left: .5rem;
+    }
+    main { 
+        max-width: 1200px; 
+        margin: 0 auto; 
+        padding: 2rem; 
+        text-align: center; /* Centraliza para consistência */
+    }
+    h1 { 
+        margin-top: 0; 
+        font-size: 2rem;
+        color: #1f6feb;
+    }
     form {
-        background:#fff; padding:1.5rem; border-radius:12px;
-        box-shadow:0 8px 20px rgba(0,0,0,.06);
+        background: #fff; 
+        padding: 2rem; /* Aumentado padding para mais espaço */
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        text-align: left; /* Alinha form à esquerda */
     }
-    label { display:block; margin-top:1rem; font-weight:600; color:#555; }
+    label { 
+        display: block; 
+        margin-top: 1rem; 
+        font-weight: 600; 
+        color: #555; 
+    }
+    label.required::after {
+        content: " *";
+        color: #e53e3e; /* Vermelho para required */
+    }
     input, select, textarea {
-        width:100%; padding:.6rem; margin-top:.3rem; border-radius:6px; border:1px solid #ccc;
+        width: 100%; 
+        padding: 0.7rem 0.9rem; /* Aumentado padding para inputs maiores */
+        margin-top: 0.3rem; 
+        border-radius: 8px; 
+        border: 1px solid #ddd; 
+        background: #fff;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    textarea { min-height:90px; resize:vertical; }
+    input:focus, select:focus, textarea:focus {
+        border-color: #1f6feb;
+        box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.1);
+        outline: none;
+    }
+    textarea { 
+        min-height: 120px; 
+        resize: vertical; 
+    }
     .row {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1.2rem;   /* <-- distância vertical entre as linhas */
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Melhorado para grid, mais responsivo */
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
     }
-
-    .row > div {
-        flex: 1;
-    }
-
     button {
-        margin-top:1.5rem; padding:.8rem 1.4rem; border:none; border-radius:8px;
-        background:#1f6feb; color:#fff; font-size:1rem; cursor:pointer;
+        margin-top: 1.5rem; 
+        padding: 0.7rem 1.5rem; /* Aumentado para botão maior */
+        border: none; 
+        border-radius: 8px;
+        background: #1f6feb; 
+        color: #fff; 
+        font-size: 1rem; 
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.1s ease;
     }
-    button:hover { background:#1557c0; }
-    .flash-error { background:#ffe0e0; color:#900; padding:.7rem; border-radius:6px; margin-bottom:1rem; }
+    button:hover { 
+        background: #0f5bdb; 
+        transform: translateY(-2px);
+    }
+    .flash-error { 
+        background: #ffe0e0; 
+        color: #900; 
+        padding: 0.7rem; 
+        border-radius: 6px; 
+        margin-bottom: 1rem; 
+    }
+    .small {
+        font-size: 0.85rem;
+        color: #777;
+        margin-top: 0.3rem;
+    }
+    .section-title {
+        margin-top: 2rem;
+        font-weight: 600;
+        color: #555;
+        font-size: 1.1rem;
+    }
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    input[type="checkbox"] {
+        accent-color: #1f6feb; /* Cor do checkbox */
+        width: 18px;
+        height: 18px;
+    }
+    #treatment-block {
+        margin-top: 1rem;
+        padding: 1.5rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px solid #eee;
+    }
+    #patient-block {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        border-radius: 8px;
+        background: #fff7e6;
+        border: 1px solid #ffe4b5;
+    }
+    .separator {
+        border: none;
+        border-top: 1px solid #ddd;
+        margin: 2rem 0;
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        main {
+            padding: 1rem;
+        }
+        form {
+            padding: 1.5rem;
+        }
+    }
 </style>
 </head>
 <body>
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 <main>
     <h1>Registar novo Acidente</h1>
+
+    <hr class="separator">
 
     <?php if (!empty($_SESSION['error'])): ?>
         <div class="flash-error">
@@ -59,7 +183,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         <div class="row">
             <!-- TIPO DE Acidente (input com datalist) -->
             <div style="margin-right: 24px;">
-                <label>Tipo de Acidente *</label>
+                <label class="required">Tipo de Acidente</label>
                 <input
                     list="incident-types-list"
                     name="incident_type_input"
@@ -75,13 +199,10 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                 </datalist>
                 <input type="hidden" name="incident_type_id" id="incident_type_id" value="">
                 <div class="small">Pode escrever novo tipo de acidente ou escolher da lista — se não existir será criado.</div>
-
             </div>
             
             <div style="margin-right: 24px;">
-                <label>Local / Atração *</label>
-
-                <!-- input com datalist — o utilizador pode escrever ou escolher -->
+                <label class="required">Local / Atração</label>
                 <input
                     list="locations-list"
                     name="location_input"
@@ -90,16 +211,12 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                     required
                     autocomplete="off"
                 >
-
                 <datalist id="locations-list">
                     <?php foreach ($locations as $loc): ?>
                         <option value="<?= htmlspecialchars($loc['name']) ?>" data-id="<?= (int)$loc['id'] ?>"></option>
                     <?php endforeach; ?>
                 </datalist>
-
-                <!-- hidden com o id (preenchido pelo JS se escolher uma sugestão) -->
                 <input type="hidden" name="location_id" id="location_id" value="">
-
                 <div class="small">Pode escrever o nome do local ou escolher da lista — se não existir será criado.</div>
             </div>
 
@@ -107,13 +224,13 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         
 
         <!-- LINHA DATA / HORA -->
-        <div class="row" style="margin-bottom: 24px;">
+        <div class="row">
             <div style="margin-right: 24px;">
-                <label>Data *</label>
+                <label class="required">Data</label>
                 <input type="date" name="date" required value="<?= date('Y-m-d') ?>">
             </div>
             <div style="margin-right: 24px;">
-                <label>Hora *</label>
+                <label class="required">Hora</label>
                 <input type="time" name="time" required value="<?= date('H:i') ?>">
             </div>
         </div>
@@ -135,13 +252,15 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
             </div>
         </div>
 
+        <div style="margin-right: 24px;">
         <label>Descrição / Observações (opcional)</label>
-        <textarea name="description" placeholder="Descrição sucinta do Acidente, sem dados de identificação desnecessários."></textarea>
+        <textarea style="margin-right: 24px;" name="description" placeholder="Descrição sucinta do Acidente, sem dados de identificação desnecessários."></textarea>
+        </div>
 
         <div class="section-title">
-            <div class="form-check" style="display:flex; align-items:center; gap:10px; margin: 10px 0 20px;">
-                <input type="checkbox" id="toggle-treatment" name="add_treatment" style="width:18px; height:18px;">
-                <label for="add_treatment" style="cursor:pointer; font-size:16px;">
+            <div class="form-check">
+                <input type="checkbox" id="toggle-treatment" name="add_treatment">
+                <label for="add_treatment" style="cursor:pointer;">
                     Adicionar tratamento agora
                 </label>
             </div>
@@ -166,7 +285,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                     </datalist>
                     <input type="hidden" name="treatment_type_id" id="treatment_type_id" value="">
                 </div>
-                <div style="max-width:180px;">
+                <div style="margin-right: 24px;">
                     <label>Estado</label>
                     <select name="treatment_status">
                         <option value="em_curso">Em curso</option>
@@ -179,12 +298,12 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
             <textarea name="treatment_notes" placeholder="Descreva o tratamento efetuado. Evite dados pessoais desnecessários."></textarea>
 
             <!-- Campos extra se for 'Enviado para hospital' -->
-            <div id="patient-block" style="display:none; margin-top:1rem; padding:1rem; border-radius:8px; background:#fff7e6;">
+            <div id="patient-block" style="display:none;">
                 <strong>Dados do utente (para envio ao hospital)</strong>
 
                 <div class="row">
                     <div style="margin-right: 24px;">
-                        <label>Nome completo do utente *</label>
+                        <label class="required">Nome completo do utente</label>
                         <input type="text" name="patient_name" id="patient_name">
                     </div>
                     <div style="margin-right: 24px;">
@@ -193,18 +312,18 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                     </div>
                 </div>
 
-                <div class="row" style="margin-top:1rem;">
+                <div class="row">
                     <div style="margin-right: 24px;">
-                        <label>Morada *</label>
+                        <label class="required">Morada</label>
                         <input type="text" name="patient_address" id="patient_address">
                     </div>
                     <div style="margin-right: 24px;">
-                        <label>Telefone *</label>
+                        <label class="required">Telefone</label>
                         <input type="text" name="patient_phone" id="patient_phone" placeholder="+351 912 345 678">
                     </div>
                 </div>
 
-                <div class="row" style="margin-top:1rem;">
+                <div class="row">
                     <div style="margin-right: 24px;">
                         <label>Data de Nascimento</label>
                         <input type="date" name="patient_dob" id="patient_dob">
@@ -219,7 +338,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                     </div>
                 </div>
 
-                <div class="row" style="margin-top:1rem;">
+                <div class="row">
                     <div style="margin-right: 24px;">
                         <label>Número de Identificação</label>
                         <input type="text" name="patient_id_number" id="patient_id_number" placeholder="Número do CC ou do Passaporte">
@@ -233,9 +352,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 
         </div>
 
-        <!-- --- Fim: bloco de Tratamento Aplicado --- -->
-
-        <button type="submit" style="margin-top:1.5rem;">Guardar Acidente</button>
+        <button type="submit">Guardar Acidente</button>
     </form>
 
     <script>

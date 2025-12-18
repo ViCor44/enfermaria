@@ -12,52 +12,167 @@ $currentUserId = $_SESSION['user_id'] ?? null;
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>
-    body { margin:0; font-family:system-ui,sans-serif; background:#f3f6fb; }
-    header {
-        background:#1f6feb; color:#fff; padding:1rem 2rem;
-        display:flex; justify-content:space-between; align-items:center;
+    body { 
+        margin: 0; 
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
+        background: #f5f7fb; 
+        color: #333; 
     }
-    main { max-width:1100px; margin:0 auto; padding:2rem; }
-    h1 { margin-top:0; }
+    header {
+        background: #1f6feb; 
+        color: #fff; 
+        padding: 1rem 2rem;
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .logo {
+        font-weight: 700;
+        letter-spacing: .03em;
+        font-size: 1.2rem;
+    }
+    .user-info {
+        font-size: .9rem;
+        text-align: right;
+    }
+    .user-info a {
+        color: #fff;
+        text-decoration: underline;
+        margin-left: .5rem;
+    }
+    main { 
+        max-width: 1200px; 
+        margin: 0 auto; 
+        padding: 2rem; 
+        text-align: center; /* Centraliza para consistência */
+    }
+    h1 { 
+        margin-top: 0; 
+        font-size: 2rem;
+        color: #1f6feb;
+    }
+    .subtitle { 
+        font-size: 1rem; 
+        color: #777; 
+        margin-bottom: 1rem; 
+    }
 
     .card {
-        background:#fff; border-radius:12px; padding:1.5rem;
-        box-shadow:0 8px 20px rgba(0,0,0,.06);
-        margin-bottom:1.5rem;
+        background: #fff; 
+        border-radius: 12px; 
+        padding: 1.5rem;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        margin-bottom: 1.5rem;
+        text-align: left; /* Alinha conteúdo das cards à esquerda para melhor leitura */
     }
-    .card h2 { margin-top:0; font-size:1.05rem; }
+    .card h2 { 
+        margin-top: 0; 
+        font-size: 1.2rem;
+        color: #555;
+    }
 
-    .row { display:flex; flex-wrap:wrap; gap:1.5rem; }
-    .row > div { flex:1; min-width:180px; }
+    .row { 
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 1.5rem; 
+    }
+    .row > div { 
+        flex: 1; 
+        min-width: 200px; 
+    }
 
-    .label { font-size:.8rem; font-weight:600; color:#555; text-transform:uppercase; letter-spacing:.03em; }
-    .value { margin-top:.2rem; font-size:.95rem; }
+    .label { 
+        font-size: .85rem; 
+        font-weight: 600; 
+        color: #555; 
+        text-transform: uppercase; 
+        letter-spacing: .03em; 
+    }
+    .value { 
+        margin-top: .3rem; 
+        font-size: .95rem; 
+    }
 
     .badge {
-        display:inline-block; padding:.15rem .6rem; border-radius:999px;
-        background:#e5f2ff; color:#1f6feb; font-size:.75rem;
+        display: inline-block; 
+        padding: 0.3rem 0.7rem; 
+        border-radius: 999px;
+        font-size: .8rem; 
+        background: #e5f2ff; 
+        color: #1f6feb;
+        font-weight: 500;
     }
 
-    .badge-status-curso { background:#fff7e6; color:#b36b00; }
-    .badge-status-concluido { background:#e6ffed; color:#047857; }
-
-    .table {
-        width:100%; border-collapse:collapse; font-size:.9rem;
+    .badge-status-curso { 
+        background: #fff7e6; 
+        color: #b36b00; 
     }
-    .table th, .table td {
-        padding:.6rem .7rem; border-bottom:1px solid #eee; text-align:left;
+    .badge-status-concluido { 
+        background: #e6ffed; 
+        color: #047857; 
     }
-    .table th { background:#f0f4ff; }
 
-    .subtitle { font-size:.9rem; color:#666; margin-bottom:.6rem; }
+    table {
+        width: 100%; 
+        border-collapse: collapse; 
+        background: #fff;
+        border-radius: 12px; 
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        margin: 0 auto;
+    }
+    th, td { 
+        padding: 0.8rem 1rem; 
+        border-bottom: 1px solid #eee; 
+        font-size: .95rem; 
+        text-align: left; 
+    }
+    th { 
+        background: #f0f4ff; 
+        font-weight: 600;
+        color: #555;
+    }
+    tr:last-child td { 
+        border-bottom: none; 
+    }
+    tr:hover {
+        background: #f8faff;
+    }
 
     .back-link {
-        text-decoration:none; color:#1f6feb; font-size:.9rem;    
+        text-decoration: none; 
+        color: #1f6feb; 
+        font-size: .95rem;
+        transition: text-decoration 0.2s ease;
+    }
+    .back-link:hover {
+        text-decoration: underline;
     }
     .separator {
-        margin: 0 12px;
+        margin: 0 0.5rem;
         color: #aaa;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
+    }
+
+    .separator-hr {
+        border: none;
+        border-top: 1px solid #ddd;
+        margin: 1.5rem 0;
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        main {
+            padding: 1rem;
+        }
+        .row {
+            flex-direction: column;
+            gap: 1rem;
+        }
+        table {
+            font-size: 0.85rem;
+        }
     }
 </style>
 </head>
@@ -65,17 +180,21 @@ $currentUserId = $_SESSION['user_id'] ?? null;
 
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 <main>
-    <a href="<?= $baseUrl ?>?route=admin_incidents" class="back-link">
-        ← Voltar à lista de Acidentes
-    </a>
+    <div style="text-align: left; margin-bottom: 1rem;">
+        <a href="<?= $baseUrl ?>?route=admin_incidents" class="back-link">
+            ← Voltar à lista de Acidentes
+        </a>
 
-    <span class="separator">|</span>
+        <span class="separator">|</span>
 
-    <a class="back-link" href="<?= $baseUrl ?>?route=admin_incident_print&id=<?= (int)$incident['id'] ?>" target="_blank">
-        Gerar PDF
-    </a>
+        <a class="back-link" href="<?= $baseUrl ?>?route=admin_incident_print&id=<?= (int)$incident['id'] ?>" target="_blank">
+            Gerar PDF
+        </a>
+    </div>
 
     <h1>Episódio #<?= (int)$incident['id'] ?></h1>
+
+    <hr class="separator-hr"> <!-- Adicionado para consistência com outras páginas -->
 
     <!-- Dados do Acidente -->
     <div class="card">
@@ -187,7 +306,7 @@ $currentUserId = $_SESSION['user_id'] ?? null;
         <?php if (empty($treatments)): ?>
             <p class="subtitle">Não existem tratamentos registados para este Acidente.</p>
         <?php else: ?>
-            <table class="table">
+            <table>
                 <thead>
                     <tr>
                         <th>Data registo</th>
