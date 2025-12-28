@@ -270,42 +270,127 @@ class AuthController
     }
 
     public function login_submit()
-{
-    $email = trim($_POST['email']);
-    $password = $_POST['password'];
-    $ip = \App\Helpers\IP::get();
+    {
+        $email = trim($_POST['email']);
+        $password = $_POST['password'];
+        $ip = \App\Helpers\IP::get();
 
-    $db = \App\Core\Database::getConnection();
+        $db = \App\Core\Database::getConnection();
 
-    // Procurar utilizador
-    $stmt = $db->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
-    $stmt->execute(['email' => $email]);
-    $user = $stmt->fetch();
+        // Procurar utilizador
+        $stmt = $db->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
+        $stmt->execute(['email' => $email]);
+        $user = $stmt->fetch();
 
-    // Falha: email não existe
-    if (!$user) {
-        \App\Helpers\Logger::login("FAIL (email not found) | email={$email} | ip={$ip}");
-        $_SESSION['error'] = "Credenciais inválidas.";
-        header("Location: index.php?route=login");
+        // Falha: email não existe
+        if (!$user) {
+            \App\Helpers\Logger::login("FAIL (email not found) | email={$email} | ip={$ip}");
+            $_SESSION['error'] = "Credenciais inválidas.";
+            header("Location: index.php?route=login");
+            exit;
+        }
+
+        // Falha: password errada
+        if (!password_verify($password, $user['password'])) {
+            \App\Helpers\Logger::login("FAIL (wrong password) | email={$email} | user_id={$user['id']} | ip={$ip}");
+            $_SESSION['error'] = "Credenciais inválidas.";
+            header("Location: index.php?route=login");
+            exit;
+        }
+
+        // Sucesso
+        \App\Helpers\Logger::login("SUCCESS | email={$email} | user_id={$user['id']} | ip={$ip}");
+
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['user_name'] = $user['full_name'];
+        $_SESSION['role'] = $user['role'];
+
+        header("Location: index.php?route=dashboard");
         exit;
     }
 
-    // Falha: password errada
-    if (!password_verify($password, $user['password'])) {
-        \App\Helpers\Logger::login("FAIL (wrong password) | email={$email} | user_id={$user['id']} | ip={$ip}");
-        $_SESSION['error'] = "Credenciais inválidas.";
-        header("Location: index.php?route=login");
+    public function ssoLogin(): void
+    {
+        $token = $_GET['token'] ?? null;
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        if (!$token) {
+            header('Location: ' . $this->baseUrl . '?route=login');
+            exit;
+        }
+
+        /* BD SUPER LOGIN */
+        $pdoSuper = new \PDO(
+            "mysql:host=localhost;dbname=super_login;charset=utf8mb4",
+            "root",
+            "",
+            [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC
+            ]
+        );
+
+        // 1️⃣ Validar token
+        $stmt = $pdoSuper->prepare("
+            SELECT admin_id, system_id
+            FROM admin_tokens
+            WHERE token = ?
+            AND used = 0
+            AND expires_at > NOW()
+        ");
+        $stmt->execute([$token]);
+        $t = $stmt->fetch();
+
+        if (!$t) {
+            \App\Helpers\Logger::login("SSO FAIL (invalid token) | ip='{$ip}'");
+            header('Location: ' . $this->baseUrl . '?route=login');
+            exit;
+        }
+
+        // 2️⃣ Marcar token como usado
+        $pdoSuper->prepare("
+            UPDATE admin_tokens SET used = 1 WHERE token = ?
+        ")->execute([$token]);
+
+        // 3️⃣ Mapear admin → user local
+        $stmt = $pdoSuper->prepare("
+            SELECT user_id
+            FROM admin_user_map
+            WHERE admin_id = ? AND system_id = ?
+        ");
+        $stmt->execute([$t['admin_id'], $t['system_id']]);
+        $map = $stmt->fetch();
+
+        if (!$map) {
+            \App\Helpers\Logger::login("SSO FAIL (no mapping) | admin_id='{$t['admin_id']}' | ip='{$ip}'");
+            exit('Admin não mapeado no SAE.');
+        }
+
+        // 4️⃣ Buscar utilizador local
+        $user = User::findById($map['user_id']);
+
+        if (!$user || (int)$user['approved'] !== 1) {
+            \App\Helpers\Logger::login("SSO FAIL (user invalid/not approved) | user_id='{$map['user_id']}' | ip='{$ip}'");
+            header('Location: ' . $this->baseUrl . '?route=login');
+            exit;
+        }
+
+        // 5️⃣ SUCESSO (igual ao login normal)
+        \App\Helpers\Logger::login(
+            "SSO SUCCESS | admin_id='{$t['admin_id']}' | user_id='{$user['id']}' | ip='{$ip}'"
+        );
+
+        session_regenerate_id(true);
+
+        $_SESSION['last_login'] = $user['last_login'];
+        $_SESSION['user_id']    = $user['id'];
+        $_SESSION['role']       = $user['role_name'];
+        $_SESSION['user_name']  = $user['full_name'];
+
+        User::updateLastLogin($user['id']);
+
+        header('Location: ' . $this->baseUrl . '?route=dashboard');
         exit;
     }
 
-    // Sucesso
-    \App\Helpers\Logger::login("SUCCESS | email={$email} | user_id={$user['id']} | ip={$ip}");
-
-    $_SESSION['user_id'] = $user['id'];
-    $_SESSION['user_name'] = $user['full_name'];
-    $_SESSION['role'] = $user['role'];
-
-    header("Location: index.php?route=dashboard");
-    exit;
-}
 }

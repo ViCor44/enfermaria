@@ -24,6 +24,30 @@ class User
         return $user ?: null;
     }
 
+    public static function findById(int $id): ?array
+    {
+        $db = Database::getConnection();
+
+        $stmt = $db->prepare("
+            SELECT
+                u.id,
+                u.email,
+                u.full_name,
+                u.last_login,
+                u.approved,
+                u.role_id,
+                r.name AS role_name
+            FROM users u
+            INNER JOIN roles r ON r.id = u.role_id
+            WHERE u.id = ?
+            LIMIT 1
+        ");
+        $stmt->execute([$id]);
+
+        return $stmt->fetch() ?: null;
+    }
+
+
     public static function updateLastLogin(int $userId): void
     {
         $pdo = Database::getConnection();

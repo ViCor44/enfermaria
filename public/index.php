@@ -134,8 +134,13 @@ if ($route === 'login') {
     // Submeter nova password
     $controller = new App\Controllers\AuthController();
     $controller->reset_submit();
+
 } elseif ($route === 'about') {
     require __DIR__ . '/../src/Views/about.php';
+
+} elseif ($route === 'sso') {
+    $controller = new App\Controllers\AuthController();
+    $controller->ssoLogin();
 
 } else {
     http_response_code(404);
