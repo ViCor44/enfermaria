@@ -1,0 +1,3 @@
+[2026-01-09 22:31:47] SSO FAIL (user invalid/not approved) | user_id='8' | ip='::1'
+[2026-01-09 22:43:23] SSO SUCCESS | admin_id='2' | user_id='1' | ip='::1'
+[2026-01-09 22:44:13] SSO FAIL (user invalid/not approved) | user_id='8' | ip='::1'
