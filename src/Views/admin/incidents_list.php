@@ -170,6 +170,20 @@ a:hover {
     margin: 2rem 0;
 }
 
+/* Destaque visual para hospital */
+tr.hospital-accepted {
+    background-color: #f0fdf4; /* verde muito leve */
+}
+
+tr.hospital-refused {
+    background-color: #fff1f2; /* vermelho muito leve */
+}
+
+tr.hospital-accepted:hover,
+tr.hospital-refused:hover {
+    background-color: #e5e7eb; /* hover neutro */
+}
+
 /* Responsividade */
 @media (max-width: 768px) {
     main {
@@ -255,7 +269,16 @@ a:hover {
             </thead>
             <tbody>
             <?php foreach ($incidents as $i): ?>
-                <tr>
+                <?php
+$rowClass = '';
+
+if (array_key_exists('refused_hospital', $i) && $i['refused_hospital'] !== null) {
+    $rowClass = ((int)$i['refused_hospital'] === 1)
+        ? 'hospital-refused'
+        : 'hospital-accepted';
+}
+?>
+<tr class="<?= $rowClass ?>">                    
                     <td><a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$i['id'] ?>">
                             <?= (int)$i['id'] ?>
                         </a>

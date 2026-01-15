@@ -286,6 +286,9 @@ $currentUserId = $_SESSION['user_id'] ?? null;
                             <?= !empty($incident['patient_id_type']) ? htmlspecialchars($incident['patient_id_type']) . ' • ' . htmlspecialchars($incident['patient_id_number']) : '—' ?>
                         </div>
                     </div>
+
+                    
+
                 </div>
                 <p class="subtitle" style="margin-top:1rem;">
                     Estes dados são visíveis apenas à administração e ao enfermeiro responsável, por motivos de RGPD.
@@ -335,6 +338,33 @@ $currentUserId = $_SESSION['user_id'] ?? null;
                 </tbody>
             </table>
         <?php endif; ?>
+
+        <?php if (!empty($incident['refused_hospital']) && (int)$incident['refused_hospital'] === 1): ?>
+                        <div style="
+                            margin-top:1rem;
+                            padding:.8rem 1rem;
+                            background:#fff7e6;
+                            border:1px solid #facc15;
+                            border-radius:8px;
+                            color:#92400e;
+                            font-weight:600;
+                        ">
+                            ⚠️ O utente recusou a deslocação ao hospital após avaliação.
+                        </div>
+                    <?php else: ?>
+                        <div style="
+                            margin-top:1rem;
+                            padding:.8rem 1rem;
+                            background:#e6ffed;
+                            border:1px solid #86efac;
+                            border-radius:8px;
+                            color:#065f46;
+                            font-weight:600;
+                        ">
+                            🏥 Utente encaminhado para o hospital.
+                        </div>
+                    <?php endif; ?>
+
     </div>
 
 </main>

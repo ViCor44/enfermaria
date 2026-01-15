@@ -94,14 +94,17 @@ class Incident
         $pdo = Database::getConnection();
 
         $sql = "
-            SELECT i.*,
+            SELECT
+                i.*,
                 it.name AS incident_type_name,
                 l.name  AS location_name,
-                u.full_name AS nurse_name
+                u.full_name AS nurse_name,
+                p.refused_hospital
             FROM incidents i
             JOIN incident_types it ON it.id = i.incident_type_id
             JOIN locations l ON l.id = i.location_id
             JOIN users u ON u.id = i.user_id
+            LEFT JOIN patients p ON p.incident_id = i.id
             WHERE 1 = 1
         ";
 
@@ -137,28 +140,28 @@ class Incident
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
 
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     public static function findWithDetailsForAdmin(int $id): ?array
     {
         $pdo = \App\Core\Database::getConnection();
 
-        $sql = "
+        $sql = "            
             SELECT
                 i.*,
                 it.name AS incident_type_name,
-                l.name  AS location_name,
+                l.name AS location_name,
                 u.full_name AS nurse_name,
 
-                -- dados do paciente (LEFT JOIN porque pode não existir)
-                p.full_name   AS patient_name,
+                p.full_name AS patient_name,
                 p.nationality AS patient_nationality,
-                p.address     AS patient_address,
-                p.phone       AS patient_phone,
-                p.dob         AS patient_dob,
-                p.id_type     AS patient_id_type,
-                p.id_number   AS patient_id_number
+                p.address AS patient_address,
+                p.phone AS patient_phone,
+                p.dob AS patient_dob,
+                p.id_type AS patient_id_type,
+                p.id_number AS patient_id_number,
+                p.refused_hospital
 
             FROM incidents i
             LEFT JOIN incident_types it ON it.id = i.incident_type_id
@@ -166,8 +169,7 @@ class Incident
             LEFT JOIN users u ON u.id = i.user_id
             LEFT JOIN patients p ON p.incident_id = i.id
             WHERE i.id = :id
-            LIMIT 1
-        ";
+            LIMIT 1";
 
         $stmt = $pdo->prepare($sql);
         $stmt->execute([':id' => $id]);

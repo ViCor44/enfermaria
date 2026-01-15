@@ -97,9 +97,10 @@ body { font-family: Arial, Helvetica, sans-serif; color:#222; margin:20px; backg
           <div class="row-item"><div class="label">Nacionalidade</div><div class="value"><?= htmlspecialchars($incident['patient_nationality'] ?? '—') ?></div></div>
           <div class="row-item"><div class="label">Telefone</div><div class="value"><?= htmlspecialchars($incident['patient_phone'] ?? '—') ?></div></div>
           <div class="row-item"><div class="label">Identificação</div><div class="value"><?=
-            !empty($incident['patient_id_type']) ? htmlspecialchars($incident['patient_id_type']) . ' • ' . htmlspecialchars($incident['patient_id_number']) : '—'
-          ?></div></div>
+            !empty($incident['patient_id_type']) ? htmlspecialchars($incident['patient_id_type']) . ' • ' . htmlspecialchars($incident['patient_id_number']) : '—'?></div>
+        </div>        
         </div>
+        
       </div>
       <div class="footer">Estes dados são visíveis apenas à administração e ao enfermeiro responsável, por motivos de RGPD.</div>
     <?php else: ?>
@@ -137,6 +138,33 @@ body { font-family: Arial, Helvetica, sans-serif; color:#222; margin:20px; backg
     </table>
   <?php endif; ?>
 </div>
+<?php if (!empty($incident['refused_hospital']) && (int)$incident['refused_hospital'] === 1): ?>
+            <div style="
+              margin-top:10px;
+              padding:10px;
+              border:1px solid #f59e0b;
+              background:#fff7ed;
+              color:#92400e;
+              font-size:12px;
+              font-weight:700;
+              border-radius:6px;
+            ">
+              O utente recusou a deslocação ao hospital após avaliação clínica.
+            </div>
+          <?php else: ?>
+            <div style="
+              margin-top:10px;
+              padding:10px;
+              border:1px solid #22c55e;
+              background:#ecfdf5;
+              color:#065f46;
+              font-size:12px;
+              font-weight:700;
+              border-radius:6px;
+            ">
+              Utente aceitou serencaminhado para o hospital.
+            </div>
+          <?php endif; ?>
 <div class="footer">
   Relatório gerado automaticamente pelo sistema de gestão de enfermaria. — Impressão: <?= htmlspecialchars($printDate) ?>
 </div>

@@ -12,33 +12,52 @@ class Patient
         ?string $nationality,
         ?string $address,
         ?string $phone,
-        ?string $dob,        // 'YYYY-MM-DD' ou null
-        ?string $idType,     // 'CC' ou 'Passaporte'
-        ?string $idNumber
+        ?string $dob,
+        ?string $idType,
+        ?string $idNumber,
+        int $refusedHospital = 0
     ): int {
         $pdo = Database::getConnection();
 
         $stmt = $pdo->prepare("
             INSERT INTO patients
-            (incident_id, full_name, nationality, address, phone, dob, id_type, id_number)
+            (
+                incident_id,
+                full_name,
+                nationality,
+                address,
+                phone,
+                dob,
+                id_type,
+                id_number,
+                refused_hospital
+            )
             VALUES
-            (:incident_id, :full_name, :nationality, :address, :phone, :dob, :id_type, :id_number)
+            (
+                :incident_id,
+                :full_name,
+                :nationality,
+                :address,
+                :phone,
+                :dob,
+                :id_type,
+                :id_number,
+                :refused_hospital
+            )
         ");
 
         $stmt->execute([
-            ':incident_id' => $incidentId,
-            ':full_name'   => $fullName,
-            ':nationality' => $nationality,
-            ':address'     => $address,
-            ':phone'       => $phone,
-            ':dob'         => $dob ?: null,
-            ':id_type'     => $idType ?: null,
-            ':id_number'   => $idNumber ?: null,
+            ':incident_id'      => $incidentId,
+            ':full_name'        => $fullName,
+            ':nationality'      => $nationality,
+            ':address'          => $address,
+            ':phone'            => $phone,
+            ':dob'              => $dob ?: null,
+            ':id_type'          => $idType ?: null,
+            ':id_number'        => $idNumber ?: null,
+            ':refused_hospital' => $refusedHospital ? 1 : 0,
         ]);
 
-        return (int)$pdo->lastInsertId();
+        return (int) $pdo->lastInsertId();
     }
-
-
-    // Mais tarde podemos adicionar métodos para ler dados com controlo de acesso.
 }

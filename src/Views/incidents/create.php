@@ -345,6 +345,23 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                     </div>
                 </div>
 
+                <div class="form-check" style="margin-top:1rem;">
+                    <input
+                        type="checkbox"
+                        id="patient_refused_hospital"
+                        name="patient_refused_hospital"
+                        value="1"
+                    >
+                    <label for="patient_refused_hospital" style="cursor:pointer;">
+                        O utente recusou deslocação ao hospital
+                    </label>
+                </div>
+
+                <div class="small" style="margin-top:.3rem;">
+                    Assinalar apenas se o envio ao hospital foi recomendado
+                    e recusado pelo próprio utente.
+                </div>
+
                 <div class="small">
                     Estes dados só serão visíveis para o administrador e para o enfermeiro responsável.
                 </div>
