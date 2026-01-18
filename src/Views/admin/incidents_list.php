@@ -270,24 +270,20 @@ tr.hospital-refused:hover {
             <tbody>
             <?php foreach ($incidents as $i): ?>
                 <?php
-$rowClass = '';
+                    $rowClass = '';
 
-if (array_key_exists('refused_hospital', $i) && $i['refused_hospital'] !== null) {
-    $rowClass = ((int)$i['refused_hospital'] === 1)
-        ? 'hospital-refused'
-        : 'hospital-accepted';
-}
-?>
-<tr class="<?= $rowClass ?>">                    
+                    if (array_key_exists('refused_hospital', $i) && $i['refused_hospital'] !== null) {
+                        $rowClass = ((int)$i['refused_hospital'] === 1)
+                            ? 'hospital-refused'
+                            : 'hospital-accepted';
+                    }
+                    ?>
+                    <tr class="<?= $rowClass ?>">                    
                     <td><a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$i['id'] ?>">
                             <?= (int)$i['id'] ?>
                         </a>
                     </td>
-                    <td>
-                        <a>
-                            <?= htmlspecialchars($i['occurred_at']) ?>
-                        </a>
-                    </td>
+                    <td><?= htmlspecialchars($i['occurred_at']) ?></td>                        
                     <td><?= htmlspecialchars($i['location_name']) ?></td>
                     <td><span class="badge"><?= htmlspecialchars($i['incident_type_name']) ?></span></td>
                     <td><?= $i['patient_age'] !== null ? (int)$i['patient_age'] : '—' ?></td>
