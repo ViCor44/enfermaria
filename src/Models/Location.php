@@ -49,4 +49,18 @@ class Location
         $ins->execute([$name]);
         return (int)$pdo->lastInsertId();
     }
+
+    public static function all(): array
+    {
+        $pdo = \App\Core\Database::getConnection();
+
+        $stmt = $pdo->query("
+            SELECT id, name
+            FROM locations
+            ORDER BY name ASC
+        ");
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
 }

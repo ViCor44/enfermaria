@@ -3,12 +3,22 @@ $baseUrl = '/enfermaria/public/index.php';
 $nome    = $_SESSION['user_name'] ?? 'Administrador';
 $role    = $_SESSION['role'] ?? '';
 $currentUserId = $_SESSION['user_id'] ?? null;
+
+$hasHospitalTreatment = false;
+
+foreach ($treatments as $t) {
+    if (strcasecmp($t['treatment_type_name'], 'Enviado para hospital') === 0) {
+        $hasHospitalTreatment = true;
+        break;
+    }
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<title>Acidente #<?= (int)$incident['id'] ?> · Detalhes</title>
+<title>Ocorrência #<?= (int)$incident['id'] ?> · Detalhes</title>
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>
@@ -161,6 +171,48 @@ $currentUserId = $_SESSION['user_id'] ?? null;
         margin: 1.5rem 0;
     }
 
+    .followup-actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .followup-actions a {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: .55rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: .9rem;
+        text-decoration: none;
+        transition: all .15s ease;
+    }
+
+    /* botão secundário */
+    .followup-actions .btn-outline {
+        border: 1px solid #f59e0b;
+        color: #92400e;
+        background: white;
+    }
+
+    .followup-actions .btn-outline:hover {
+        background: #fff7ed;
+    }
+
+    /* botão principal */
+    .followup-actions .btn-primary {
+        background: #1f6feb;
+        color: white;
+        border: 1px solid transparent;
+    }
+
+    .followup-actions .btn-primary:hover {
+        background: #0f5bdb;
+        transform: translateY(-1px);
+    }
+
     /* Responsividade */
     @media (max-width: 768px) {
         main {
@@ -182,7 +234,7 @@ $currentUserId = $_SESSION['user_id'] ?? null;
 <main>
     <div style="text-align: left; margin-bottom: 1rem;">
         <a href="<?= $baseUrl ?>?route=admin_incidents" class="back-link">
-            ← Voltar à lista de Acidentes
+            ← Voltar à lista de Ocorrências
         </a>
 
         <span class="separator">|</span>
@@ -196,9 +248,9 @@ $currentUserId = $_SESSION['user_id'] ?? null;
 
     <hr class="separator-hr"> <!-- Adicionado para consistência com outras páginas -->
 
-    <!-- Dados do Acidente -->
+    <!-- Dados da Ocorrência -->
     <div class="card">
-        <h2>Dados do Acidente</h2>
+        <h2>Dados da Ocorrência</h2>
         <div class="row">
             <div>
                 <div class="label">Data / Hora</div>
@@ -209,7 +261,7 @@ $currentUserId = $_SESSION['user_id'] ?? null;
                 <div class="value"><?= htmlspecialchars($incident['location_name']) ?></div>
             </div>
             <div>
-                <div class="label">Tipo de Acidente</div>
+                <div class="label">Tipo de Ocorrência</div>
                 <div class="value"><span class="badge"><?= htmlspecialchars($incident['incident_type_name']) ?></span></div>
             </div>
         </div>
@@ -243,7 +295,7 @@ $currentUserId = $_SESSION['user_id'] ?? null;
 
         <?php if (empty($incident['patient_name'])): ?>
             <p class="subtitle">
-                Não existe registo de envio para hospital / dados de utente associados a este Acidente.
+                Não existe registo de envio para hospital / dados de utente associados a esta Ocorrência.
             </p>
 
         <?php else: ?>
@@ -297,7 +349,7 @@ $currentUserId = $_SESSION['user_id'] ?? null;
             <?php else: ?>
                 <!-- Manager e outros enfermeiros apenas sabem que os dados existem -->
                 <p class="subtitle">
-                    Existem dados de utente associados a este Acidente, mas não tem permissão para os visualizar.
+                    Existem dados de utente associados a esta Ocorrência, mas não tem permissão para os visualizar.
                 </p>
             <?php endif; ?>
         <?php endif; ?>
@@ -307,7 +359,7 @@ $currentUserId = $_SESSION['user_id'] ?? null;
     <div class="card">
         <h2>Tratamentos associados</h2>
         <?php if (empty($treatments)): ?>
-            <p class="subtitle">Não existem tratamentos registados para este Acidente.</p>
+            <p class="subtitle">Não existem tratamentos registados para esta Ocorrência.</p>
         <?php else: ?>
             <table>
                 <thead>
@@ -339,33 +391,105 @@ $currentUserId = $_SESSION['user_id'] ?? null;
             </table>
         <?php endif; ?>
 
-        <?php if (!empty($incident['refused_hospital']) && (int)$incident['refused_hospital'] === 1): ?>
-                        <div style="
-                            margin-top:1rem;
-                            padding:.8rem 1rem;
-                            background:#fff7e6;
-                            border:1px solid #facc15;
-                            border-radius:8px;
-                            color:#92400e;
-                            font-weight:600;
-                        ">
-                            ⚠️ O utente recusou a deslocação ao hospital após avaliação.
-                        </div>
-                    <?php else: ?>
-                        <div style="
-                            margin-top:1rem;
-                            padding:.8rem 1rem;
-                            background:#e6ffed;
-                            border:1px solid #86efac;
-                            border-radius:8px;
-                            color:#065f46;
-                            font-weight:600;
-                        ">
-                            🏥 Utente encaminhado para o hospital.
-                        </div>
-                    <?php endif; ?>
+        <?php if (!empty($incident['hospital_refusal_pdf'])): ?>
+            <a target="_blank"
+            href="/enfermaria/public/pdfs/<?= $incident['hospital_refusal_pdf'] ?>"
+            class="btn-warning">
+            Termo de Recusa
+            </a>
+        <?php endif; ?>
+
+        <?php if ($hasHospitalTreatment): ?>
+            <?php if (!empty($incident['refused_hospital']) && (int)$incident['refused_hospital'] === 1): ?>
+                <div style="
+                    margin-top:1rem;
+                    padding:.8rem 1rem;
+                    background:#fff7e6;
+                    border:1px solid #facc15;
+                    border-radius:8px;
+                    color:#92400e;
+                    font-weight:600;
+                ">
+                    ⚠️ O utente recusou a deslocação ao hospital após avaliação.
+                </div>
+
+                <div class="followup-actions">
+
+                    <a class="btn-outline"
+                    href="/enfermaria/public/index.php?route=admin_incident_print_refusal&id=<?= (int)$incident['id'] ?>">
+                        📄 Gerar termo de recusa
+                    </a>
+
+                    <a class="btn-primary"
+                    href="<?= $baseUrl ?>?route=incident_hospital_followup&id=<?= (int)$incident['id'] ?>">
+                        ➕ Registar ida posterior ao hospital
+                    </a>
+
+                </div>
+
+            <?php else: ?>
+                <div style="
+                    margin-top:1rem;
+                    padding:.8rem 1rem;
+                    background:#e6ffed;
+                    border:1px solid #86efac;
+                    border-radius:8px;
+                    color:#065f46;
+                    font-weight:600;
+                ">
+                    🏥 Utente encaminhado para o hospital.
+                </div>
+                <div class="followup-actions">
+
+                    <a class="btn-outline"
+                    target="_blank"
+                    href="<?= $baseUrl ?>?route=incident_insurance_term&id=<?= (int)$incident['id'] ?>">
+                        📄 Gerar termo de seguro
+                    </a>
+
+                    <a class="btn-primary"
+                    href="<?= $baseUrl ?>?route=incident_hospital_followup&id=<?= (int)$incident['id'] ?>">
+                        ➕ Registar ida posterior ao hospital
+                    </a>
+
+                </div>
+            <?php endif; ?>
+        <?php endif; ?>
 
     </div>
+    <?php if (!empty($followups)): ?>
+<div class="card">
+    <h2>Seguimento hospitalar posterior</h2>
+
+    <?php foreach ($followups as $f): ?>
+        <div class="row-item">
+            <div class="label">Data</div>
+            <div class="value"><?= htmlspecialchars($f['visit_date']) ?></div>
+
+            <div class="label">Hospital</div>
+            <div class="value"><?= htmlspecialchars($f['hospital_name']) ?></div>
+
+            <div class="label">Observações</div>
+            <div class="value"><?= nl2br(htmlspecialchars($f['notes'])) ?></div>
+
+            <?php if ($f['document_path']): ?>
+                <div class="followup-actions">
+
+                    <a class="btn-outline"
+                    href="<?= htmlspecialchars($f['document_path']) ?>"
+                    target="_blank">
+                        📎 Ver comprovativo
+                    </a>
+
+                </div>
+
+            <?php endif; ?>
+        </div>
+
+        <hr>
+    <?php endforeach; ?>
+</div>
+<?php endif; ?>
 
 </main>
 </body>

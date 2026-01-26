@@ -6,7 +6,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<title>Registar Acidente</title>
+<title>Registar Ocorrência</title>
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>
@@ -155,6 +155,22 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         margin: 2rem 0;
     }
 
+    .address-row {
+        grid-template-columns: 2.3fr 1fr 1.2fr 1fr; /* Morada, Código Postal, Cidade, Telefone */
+    }
+
+    .patient-row {
+        grid-template-columns: 2.5fr 1fr 1.2fr; /* Nome, Idade, Género */
+    }
+
+    .small-field {
+        max-width: 420px;
+    }
+    .medium-field {
+        max-width: 550px;
+    }
+
+
     /* Responsividade */
     @media (max-width: 768px) {
         main {
@@ -169,7 +185,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 <body>
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 <main>
-    <h1>Registar novo Acidente</h1>
+    <h1>Registar nova Ocorrência</h1>
 
     <hr class="separator">
 
@@ -181,9 +197,9 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 
     <form method="post" action="<?= $baseUrl ?>?route=incidents_store">
         <div class="row">
-            <!-- TIPO DE Acidente (input com datalist) -->
+            <!-- TIPO DE Ocorrência (input com datalist) -->
             <div style="margin-right: 24px;">
-                <label class="required">Tipo de Acidente</label>
+                <label class="required">Tipo de Ocorrência</label>
                 <input
                     list="incident-types-list"
                     name="incident_type_input"
@@ -198,7 +214,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                     <?php endforeach; ?>
                 </datalist>
                 <input type="hidden" name="incident_type_id" id="incident_type_id" value="">
-                <div class="small">Pode escrever novo tipo de acidente ou escolher da lista — se não existir será criado.</div>
+                <div class="small">Pode escrever novo tipo de ocorrência ou escolher da lista — se não existir será criado.</div>
             </div>
             
             <div style="margin-right: 24px;">
@@ -235,14 +251,20 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
             </div>
         </div>
 
-        <!-- LINHA IDADE / GÉNERO -->
-        <div class="row">
+        <!-- LINHA NOME / IDADE / GÉNERO -->
+        <div class="row patient-row">
             <div style="margin-right: 24px;">
-                <label>Idade do utente (opcional)</label>
+                <label>Nome do utente</label>
+                <input type="text" name="patient_name">
+            </div>
+
+            <div style="margin-right: 24px;">
+                <label>Idade do utente</label>
                 <input type="number" name="patient_age" min="0" max="120">
             </div>
+
             <div style="margin-right: 24px;">
-                <label>Género (opcional)</label>
+                <label>Género</label>
                 <select name="patient_gender">
                     <option value="">-- Não especificar --</option>
                     <option value="M">Masculino</option>
@@ -253,8 +275,8 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         </div>
 
         <div style="margin-right: 24px;">
-        <label>Descrição / Observações (opcional)</label>
-        <textarea style="margin-right: 24px;" name="description" placeholder="Descrição sucinta do Acidente, sem dados de identificação desnecessários."></textarea>
+        <label>Descrição / Observações</label>
+        <textarea style="margin-right: 24px;" name="description" placeholder="Descrição sucinta da Ocorrência, sem dados de identificação desnecessários."></textarea>
         </div>
 
         <div class="section-title">
@@ -299,24 +321,31 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 
             <!-- Campos extra se for 'Enviado para hospital' -->
             <div id="patient-block" style="display:none;">
-                <strong>Dados do utente (para envio ao hospital)</strong>
+                <strong>Restantes dados do utente (para envio ao hospital)</strong>
 
                 <div class="row">
-                    <div style="margin-right: 24px;">
-                        <label class="required">Nome completo do utente</label>
-                        <input type="text" name="patient_name" id="patient_name">
-                    </div>
-                    <div style="margin-right: 24px;">
-                        <label>Nacionalidade (opcional)</label>
+                    <div style="margin-right: 24px; max-width: 400px;">
+                        <label>Nacionalidade</label>
                         <input type="text" name="patient_nationality">
                     </div>
                 </div>
 
-                <div class="row">
+                <div class="row address-row">
                     <div style="margin-right: 24px;">
                         <label class="required">Morada</label>
                         <input type="text" name="patient_address" id="patient_address">
                     </div>
+             
+                    <div style="margin-right: 24px;">
+                        <label class="required">Código Postal</label>
+                        <input type="text" name="patient_postal_code" id="patient_postal_code">
+                    </div>
+                    
+                    <div style="margin-right: 24px;">
+                        <label class="required">Cidade</label>
+                        <input type="text" name="patient_city" id="patient_city">
+                    </div>
+
                     <div style="margin-right: 24px;">
                         <label class="required">Telefone</label>
                         <input type="text" name="patient_phone" id="patient_phone" placeholder="+351 912 345 678">
@@ -338,7 +367,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                     </div>
                 </div>
 
-                <div class="row">
+                <div class="row small-field">
                     <div style="margin-right: 24px;">
                         <label>Número de Identificação</label>
                         <input type="text" name="patient_id_number" id="patient_id_number" placeholder="Número do CC ou do Passaporte">

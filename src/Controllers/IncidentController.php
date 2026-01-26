@@ -14,7 +14,7 @@ class IncidentController
 
     public function create(): void
     {
-        Auth::requireRole(['Enfermeiro']);
+        Auth::requireRole(['Enfermeiro', 'Administrador']);
 
         $types          = Incident::getTypes();
         $locations      = Location::allActive();
@@ -60,6 +60,8 @@ class IncidentController
         $patientName        = trim($_POST['patient_name'] ?? '');
         $patientNationality = trim($_POST['patient_nationality'] ?? '') ?: null;
         $patientAddress     = trim($_POST['patient_address'] ?? '') ?: null;
+        $patientPostalCode  = trim($_POST['patient_postal_code'] ?? '') ?: null;
+        $patientCity        = trim($_POST['patient_city'] ?? '') ?: null;
         $patientPhone       = trim($_POST['patient_phone'] ?? '') ?: null;
         $patientDob         = trim($_POST['patient_dob'] ?? '') ?: null;
         $patientIdType      = trim($_POST['patient_id_type'] ?? '') ?: null;
@@ -154,6 +156,8 @@ class IncidentController
                         $patientName,
                         $patientNationality,
                         $patientAddress,
+                        $patientPostalCode,
+                        $patientCity,
                         $patientPhone,
                         $patientDob,
                         $patientIdType,
@@ -176,4 +180,40 @@ class IncidentController
             exit;
         }
     }
+
+    public function insuranceTerm()
+    {
+        Auth::requireRole(['Administrador','Enfermeiro']);
+
+        $id = (int)($_GET['id'] ?? 0);
+
+        $incident = Incident::findWithDetailsForAdmin($id);
+
+        if (!$incident) {
+            die('Ocorrência não encontrada');
+        }
+
+        require_once __DIR__.'/../../vendor/autoload.php';
+
+        $options = new \Dompdf\Options();
+        $options->set('defaultFont', 'Arial');
+
+        $dompdf = new \Dompdf\Dompdf($options);
+
+        ob_start();
+        require __DIR__.'/../Views/incidents/insurance_term_pdf.php';
+        $html = ob_get_clean();
+
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4');
+        $dompdf->render();
+
+        $dompdf->stream(
+            "termo-seguro-{$incident['id']}.pdf",
+            ["Attachment" => false] // false = abre no browser
+        );
+
+        exit;
+    }
+
 }

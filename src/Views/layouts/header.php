@@ -105,6 +105,41 @@ $route = $_GET['route'] ?? 'dashboard';
         transform: translateY(-2px);
     }
 
+    .nav-dropdown {
+        position: relative;
+    }
+
+    .nav-btn {
+        cursor: pointer;
+    }
+
+    .nav-menu {
+        display: none;
+        position: absolute;
+        top: 105%;
+        left: 0;
+        background: white;
+        min-width: 190px;
+        border-radius: 8px;
+        box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+        z-index: 999;
+    }
+
+    .nav-menu a {
+        display: block;
+        padding: .65rem 1rem;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .nav-menu a:hover {
+        background: #f1f5ff;
+    }
+
+    .nav-dropdown:hover .nav-menu {
+        display: block;
+    }
+
     /* Responsividade */
     @media (max-width: 1024px) {
         .topbar-inner {
@@ -139,6 +174,56 @@ $route = $_GET['route'] ?? 'dashboard';
             padding: 0.4rem 1rem;
             font-size: 0.85rem;
         }
+
+        .nav-item {
+            position: relative;
+        }
+
+        .dropdown-toggle {
+            cursor: pointer;
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #fff;
+            min-width: 190px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.12);
+            padding: .4rem 0;
+            display: none;
+            z-index: 200;
+        }
+
+        .dropdown-menu a {
+            display: block;
+            padding: .6rem 1rem;
+            color: #333;
+            text-decoration: none;
+            font-size: .9rem;
+        }
+
+        .dropdown-menu a:hover {
+            background: #f0f4ff;
+        }
+
+        /* hover abre */
+        .nav-item.dropdown:hover .dropdown-menu {
+            display: block;
+        }
+
+        .dropdown-menu a {
+            color: #1f6feb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .dropdown-menu a:hover {
+            text-decoration: underline;
+            background: #f0f4ff;
+        }
+
     }
 </style>
 <header class="topbar">
@@ -152,7 +237,7 @@ $route = $_GET['route'] ?? 'dashboard';
             </div>
             <div>
                 <div class="brand-text-title">Sistema de Apoio à Enfermaria</div>
-                <div class="brand-text-sub">Gestão de Acidentes e Tratamentos</div>
+                <div class="brand-text-sub">Gestão de Ocorrências e Tratamentos</div>
             </div>
         </div>
 
@@ -164,32 +249,57 @@ $route = $_GET['route'] ?? 'dashboard';
             </a>
 
             <?php if ($role === 'Administrador'): ?>
+                
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
-                   class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
-                    Acidentes
+                class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
+                    Ocorrências
                 </a>
+
+                <a href="<?= $baseUrl ?>?route=admin_internal_records"
+                class="nav-link <?= $route === 'admin_internal_records' ? 'active' : '' ?>">
+                    Registos Internos
+                </a>
+
                 <a href="<?= $baseUrl ?>?route=admin_treatments"
-                   class="nav-link <?= $route === 'admin_treatments' ? 'active' : '' ?>">
+                class="nav-link <?= $route === 'admin_treatments' ? 'active' : '' ?>">
                     Tratamentos
                 </a>
+
                 <a href="<?= $baseUrl ?>?route=admin_users"
-                   class="nav-link <?= $route === 'admin_users' ? 'active' : '' ?>">
+                class="nav-link <?= $route === 'admin_users' ? 'active' : '' ?>">
                     Utilizadores
                 </a>
-                <a href="/enfermaria/public/index.php?route=admin_stats"
-                    class="nav-link <?= ($_GET['route'] ?? '') === 'admin_stats' ? 'active' : '' ?>">
+
+                <a href="<?= $baseUrl ?>?route=admin_stats"
+                class="nav-link <?= $route === 'admin_stats' ? 'active' : '' ?>">
                     Estatísticas
                 </a>
             <?php endif; ?>
 
+
             <?php if ($role === 'Enfermeiro'): ?>
-                <a href="<?= $baseUrl ?>?route=incidents_new"
-                class="nav-link <?= $route === 'incidents_new' ? 'active' : '' ?>">
-                    Novo Acidente
-                </a>                
+                <div class="nav-dropdown <?= in_array($route, ['incidents_new','internal_new']) ? 'active' : '' ?>">
+
+                    <span class="nav-link nav-btn">
+                        Novo
+                    </span>
+
+                    <div class="nav-menu">
+                        <a href="<?= $baseUrl ?>?route=internal_new"
+                        class="<?= $route === 'internal_new' ? 'active' : '' ?>">
+                            Situação Menor
+                        </a>
+
+                        <a href="<?= $baseUrl ?>?route=incidents_new"
+                        class="<?= $route === 'incidents_new' ? 'active' : '' ?>">
+                            Ocorrência
+                        </a>
+                    </div>
+                </div>
+                
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
                 class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
-                    Acidentes
+                    Ocorrências
                 </a>
                 <a href="<?= $baseUrl ?>?route=admin_treatments"
                 class="nav-link <?= $route === 'admin_treatments' ? 'active' : '' ?>">
@@ -200,7 +310,7 @@ $route = $_GET['route'] ?? 'dashboard';
             <?php if ($role === 'Manager'): ?>
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
                    class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
-                    Acidentes
+                    Ocorrências
                 </a>
                 <a href="/enfermaria/public/index.php?route=admin_stats"
                     class="nav-link <?= ($_GET['route'] ?? '') === 'admin_stats' ? 'active' : '' ?>">

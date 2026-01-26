@@ -80,6 +80,21 @@ if ($route === 'login') {
     $controller = new App\Controllers\IncidentController();
     $controller->create();
 
+} elseif ($route === 'internal_new') {
+
+    $controller = new App\Controllers\InternalRecordController();
+    $controller->create();
+
+} elseif ($route === 'admin_internal_records') {
+
+    $controller = new App\Controllers\AdminInternalController();
+    $controller->index();
+
+} elseif ($route === 'internal_store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $controller = new App\Controllers\InternalRecordController();
+    $controller->store();
+
 } elseif ($route === 'incidents_store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new App\Controllers\IncidentController();
     $controller->store();
@@ -112,6 +127,9 @@ if ($route === 'login') {
 } elseif ($route === 'admin_incident_print') {
     $controller = new App\Controllers\AdminIncidentController();
     $controller->printPdf();
+} elseif ($route === 'admin_incident_print_refusal') {
+    $controller = new App\Controllers\AdminIncidentController();
+    $controller->printRefusalPdf();
 } elseif ($route === 'admin_stats') {
     $controller = new App\Controllers\AdminStatsController();
     $controller->index();
@@ -141,6 +159,16 @@ if ($route === 'login') {
 } elseif ($route === 'sso') {
     $controller = new App\Controllers\AuthController();
     $controller->ssoLogin();
+} elseif ($route === 'incident_hospital_followup') {
+    $controller = new App\Controllers\HospitalFollowupController();
+    $controller->create();
+
+} elseif ($route === 'incident_hospital_followup_store' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new App\Controllers\HospitalFollowupController();
+    $controller->store();
+
+} elseif ($route === 'incident_insurance_term') {
+    (new App\Controllers\IncidentController())->insuranceTerm();
 
 } else {
     http_response_code(404);

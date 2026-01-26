@@ -99,7 +99,10 @@ class Incident
                 it.name AS incident_type_name,
                 l.name  AS location_name,
                 u.full_name AS nurse_name,
+
+                p.full_name AS patient_name,
                 p.refused_hospital
+
             FROM incidents i
             JOIN incident_types it ON it.id = i.incident_type_id
             JOIN locations l ON l.id = i.location_id
@@ -305,5 +308,38 @@ class Incident
         return $db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    public static function find(int $id): ?array
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("SELECT * FROM incidents WHERE id = :id LIMIT 1");
+        $stmt->execute([':id' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
 
+    public static function attachDocument(int $incidentId,string $type,string $file)
+    {
+        $pdo = Database::getConnection();
+
+        $stmt = $pdo->prepare("
+            INSERT INTO incident_documents (incident_id,type,file_path)
+            VALUES (?,?,?)
+        ");
+
+        $stmt->execute([$incidentId,$type,$file]);
+    }
+
+    public static function getDocuments(int $incidentId)
+    {
+        $pdo = Database::getConnection();
+
+        $stmt = $pdo->prepare("
+            SELECT * 
+            FROM incident_documents
+            WHERE incident_id = ?
+        ");
+
+        $stmt->execute([$incidentId]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

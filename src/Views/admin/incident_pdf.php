@@ -3,12 +3,22 @@
 // Variáveis esperadas: $incident (array), $treatments (array), $canSeePatient (bool)
 $printDate = (new DateTime())->format('Y-m-d H:i:s');
 $episode = (int)($incident['id'] ?? 0);
+
+$hasHospitalTreatment = false;
+
+foreach ($treatments as $t) {
+    if (strcasecmp($t['treatment_type_name'], 'Enviado para hospital') === 0) {
+        $hasHospitalTreatment = true;
+        break;
+    }
+}
+
 ?>
 <!doctype html>
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<title>Acidente #<?= (int)$incident['id'] ?> · Resumo</title>
+<title>Ocorrência #<?= (int)$incident['id'] ?> · Resumo</title>
 <style>
 /* --- Reset simples --- */
 * { box-sizing: border-box; }
@@ -55,12 +65,12 @@ body { font-family: Arial, Helvetica, sans-serif; color:#222; margin:20px; backg
 
 <div class="header">
   <div class="title">SAE - Sistema de Apoio à Enfermaria</div>  
-  <div><h3>Relatório de Acidente</h3></div>
+  <div><h3>Relatório de Ocorrência</h3></div>
   <div class="subtitle">Episódio <?= (int)$incident['id'] ?></div>
 </div>
 
 <div class="card">
-  <h2>Dados do Acidente</h2>
+  <h2>Dados da Ocorrência</h2>
   <div class="cols clearfix">
     <div class="col">
       <div class="row-item"><div class="label">Data / Hora</div><div class="value"><?= htmlspecialchars($incident['occurred_at']) ?></div></div>
@@ -70,7 +80,7 @@ body { font-family: Arial, Helvetica, sans-serif; color:#222; margin:20px; backg
 
     <div class="col">
       <div class="row-item"><div class="label">Local</div><div class="value"><?= htmlspecialchars($incident['location_name']) ?></div></div>
-      <div class="row-item"><div class="label">Tipo de acidente</div><div class="value"><span class="badge"><?= htmlspecialchars($incident['incident_type_name']) ?></span></div></div>
+      <div class="row-item"><div class="label">Tipo de ocorrência</div><div class="value"><span class="badge"><?= htmlspecialchars($incident['incident_type_name']) ?></span></div></div>
       <div class="row-item"><div class="label">Enfermeiro responsável</div><div class="value"><?= htmlspecialchars($incident['nurse_name'] ?? '') ?></div></div>
     </div>
   </div>
@@ -112,7 +122,7 @@ body { font-family: Arial, Helvetica, sans-serif; color:#222; margin:20px; backg
 <div class="card">
   <h2>Tratamentos associados</h2>
   <?php if (empty($treatments)): ?>
-    <div class="value">Não existem tratamentos registados para este Acidente. - Impressão: <?= htmlspecialchars($printDate) ?></div>
+    <div class="value">Não existem tratamentos registados para esta Ocorrência. - Impressão: <?= htmlspecialchars($printDate) ?></div>
   <?php else: ?>
     <table class="table">
       <thead>
@@ -138,33 +148,50 @@ body { font-family: Arial, Helvetica, sans-serif; color:#222; margin:20px; backg
     </table>
   <?php endif; ?>
 </div>
-<?php if (!empty($incident['refused_hospital']) && (int)$incident['refused_hospital'] === 1): ?>
-            <div style="
-              margin-top:10px;
-              padding:10px;
-              border:1px solid #f59e0b;
-              background:#fff7ed;
-              color:#92400e;
-              font-size:12px;
-              font-weight:700;
-              border-radius:6px;
-            ">
-              O utente recusou a deslocação ao hospital após avaliação clínica.
-            </div>
-          <?php else: ?>
-            <div style="
-              margin-top:10px;
-              padding:10px;
-              border:1px solid #22c55e;
-              background:#ecfdf5;
-              color:#065f46;
-              font-size:12px;
-              font-weight:700;
-              border-radius:6px;
-            ">
-              Utente aceitou serencaminhado para o hospital.
-            </div>
-          <?php endif; ?>
+<?php if ($hasHospitalTreatment): ?>
+
+    <?php if (!empty($incident['refused_hospital']) && (int)$incident['refused_hospital'] === 1): ?>
+        <div style="
+          margin-top:10px;
+          padding:10px;
+          border:1px solid #f59e0b;
+          background:#fff7ed;
+          color:#92400e;
+          font-size:12px;
+          font-weight:700;
+          border-radius:6px;
+        ">
+          O utente recusou a deslocação ao hospital após avaliação clínica.
+        </div>
+    <?php else: ?>
+        <div style="
+          margin-top:10px;
+          padding:10px;
+          border:1px solid #22c55e;
+          background:#ecfdf5;
+          color:#065f46;
+          font-size:12px;
+          font-weight:700;
+          border-radius:6px;
+        ">
+          Utente aceitou ser encaminhado para o hospital.
+        </div>
+    <?php endif; ?>
+
+<?php endif; ?>
+<?php if (!empty($followups)): ?>
+<div class="card">
+  <h2>Seguimento hospitalar posterior</h2>
+
+  <?php foreach ($followups as $f): ?>
+    <div class="row-item">
+        <strong>Data:</strong> <?= $f['visit_date'] ?><br>
+        <strong>Hospital:</strong> <?= htmlspecialchars($f['hospital_name']) ?><br>
+        <?= nl2br(htmlspecialchars($f['notes'])) ?>
+    </div>
+  <?php endforeach; ?>
+</div>
+<?php endif; ?>
 <div class="footer">
   Relatório gerado automaticamente pelo sistema de gestão de enfermaria. — Impressão: <?= htmlspecialchars($printDate) ?>
 </div>

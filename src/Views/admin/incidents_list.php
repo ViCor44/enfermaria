@@ -206,7 +206,7 @@ tr.hospital-refused:hover {
 
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 <main>
-    <h1>Acidentes</h1>
+    <h1>Ocorrências</h1>
     <p class="subtitle">Pesquisa por intervalo de datas e local (apenas visão de administração, com dados agregados).</p>
 
     <hr class="separator"> <!-- Adicionado para consistência com login e dashboard -->
@@ -250,7 +250,7 @@ tr.hospital-refused:hover {
     </div>
 
     <?php if (empty($incidents)): ?>
-        <p>Não foram encontrados Acidentes com os critérios selecionados.</p>
+        <p>Não foram encontradas Ocorrências com os critérios selecionados.</p>
     <?php else: ?>
         <table>
             <thead>
@@ -258,7 +258,8 @@ tr.hospital-refused:hover {
                     <th>Episódio</th>
                     <th>Data / Hora</th>
                     <th>Local</th>
-                    <th>Tipo de Acidente</th>
+                    <th>Tipo de Ocorrência</th>
+                    <th>Utente</th>
                     <th>Idade</th>
                     <th>Género</th>
                     <th>Enfermeiro</th>
@@ -286,6 +287,16 @@ tr.hospital-refused:hover {
                     <td><?= htmlspecialchars($i['occurred_at']) ?></td>                        
                     <td><?= htmlspecialchars($i['location_name']) ?></td>
                     <td><span class="badge"><?= htmlspecialchars($i['incident_type_name']) ?></span></td>
+                    <td>
+                        <?php
+                        if (!empty($i['patient_name'])) {
+                            $parts = explode(' ', trim($i['patient_name']));
+                            echo htmlspecialchars($parts[0]);
+                        } else {
+                            echo '—';
+                        }
+                        ?>
+                        </td>
                     <td><?= $i['patient_age'] !== null ? (int)$i['patient_age'] : '—' ?></td>
                     <td><?= $i['patient_gender'] ?: '—' ?></td>
                     <td><?= htmlspecialchars($i['nurse_name'] ?? '') ?></td>
