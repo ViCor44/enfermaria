@@ -124,7 +124,7 @@
     <h1>Dashboard</h1>
     <p class="subtitle">
         Bem-vindo, <?= htmlspecialchars($nome) ?>.
-        Aqui vais ter um resumo rápido dos Acidentes e tratamentos.
+        Aqui vais ter um resumo rápido das Ocorrências e tratamentos.
     </p>
 
     <hr class="separator"> <!-- Adicionado para consistência com a login -->
@@ -136,7 +136,7 @@
             $AcidentesHref = $baseUrl . '?route=admin_incidents&from=' . $today . '&to=' . $today;
         ?>
         <a class="dashboard-card link-card" href="<?= htmlspecialchars($AcidentesHref) ?>">
-            <h3>Acidentes de hoje</h3>
+            <h3>Ocorrências de hoje</h3>
             <div class="big-number"><?= (int)$AcidentesHoje ?></div>
         </a>
 
