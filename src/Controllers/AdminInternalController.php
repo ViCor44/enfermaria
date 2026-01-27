@@ -11,7 +11,7 @@ class AdminInternalController
 
     public function index(): void
     {
-        Auth::requireRole(['Administrador']);
+        Auth::requireRole(['Administrador', 'Manager']);
 
         $opts = [
             'fromDate'   => $_GET['from'] ?? null,
