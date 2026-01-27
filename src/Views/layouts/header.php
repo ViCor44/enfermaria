@@ -308,6 +308,12 @@ $route = $_GET['route'] ?? 'dashboard';
             <?php endif; ?>
 
             <?php if ($role === 'Manager'): ?>
+
+                <a href="<?= $baseUrl ?>?route=admin_internal_records"
+                class="nav-link <?= $route === 'admin_internal_records' ? 'active' : '' ?>">
+                    Registos Internos
+                </a>
+
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
                    class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
                     Ocorrências
