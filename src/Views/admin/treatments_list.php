@@ -241,7 +241,7 @@ a:hover {
             <thead>
                 <tr>
                     <th>Data registo</th>
-                    <th>Acidente</th>
+                    <th>Ocorrência</th>
                     <th>Local</th>
                     <th>Tipo</th>
                     <th>Enfermeiro</th>
@@ -256,8 +256,13 @@ a:hover {
                         <td><?= htmlspecialchars($tr['created_at'] ?? $tr['created_at']) ?></td>
                         <td>
                             <a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$tr['incident_id'] ?>">
-                            <?= htmlspecialchars($tr['incident_type_name']) ?><br>
-                            <small><?= htmlspecialchars($tr['incident_occurred_at']) ?></small>
+                                <strong>#<?= (int)$tr['incident_id'] ?></strong> —
+                                <?= htmlspecialchars($tr['incident_type_name']) ?>
+                            </a>
+
+                            <div style="font-size:12px;color:#6b7280;">
+                                <?= htmlspecialchars($tr['incident_occurred_at']) ?>
+                            </div>
                         </td>
                         <td><?= htmlspecialchars($tr['location_name']) ?></td>
                         <td><span style="display:inline-block;padding:.2rem .5rem;border-radius:999px;background:#e9f2ff;color:#1d4ed8;font-size:.8rem;">
