@@ -66,12 +66,14 @@ h2 {
     border: 1px solid #000;
     padding: 4px;
     min-height: 28px;
+    margin-right: 3px;
 }
 
-.col-25 { width: 25%; }
-.col-33 { width: 33.33%; }
-.col-50 { width: 50%; }
-.col-75 { width: 75%; }
+.col-25 { width: 23%; }
+.col-33 { width: 32%; }
+.col-40 { width: 40%; }
+.col-50 { width: 48%; }
+.col-75 { width: 73%; }
 .col-100 { width: 98%; }
 
 .label {
@@ -93,7 +95,7 @@ h2 {
 
 .footer {
     margin-top: 20px;
-    font-size: 9px;
+    font-size: 11px;
 }
 
 .policy-row {
@@ -183,14 +185,11 @@ h2 {
     <div class="section-title">Tomador do Seguro</div>
 
     <div class="row clearfix">
-        <div>
+        <div class="col col-50">
             <div class="label">Nome</div>
             <div class="value">Correia &amp; Santinha, Lda</div>
-        </div>
-    </div>
-
-    <div class="row clearfix">
-        <div>
+        </div>    
+        <div class="col col-50">
             <div class="label">Morada</div>
             <div class="value">EN125 – Vale de Deus – Estômbar</div>
         </div>
@@ -202,37 +201,37 @@ h2 {
     <div class="section-title">Pessoa Sinistrada</div>
 
     <div class="row clearfix">
-        <div>
+        <div class="col col-75">
             <div class="label">Nome</div>
             <div class="value"><?= htmlspecialchars($incident['patient_name'] ?? '') ?></div>
         </div>
-        <div>
+        <div class="col col-25">
             <div class="label">Telefone</div>
             <div class="value"><?= htmlspecialchars($incident['patient_phone'] ?? '') ?></div>
         </div>
     </div>
 
     <div class="row clearfix">
-        <div>
+        <div class="col col-75">
             <div class="label">Morada</div>
             <div class="value"><?= htmlspecialchars($incident['patient_address'] ?? '') ?></div>
         </div>
-        <div>
+        <div class="col col-25">
             <div class="label">Código Postal</div>
             <div class="value"><?= htmlspecialchars($incident['patient_postal_code'] ?? '') ?></div>
         </div>
     </div>
 
     <div class="row clearfix">
-        <div>
+        <div class="col col-50">
             <div class="label">Localidade</div>
             <div class="value"><?= htmlspecialchars($incident['patient_city'] ?? '') ?></div>
         </div>
-        <div>
+        <div class="col col-25">
             <div class="label">Data nascimento</div>
             <div class="value"><?= htmlspecialchars($incident['patient_dob'] ?? '') ?></div>
         </div>
-        <div>
+        <div class="col col-25">
             <div class="label">Documento</div>
             <div class="value">
                 <?= htmlspecialchars($incident['patient_id_type'] ?? '') ?>
@@ -247,16 +246,15 @@ h2 {
     <div class="section-title">Identificação da Ocorrência</div>
 
     <div class="row clearfix">
-        <div class="col col-33">
+        <div class="col col-25">
             <div class="label">Data</div>
             <div class="value"><?= date('d/m/Y', strtotime($incident['occurred_at'] ?? '')) ?></div>
-        
+        </div>
+        <div class="col col-25">
             <div class="label">Hora</div>
             <div class="value"><?= date('H:i', strtotime($incident['occurred_at'] ?? '')) ?></div>
-        </div>
-    </div>
-    <div class="row clearfix">
-        <div class="col col-33">
+        </div>    
+        <div class="col col-50">
             <div class="label">Local</div>
             <div class="value"><?= htmlspecialchars($incident['location_name'] ?? '') ?></div>
         </div>

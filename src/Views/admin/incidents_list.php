@@ -10,7 +10,7 @@ $locationId = isset($_GET['location_id']) ? (int)$_GET['location_id'] : 0;
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<title>Enfermaria · Acidentes (Admin)</title>
+<title>Enfermaria · Ocorrências (Admin)</title>
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>

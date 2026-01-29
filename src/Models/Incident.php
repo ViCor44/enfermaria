@@ -160,6 +160,8 @@ class Incident
                 p.full_name AS patient_name,
                 p.nationality AS patient_nationality,
                 p.address AS patient_address,
+                p.postal_code AS patient_postal_code,
+                p.city AS patient_city,
                 p.phone AS patient_phone,
                 p.dob AS patient_dob,
                 p.id_type AS patient_id_type,

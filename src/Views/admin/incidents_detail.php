@@ -416,6 +416,7 @@ foreach ($treatments as $t) {
                 <div class="followup-actions">
 
                     <a class="btn-outline"
+                    target="_blank"
                     href="/enfermaria/public/index.php?route=admin_incident_print_refusal&id=<?= (int)$incident['id'] ?>">
                         📄 Gerar termo de recusa
                     </a>

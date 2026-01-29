@@ -1,0 +1,7 @@
+[2026-01-29 19:09:15] FAIL (invalid credentials) | email='admin@gmail.com' | ip='::1'
+[2026-01-29 19:09:25] SUCCESS | email='admin@gmail.com' | user_id='1' | ip='::1'
+[2026-01-29 19:45:58] SUCCESS | email='pinto@gmail.com' | user_id='3' | ip='::1'
+[2026-01-29 20:12:45] FAIL (invalid credentials) | email='correia@gmail.com' | ip='::1'
+[2026-01-29 20:12:58] FAIL (invalid credentials) | email='correia@gmail.com' | ip='::1'
+[2026-01-29 20:13:20] SUCCESS | email='c@gmail.com' | user_id='5' | ip='::1'
+[2026-01-29 20:17:40] SUCCESS | email='pinto@gmail.com' | user_id='3' | ip='::1'
