@@ -6,6 +6,7 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;
 
+session_name('SAESESSID');
 session_start();
 
 // Carregar .env
