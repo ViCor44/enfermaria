@@ -196,10 +196,10 @@ $baseUrl = '/enfermaria/public/index.php';
                 <label>Email</label>
                 <input type="email" name="email" required>
 
-                <label>Password</label>
+                <label>Cartão de Identificação</label>
                 <input type="password" name="password" required>
 
-                <label>Confirmar password</label>
+                <label>Confirmar Cartão</label>
                 <input type="password" name="password_confirmation" required>
 
                 <button type="submit">Registar</button>
