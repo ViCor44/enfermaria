@@ -24,7 +24,7 @@ class Auth
     public static function requireLogin(): void
     {
         if (!self::check()) {
-            header('Location: /login');
+            header('Location: /enfermaria/public/index.php?route=login');
             exit;
         }
     }
