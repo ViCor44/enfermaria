@@ -1,0 +1,259 @@
+ ------ ------------------------------------------------------------------------------------------
+  Line   Controllers\AdminTreatmentController.php
+ ------ ------------------------------------------------------------------------------------------
+  11     Property App\Controllers\AdminTreatmentController::$baseUrl is never read, only written.
+         🪪  property.onlyWritten
+         💡  See: https://phpstan.org/developing-extensions/always-read-written-properties
+ ------ ------------------------------------------------------------------------------------------
+
+ ------ ------------------------------------------
+  Line   Views\admin\hospital_followup_form.php
+ ------ ------------------------------------------
+  150    Variable $incident might not be defined.
+         🪪  variable.undefined
+  169    Variable $incident might not be defined.
+         🪪  variable.undefined
+ ------ ------------------------------------------
+
+ ------ -----------------------------------------------
+  Line   Views\admin\incident_pdf.php
+ ------ -----------------------------------------------
+  9      Variable $treatments might not be defined.
+         🪪  variable.undefined
+  21     Variable $incident might not be defined.
+         🪪  variable.undefined
+  69     Variable $incident might not be defined.
+         🪪  variable.undefined
+  76     Variable $incident might not be defined.
+         🪪  variable.undefined
+  77     Variable $incident might not be defined.
+         🪪  variable.undefined
+  77     Variable $incident might not be defined.
+         🪪  variable.undefined
+  78     Variable $incident might not be defined.
+         🪪  variable.undefined
+  82     Variable $incident might not be defined.
+         🪪  variable.undefined
+  83     Variable $incident might not be defined.
+         🪪  variable.undefined
+  99     Variable $canSeePatient might not be defined.
+         🪪  variable.undefined
+ ------ -----------------------------------------------
+
+ ------ --------------------------------------------
+  Line   Views\admin\incidents_detail.php
+ ------ --------------------------------------------
+  9      Variable $treatments might not be defined.
+         🪪  variable.undefined
+  21     Variable $incident might not be defined.
+         🪪  variable.undefined
+  242    Variable $incident might not be defined.
+         🪪  variable.undefined
+  247    Variable $incident might not be defined.
+         🪪  variable.undefined
+  257    Variable $incident might not be defined.
+         🪪  variable.undefined
+  261    Variable $incident might not be defined.
+         🪪  variable.undefined
+  265    Variable $incident might not be defined.
+         🪪  variable.undefined
+  272    Variable $incident might not be defined.
+         🪪  variable.undefined
+  272    Variable $incident might not be defined.
+         🪪  variable.undefined
+  276    Variable $incident might not be defined.
+         🪪  variable.undefined
+  447    Variable $incident might not be defined.
+         🪪  variable.undefined
+  452    Variable $incident might not be defined.
+         🪪  variable.undefined
+ ------ --------------------------------------------
+
+ ------ -------------------------------------------
+  Line   Views\admin\incidents_list.php
+ ------ -------------------------------------------
+  237    Variable $locations might not be defined.
+         🪪  variable.undefined
+  266    Variable $role might not be defined.
+         🪪  variable.undefined
+ ------ -------------------------------------------
+
+ ------ -------------------------------------------
+  Line   Views\admin\internal_list.php
+ ------ -------------------------------------------
+  154    Variable $locations might not be defined.
+         🪪  variable.undefined
+ ------ -------------------------------------------
+
+ ------ ------------------------------------------------
+  Line   Views\admin\stats.php
+ ------ ------------------------------------------------
+  169    Variable $ageStats might not be defined.
+         🪪  variable.undefined
+  169    Variable $ageStats might not be defined.
+         🪪  variable.undefined
+  170    Variable $genderStats might not be defined.
+         🪪  variable.undefined
+  170    Variable $genderStats might not be defined.
+         🪪  variable.undefined
+  171    Variable $locationStats might not be defined.
+         🪪  variable.undefined
+  171    Variable $locationStats might not be defined.
+         🪪  variable.undefined
+  172    Variable $typeStats might not be defined.
+         🪪  variable.undefined
+  172    Variable $typeStats might not be defined.
+         🪪  variable.undefined
+  173    Variable $treatmentStats might not be defined.
+         🪪  variable.undefined
+  173    Variable $treatmentStats might not be defined.
+         🪪  variable.undefined
+ ------ ------------------------------------------------
+
+ ------ --------------------------------------
+  Line   Views\admin\treatments_list.php
+ ------ --------------------------------------
+  281    Variable $role might not be defined.
+         🪪  variable.undefined
+ ------ --------------------------------------
+
+ ------ ---------------------------------------
+  Line   Views\admin\user_edit.php
+ ------ ---------------------------------------
+  61     Variable $user might not be defined.
+         🪪  variable.undefined
+  64     Variable $user might not be defined.
+         🪪  variable.undefined
+  68     Variable $user might not be defined.
+         🪪  variable.undefined
+  77     Variable $roles might not be defined.
+         🪪  variable.undefined
+ ------ ---------------------------------------
+
+ ------ ---------------------------------------
+  Line   Views\admin\users_list.php
+ ------ ---------------------------------------
+  213    Variable $users might not be defined.
+         🪪  variable.undefined
+  222    Variable $roles might not be defined.
+         🪪  variable.undefined
+ ------ ---------------------------------------
+
+ ------ ---------------------------------------
+  Line   Views\admin\users_pending.php
+ ------ ---------------------------------------
+  235    Variable $roles might not be defined.
+         🪪  variable.undefined
+ ------ ---------------------------------------
+
+ ------ ------------------------------------------------
+  Line   Views\incidents\create.php
+ ------ ------------------------------------------------
+  212    Variable $types might not be defined.
+         🪪  variable.undefined
+  231    Variable $locations might not be defined.
+         🪪  variable.undefined
+  304    Variable $treatmentTypes might not be defined.
+         🪪  variable.undefined
+ ------ ------------------------------------------------
+
+ ------ -------------------------------------------
+  Line   Views\incidents\my_list.php
+ ------ -------------------------------------------
+  134    Variable $locations might not be defined.
+         🪪  variable.undefined
+ ------ -------------------------------------------
+
+ ------ -------------------------------------------
+  Line   Views\internal\create.php
+ ------ -------------------------------------------
+  142    Variable $locations might not be defined.
+         🪪  variable.undefined
+ ------ -------------------------------------------
+
+ ------ -----------------------------------------------
+  Line   Views\pdfs\termo_recusa_de.php
+ ------ -----------------------------------------------
+  84     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  87     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  89     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  115    Variable $incident_data might not be defined.
+         🪪  variable.undefined
+ ------ -----------------------------------------------
+
+ ------ -----------------------------------------------
+  Line   Views\pdfs\termo_recusa_en.php
+ ------ -----------------------------------------------
+  84     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  87     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  89     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  114    Variable $incident_data might not be defined.
+         🪪  variable.undefined
+ ------ -----------------------------------------------
+
+ ------ -----------------------------------------------
+  Line   Views\pdfs\termo_recusa_es.php
+ ------ -----------------------------------------------
+  84     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  87     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  89     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  114    Variable $incident_data might not be defined.
+         🪪  variable.undefined
+ ------ -----------------------------------------------
+
+ ------ -----------------------------------------------
+  Line   Views\pdfs\termo_recusa_fr.php
+ ------ -----------------------------------------------
+  84     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  87     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  89     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  114    Variable $incident_data might not be defined.
+         🪪  variable.undefined
+ ------ -----------------------------------------------
+
+ ------ -----------------------------------------------
+  Line   Views\pdfs\termo_recusa_pt.php
+ ------ -----------------------------------------------
+  83     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  86     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  88     Variable $incident_data might not be defined.
+         🪪  variable.undefined
+  113    Variable $incident_data might not be defined.
+         🪪  variable.undefined
+ ------ -----------------------------------------------
+
+ ------ ------------------------------------------
+  Line   Views\treatments\create.php
+ ------ ------------------------------------------
+  154    Variable $incident might not be defined.
+         🪪  variable.undefined
+  155    Variable $incident might not be defined.
+         🪪  variable.undefined
+  156    Variable $incident might not be defined.
+         🪪  variable.undefined
+  157    Variable $incident might not be defined.
+         🪪  variable.undefined
+  158    Variable $incident might not be defined.
+         🪪  variable.undefined
+  172    Variable $incident might not be defined.
+         🪪  variable.undefined
+  177    Variable $types might not be defined.
+         🪪  variable.undefined
+ ------ ------------------------------------------
+
+
+ [ERROR] Found 78 errors
