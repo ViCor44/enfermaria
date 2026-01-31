@@ -2,7 +2,6 @@ name: SAE CI
 
 on:
   push:
-    branches: [ main ]
   pull_request:
 
 jobs:
@@ -10,32 +9,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.2'
-          extensions: mbstring, pdo_mysql, gd, intl
-          coverage: none
-
-      - name: Validate composer.json
-        run: composer validate --strict || true
+          extensions: mbstring, pdo_mysql, gd
 
       - name: Install Composer deps
         run: composer install --no-interaction --prefer-dist
 
       - name: PHP syntax check
-        run: find src -name "*.php" -print0 | xargs -0 -n1 php -l
+        run: find src -name "*.php" -exec php -l {} \;
 
-      - name: Run PHPStan (static analysis)
-        run: |
-          if [ -f vendor/bin/phpstan ]; then
-            vendor/bin/phpstan analyse src --level=5
-          else
-            echo "PHPStan not installed — skipping"
-          fi
+      - name: Run PHPStan
+        run: php vendor/phpstan/phpstan/phpstan analyse
 
       - name: Basic sanity
-        run: php -r "echo 'CI OK\n';"
+        run: php -r "echo 'OK';"
