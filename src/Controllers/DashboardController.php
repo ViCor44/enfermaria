@@ -10,6 +10,7 @@ class DashboardController
 {
     public function index(): void
     {
+        Auth::requireLogin();
         $role = $_SESSION['role'] ?? '';
         $user = $_SESSION['user_id'] ?? null;
         
