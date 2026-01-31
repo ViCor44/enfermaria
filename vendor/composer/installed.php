@@ -3,7 +3,7 @@
         'name' => '__root__',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '1395a9ea97634e5696b24169e69d01cce1814cf8',
+        'reference' => 'e07e208e303fe2e9f0bdf0639ea4d49da289006d',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -13,7 +13,7 @@
         '__root__' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '1395a9ea97634e5696b24169e69d01cce1814cf8',
+            'reference' => 'e07e208e303fe2e9f0bdf0639ea4d49da289006d',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
@@ -81,6 +81,15 @@
             'install_path' => __DIR__ . '/../phpoption/phpoption',
             'aliases' => array(),
             'dev_requirement' => false,
+        ),
+        'phpstan/phpstan' => array(
+            'pretty_version' => '2.1.38',
+            'version' => '2.1.38.0',
+            'reference' => 'dfaf1f530e1663aa167bc3e52197adb221582629',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../phpstan/phpstan',
+            'aliases' => array(),
+            'dev_requirement' => true,
         ),
         'sabberworm/php-css-parser' => array(
             'pretty_version' => 'v8.9.0',

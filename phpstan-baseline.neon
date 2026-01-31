@@ -1,0 +1,199 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Property App\\Controllers\\AdminTreatmentController\:\:\$baseUrl is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Controllers/AdminTreatmentController.php
+
+		-
+			message: '#^Variable \$incident might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/hospital_followup_form.php
+
+		-
+			message: '#^Variable \$canSeePatient might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/incident_pdf.php
+
+		-
+			message: '#^Variable \$incident might not be defined\.$#'
+			identifier: variable.undefined
+			count: 8
+			path: src/Views/admin/incident_pdf.php
+
+		-
+			message: '#^Variable \$treatments might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/incident_pdf.php
+
+		-
+			message: '#^Variable \$incident might not be defined\.$#'
+			identifier: variable.undefined
+			count: 11
+			path: src/Views/admin/incidents_detail.php
+
+		-
+			message: '#^Variable \$treatments might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/incidents_detail.php
+
+		-
+			message: '#^Variable \$locations might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/incidents_list.php
+
+		-
+			message: '#^Variable \$role might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/incidents_list.php
+
+		-
+			message: '#^Variable \$locations might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/internal_list.php
+
+		-
+			message: '#^Variable \$ageStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/stats.php
+
+		-
+			message: '#^Variable \$genderStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/stats.php
+
+		-
+			message: '#^Variable \$locationStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/stats.php
+
+		-
+			message: '#^Variable \$treatmentStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/stats.php
+
+		-
+			message: '#^Variable \$typeStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/stats.php
+
+		-
+			message: '#^Variable \$role might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/treatments_list.php
+
+		-
+			message: '#^Variable \$roles might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/user_edit.php
+
+		-
+			message: '#^Variable \$user might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: src/Views/admin/user_edit.php
+
+		-
+			message: '#^Variable \$roles might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/users_list.php
+
+		-
+			message: '#^Variable \$users might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/users_list.php
+
+		-
+			message: '#^Variable \$roles might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/users_pending.php
+
+		-
+			message: '#^Variable \$locations might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/incidents/create.php
+
+		-
+			message: '#^Variable \$treatmentTypes might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/incidents/create.php
+
+		-
+			message: '#^Variable \$types might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/incidents/create.php
+
+		-
+			message: '#^Variable \$locations might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/incidents/my_list.php
+
+		-
+			message: '#^Variable \$locations might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/internal/create.php
+
+		-
+			message: '#^Variable \$incident_data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 4
+			path: src/Views/pdfs/termo_recusa_de.php
+
+		-
+			message: '#^Variable \$incident_data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 4
+			path: src/Views/pdfs/termo_recusa_en.php
+
+		-
+			message: '#^Variable \$incident_data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 4
+			path: src/Views/pdfs/termo_recusa_es.php
+
+		-
+			message: '#^Variable \$incident_data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 4
+			path: src/Views/pdfs/termo_recusa_fr.php
+
+		-
+			message: '#^Variable \$incident_data might not be defined\.$#'
+			identifier: variable.undefined
+			count: 4
+			path: src/Views/pdfs/termo_recusa_pt.php
+
+		-
+			message: '#^Variable \$incident might not be defined\.$#'
+			identifier: variable.undefined
+			count: 6
+			path: src/Views/treatments/create.php
+
+		-
+			message: '#^Variable \$types might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/treatments/create.php
