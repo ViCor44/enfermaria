@@ -117,25 +117,25 @@ $baseUrl = '/enfermaria/public/index.php';
 
         <!-- Faixa etária -->
         <div class="card">
-            <h2>Acidentes por Faixa Etária</h2>
+            <h2>Ocorrências por Faixa Etária</h2>
             <canvas id="chartAge"></canvas>
         </div>
 
         <!-- Género -->
         <div class="card">
-            <h2>Acidentes por Género</h2>
+            <h2>Ocorrências por Género</h2>
             <canvas id="chartGender"></canvas>
         </div>
 
         <!-- Local -->
         <div class="card">
-            <h2>Acidentes por Local</h2>
+            <h2>Ocorrências por Local</h2>
             <canvas id="chartLocation"></canvas>
         </div>
 
-        <!-- Tipo de acidente -->
+        <!-- Tipo de Ocorrência -->
         <div class="card">
-            <h2>Tipo de Acidente</h2>
+            <h2>Tipo de Ocorrência</h2>
             <canvas id="chartType"></canvas>
         </div>
 
