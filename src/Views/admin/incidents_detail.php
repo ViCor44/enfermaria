@@ -412,7 +412,7 @@ foreach ($treatments as $t) {
                 ">
                     ⚠️ O utente recusou a deslocação ao hospital após avaliação.
                 </div>
-
+                <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
                 <div class="followup-actions">
 
                     <a class="btn-outline"
@@ -420,7 +420,7 @@ foreach ($treatments as $t) {
                     href="/enfermaria/public/index.php?route=admin_incident_print_refusal&id=<?= (int)$incident['id'] ?>">
                         📄 Gerar termo de recusa
                     </a>
-
+                <?php endif; ?>
                     <a class="btn-primary"
                     href="<?= $baseUrl ?>?route=incident_hospital_followup&id=<?= (int)$incident['id'] ?>">
                         ➕ Registar ida posterior ao hospital
@@ -440,6 +440,7 @@ foreach ($treatments as $t) {
                 ">
                     🏥 Utente encaminhado para o hospital.
                 </div>
+                <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
                 <div class="followup-actions">
 
                     <a class="btn-outline"
@@ -447,7 +448,7 @@ foreach ($treatments as $t) {
                     href="<?= $baseUrl ?>?route=incident_insurance_term&id=<?= (int)$incident['id'] ?>">
                         📄 Gerar termo de seguro
                     </a>
-
+                <?php endif; ?>
                     <a class="btn-primary"
                     href="<?= $baseUrl ?>?route=incident_hospital_followup&id=<?= (int)$incident['id'] ?>">
                         ➕ Registar ida posterior ao hospital
