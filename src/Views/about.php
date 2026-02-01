@@ -111,7 +111,7 @@
         <h2>O que é o SAE?</h2>
         <p>
             O SAE é uma plataforma moderna desenvolvida para apoiar o trabalho da enfermaria do Parque Aquático,
-            garantindo uma gestão eficiente, segura e rápida de acidentes, tratamentos e registos clínicos internos.
+            garantindo uma gestão eficiente, segura e rápida de Ocorrências, tratamentos e registos clínicos internos.
             O sistema foi construído com foco na simplicidade de utilização, na segurança dos dados e no cumprimento das normas RGPD.
         </p>
     </div>
@@ -119,7 +119,7 @@
     <div class="section">
         <h2>Principais Funcionalidades</h2>
         <ul>
-            <li><img class="icon-sae" src="/enfermaria/public/assets/icons/incident.svg" alt=""> Registo de acidentes em tempo real</li>
+            <li><img class="icon-sae" src="/enfermaria/public/assets/icons/incident.svg" alt=""> Registo de Ocorrências em tempo real</li>
             <li><img class="icon-sae" src="/enfermaria/public/assets/icons/treatment.svg" alt=""> Gestão completa de tratamentos</li>
             <li><img class="icon-sae" src="/enfermaria/public/assets/icons/users.svg" alt=""> Perfis de utilizador</li>
             <li><img class="icon-sae" src="/enfermaria/public/assets/icons/integration.svg" alt=""> Integração de dados de utentes</li>
