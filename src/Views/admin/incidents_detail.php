@@ -412,9 +412,9 @@ foreach ($treatments as $t) {
                 ">
                     ⚠️ O utente recusou a deslocação ao hospital após avaliação.
                 </div>
-                <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
+                
                 <div class="followup-actions">
-
+                <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
                     <a class="btn-outline"
                     target="_blank"
                     href="/enfermaria/public/index.php?route=admin_incident_print_refusal&id=<?= (int)$incident['id'] ?>">
@@ -439,10 +439,9 @@ foreach ($treatments as $t) {
                     font-weight:600;
                 ">
                     🏥 Utente encaminhado para o hospital.
-                </div>
-                <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
+                </div>                
                 <div class="followup-actions">
-
+                <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
                     <a class="btn-outline"
                     target="_blank"
                     href="<?= $baseUrl ?>?route=incident_insurance_term&id=<?= (int)$incident['id'] ?>">
