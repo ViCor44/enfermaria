@@ -1,4 +1,0 @@
-[2026-01-26 18:07:13] SUCCESS | email='pinto@gmail.com' | user_id='3' | ip='::1'
-[2026-01-26 20:12:09] FAIL (invalid credentials) | email='admin@gmail.com' | ip='::1'
-[2026-01-26 20:12:17] SUCCESS | email='admin@gmail.com' | user_id='1' | ip='::1'
-[2026-01-26 21:33:25] SUCCESS | email='pinto@gmail.com' | user_id='3' | ip='::1'
