@@ -1,1 +1,5 @@
 Mailer.php
+storage/*
+!storage/.gitkeep
+public/pdfs/*
+!public/pdfs/.gitkeep
