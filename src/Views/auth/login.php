@@ -116,6 +116,16 @@ $baseUrl = '/enfermaria/public/index.php';
         margin-bottom: 1rem;
     }
 
+    .success {
+        background: #e6f9ec;
+        border: 1px solid #2ecc71;
+        color: #1e7e34;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-size: 0.95rem;
+    }
+
     footer {
         margin-top: 1rem;
         font-size: .9rem;
@@ -172,6 +182,11 @@ $baseUrl = '/enfermaria/public/index.php';
         <div class="card">
 
             <h2>Login</h2>
+
+            <?php if (!empty($_SESSION['success_register'])): ?>
+                <div class="success"><?= htmlspecialchars($_SESSION['success_register']) ?></div>
+                <?php unset($_SESSION['success_register']); ?>
+            <?php endif; ?>
 
             <?php if (!empty($_SESSION['error'])): ?>
                 <div class="error"><?= htmlspecialchars($_SESSION['error']) ?></div>
