@@ -101,13 +101,15 @@ class Incident
                 u.full_name AS nurse_name,
 
                 p.full_name AS patient_name,
+                p.age AS patient_age,
+                p.gender AS patient_gender,
                 p.refused_hospital
 
             FROM incidents i
             JOIN incident_types it ON it.id = i.incident_type_id
             JOIN locations l ON l.id = i.location_id
             JOIN users u ON u.id = i.user_id
-            LEFT JOIN patients p ON p.incident_id = i.id
+            LEFT JOIN patients p ON p.id = i.patient_id
             WHERE 1 = 1
         ";
 
