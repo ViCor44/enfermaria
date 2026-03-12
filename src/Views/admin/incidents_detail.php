@@ -266,19 +266,7 @@ foreach ($treatments as $t) {
             </div>
         </div>
 
-        <div class="row" style="margin-top:1rem;">
-            <div>
-                <div class="label">Idade (utente)</div>
-                <div class="value">
-                    <?= $incident['patient_age'] !== null ? (int)$incident['patient_age'] : '—' ?>
-                </div>
-            </div>
-            <div>
-                <div class="label">Género (utente)</div>
-                <div class="value">
-                    <?= !empty($incident['patient_gender']) ? htmlspecialchars($incident['patient_gender']) : '—' ?>
-                </div>
-            </div>
+        <div class="row" style="margin-top:1rem;">            
             <div>
                 <div class="label">Enfermeiro responsável</div>
                 <div class="value"><?= htmlspecialchars($incident['nurse_name'] ?? '') ?></div>
@@ -297,18 +285,25 @@ foreach ($treatments as $t) {
     <div class="card">
         <h2>Dados do utente</h2>
 
-        <?php if (empty($incident['patient_name'])): ?>
-            <p class="subtitle">
-                Não existe registo de envio para hospital / dados de utente associados a esta Ocorrência.
-            </p>
-
-        <?php else: ?>
             <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
                 <!-- Admin ou enfermeiro que tratou vêem os dados -->
                 <div class="row" style="margin-top:1rem;">
                     <div>
                         <div class="label">Nome completo</div>
                         <div class="value"><?= htmlspecialchars($incident['patient_name']) ?></div>
+                    </div>
+                    <div>
+                        <div class="label">Idade</div>
+                        <div class="value">
+                            <?= $incident['patient_age'] !== null ? (int)$incident['patient_age'] . ' anos' : '—' ?>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="label">Género</div>
+                        <div class="value">
+                            <?= !empty($incident['patient_gender']) ? htmlspecialchars($incident['patient_gender']) : '—' ?>
+                        </div>
                     </div>
                     <div>
                         <div class="label">Nacionalidade</div>
@@ -356,7 +351,6 @@ foreach ($treatments as $t) {
                     Existem dados de utente associados a esta Ocorrência, mas não tem permissão para os visualizar.
                 </p>
             <?php endif; ?>
-        <?php endif; ?>
     </div>
 
     <!-- Tratamentos associados -->
