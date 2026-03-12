@@ -2,7 +2,9 @@
 namespace App\Controllers;
 
 use App\Core\Auth;
+use App\Core\Database;
 use App\Models\Incident;
+use App\Models\Patient;
 use App\Models\Treatment;
 
 class TreatmentController
@@ -32,27 +34,31 @@ class TreatmentController
         require __DIR__ . '/../Views/treatments/create.php';
     }
 
-    public function store(): void
-    {
-        Auth::requireRole(['Enfermeiro']);
+public function store(): void
+{
+    Auth::requireRole(['Enfermeiro']);
 
-        $user = Auth::user();
-        $userId = (int)$user['id'];
+    $user   = Auth::user();
+    $userId = (int)$user['id'];
 
-        $incidentId      = (int)($_POST['incident_id'] ?? 0);
-        $treatmentTypeId = (int)($_POST['treatment_type_id'] ?? 0);
-        $status          = $_POST['status'] ?? 'em_curso';
-        $notes           = trim($_POST['notes'] ?? '');
+    $incidentId      = (int)($_POST['incident_id'] ?? 0);
+    $treatmentTypeId = (int)($_POST['treatment_type_id'] ?? 0);
+    $status          = $_POST['status'] ?? 'em_curso';
+    $notes           = trim($_POST['notes'] ?? '') ?: null;
 
-        if ($incidentId <= 0 || $treatmentTypeId <= 0) {
-            $_SESSION['error'] = 'Dados de tratamento incompletos.';
-            header('Location: ' . $this->baseUrl . '?route=incidents_my');
-            return;
-        }
+    if ($incidentId <= 0 || $treatmentTypeId <= 0) {
+        $_SESSION['error'] = 'Dados inválidos.';
+        header('Location: '.$this->baseUrl.'?route=admin_incidents');
+        exit;
+    }
 
-        if (!in_array($status, ['em_curso','concluido'], true)) {
-            $status = 'em_curso';
-        }
+    $pdo = Database::getConnection();
+
+    try {
+
+        $pdo->beginTransaction();
+
+        /* -------------------- CRIAR TRATAMENTO -------------------- */
 
         Treatment::create([
             'incident_id'       => $incidentId,
@@ -62,10 +68,64 @@ class TreatmentController
             'notes'             => $notes,
         ]);
 
-        $_SESSION['success'] = 'Tratamento registado com sucesso.';
-        header('Location: ' . $this->baseUrl . '?route=admin_treatments');
-    }
+        /* -------------------- DETETAR SE É HOSPITAL -------------------- */
 
+        $hospitalTypeId = Treatment::getHospitalTransferTypeId();
+
+        $isHospitalTreatment =
+            $hospitalTypeId && $treatmentTypeId === (int)$hospitalTypeId;
+
+        /* -------------------- UPDATE PACIENTE -------------------- */
+
+        if ($isHospitalTreatment) {
+
+            $patientNationality = trim($_POST['patient_nationality'] ?? '') ?: null;
+            $patientAddress     = trim($_POST['patient_address'] ?? '') ?: null;
+            $patientPostalCode  = trim($_POST['patient_postal_code'] ?? '') ?: null;
+            $patientCity        = trim($_POST['patient_city'] ?? '') ?: null;
+            $patientPhone       = trim($_POST['patient_phone'] ?? '') ?: null;
+            $patientDob         = trim($_POST['patient_dob'] ?? '') ?: null;
+            $patientIdType      = trim($_POST['patient_id_type'] ?? '') ?: null;
+            $patientIdNumber    = trim($_POST['patient_id_number'] ?? '') ?: null;
+
+            $patientRefusedHospital = isset($_POST['patient_refused_hospital']) ? 1 : 0;
+
+            /* obter paciente associado ao incidente */
+
+            $incident = Incident::find($incidentId);
+
+            if (!empty($incident['patient_id'])) {
+
+                Patient::updateHospitalData(
+                    (int)$incident['patient_id'],
+                    $patientNationality,
+                    $patientAddress,
+                    $patientPostalCode,
+                    $patientCity,
+                    $patientPhone,
+                    $patientDob,
+                    $patientIdType,
+                    $patientIdNumber,
+                    $patientRefusedHospital
+                );
+
+            }
+
+        }
+
+        $pdo->commit();
+
+        $_SESSION['success'] = 'Tratamento registado com sucesso.';
+        header('Location: '.$this->baseUrl.'?route=admin_incident_detail&id='.$incidentId);
+        exit;
+
+    } catch (\Throwable $e) {
+
+        $pdo->rollBack();
+
+        die($e->getMessage());
+    }
+}
     public function changeStatus(): void
     {
         // Só enfermeiros podem alterar o estado dos tratamentos
