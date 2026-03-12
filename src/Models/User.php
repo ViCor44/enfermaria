@@ -142,7 +142,7 @@ class User
 
         // Criar utilizador com approved = 0
         $ins = $pdo->prepare('
-            INSERT INTO users (email, password_hash, role_id, full_name, phone approved)
+            INSERT INTO users (email, password_hash, role_id, full_name, phone, approved)
             VALUES (?,?,?,?,?,0)
         ');
         $ins->execute([$email, $hash, $roleId, $fullName, $phone]);
