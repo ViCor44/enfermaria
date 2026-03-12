@@ -43,8 +43,15 @@ class IncidentController
         $date = trim($_POST['date'] ?? '');
         $time = trim($_POST['time'] ?? '');
 
+        $patientName   = trim($_POST['patient_name'] ?? '');
         $patientAge    = ($_POST['patient_age'] ?? '') !== '' ? (int)$_POST['patient_age'] : null;
         $patientGender = trim($_POST['patient_gender'] ?? '') ?: null;
+
+        $patientId = Patient::createBasic(
+            $patientName,
+            $patientAge,
+            $patientGender
+        );
 
         $description = trim($_POST['description'] ?? '') ?: null;
 
@@ -56,8 +63,7 @@ class IncidentController
                                 : 'em_curso';
         $treatmentNotes     = trim($_POST['treatment_notes'] ?? '') ?: null;
 
-        /* -------------------- PACIENTE -------------------- */
-        $patientName        = trim($_POST['patient_name'] ?? '');
+        /* -------------------- PACIENTE -------------------- */        
         $patientNationality = trim($_POST['patient_nationality'] ?? '') ?: null;
         $patientAddress     = trim($_POST['patient_address'] ?? '') ?: null;
         $patientPostalCode  = trim($_POST['patient_postal_code'] ?? '') ?: null;
@@ -122,19 +128,18 @@ class IncidentController
             /* INCIDENTE */
             $stmt = $pdo->prepare("
                 INSERT INTO incidents
-                (user_id, incident_type_id, location_id, occurred_at, patient_age, patient_gender, description)
+                (user_id, incident_type_id, location_id, occurred_at, patient_id, description)
                 VALUES
-                (:user_id, :type, :loc, :occurred, :age, :gender, :descr)
+                (:user_id, :type, :loc, :occurred, :patient_id, :descr)
             ");
 
             $stmt->execute([
-                ':user_id'  => $userId,
-                ':type'     => $incidentTypeId,
-                ':loc'      => $locationId,
+                ':user_id' => $userId,
+                ':type' => $incidentTypeId,
+                ':loc' => $locationId,
                 ':occurred' => $occurredAt,
-                ':age'      => $patientAge,
-                ':gender'   => $patientGender,
-                ':descr'    => $description,
+                ':patient_id' => $patientId,
+                ':descr' => $description,
             ]);
 
             $incidentId = (int)$pdo->lastInsertId();
@@ -152,8 +157,7 @@ class IncidentController
                 /* PACIENTE */
                 if ($isHospitalTreatment) {
                     Patient::createForIncident(
-                        $incidentId,
-                        $patientName,
+                        $incidentId,                        
                         $patientNationality,
                         $patientAddress,
                         $patientPostalCode,

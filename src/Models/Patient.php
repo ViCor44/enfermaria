@@ -7,8 +7,7 @@ use PDO;
 class Patient
 {
     public static function createForIncident(
-        int $incidentId,
-        string $fullName,
+                
         ?string $nationality,
         ?string $address,
         ?string $postalCode,
@@ -22,10 +21,8 @@ class Patient
         $pdo = Database::getConnection();
 
         $stmt = $pdo->prepare("
-            INSERT INTO patients
-            (
-                incident_id,
-                full_name,
+            UPDATE patients
+            (               
                 nationality,
                 address,
                 postal_code,
@@ -38,8 +35,6 @@ class Patient
             )
             VALUES
             (
-                :incident_id,
-                :full_name,
                 :nationality,
                 :address,
                 :postal_code,
@@ -52,9 +47,7 @@ class Patient
             )
         ");
 
-        $stmt->execute([
-            ':incident_id'      => $incidentId,
-            ':full_name'        => $fullName,
+        $stmt->execute([            
             ':nationality'      => $nationality,
             ':address'          => $address,
             ':postal_code'      => $postalCode ?: null,
@@ -67,5 +60,29 @@ class Patient
         ]);
 
         return (int) $pdo->lastInsertId();
+    }
+
+    public static function createBasic(
+        string $name,
+        ?int $age,
+        ?string $gender
+    ): int {
+
+        $pdo = Database::getConnection();
+
+        $stmt = $pdo->prepare("
+            INSERT INTO patients
+            (full_name, age, gender)
+            VALUES
+            (:name, :age, :gender)
+        ");
+
+        $stmt->execute([
+            ':name' => $name,
+            ':age' => $age,
+            ':gender' => $gender
+        ]);
+
+        return (int)$pdo->lastInsertId();
     }
 }
