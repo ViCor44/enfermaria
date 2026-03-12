@@ -63,6 +63,7 @@ class Patient
     }
 
     public static function createBasic(
+        int $incidentId,
         string $name,
         ?int $age,
         ?string $gender
@@ -72,12 +73,13 @@ class Patient
 
         $stmt = $pdo->prepare("
             INSERT INTO patients
-            (full_name, age, gender)
+            (incident_id, full_name, age, gender)
             VALUES
-            (:name, :age, :gender)
+            (:incident_id, :name, :age, :gender)
         ");
 
         $stmt->execute([
+            ':incident_id' => $incidentId,
             ':name' => $name,
             ':age' => $age,
             ':gender' => $gender

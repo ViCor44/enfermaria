@@ -115,33 +115,35 @@ public function store(): void
 
         $pdo->beginTransaction();
 
-        /* -------------------- PATIENT BÁSICO -------------------- */
+        /* -------------------- INCIDENT -------------------- */
+
+        $stmt = $pdo->prepare("
+            INSERT INTO incidents
+            (user_id, incident_type_id, location_id, occurred_at, description)
+            VALUES
+            (:user_id, :type, :loc, :occurred, :descr)
+        ");
+
+        $stmt->execute([
+            ':user_id'  => $userId,
+            ':type'     => $incidentTypeId,
+            ':loc'      => $locationId,
+            ':occurred' => $occurredAt,
+            ':descr'    => $description,
+        ]);
+
+        $incidentId = (int)$pdo->lastInsertId();
+
+                /* -------------------- PATIENT BÁSICO -------------------- */
 
         $patientId = Patient::createBasic(
+            $incidentId,
             $patientName,
             $patientAge,
             $patientGender
         );
 
-        /* -------------------- INCIDENT -------------------- */
 
-        $stmt = $pdo->prepare("
-            INSERT INTO incidents
-            (user_id, incident_type_id, location_id, occurred_at, patient_id, description)
-            VALUES
-            (:user_id, :type, :loc, :occurred, :patient_id, :descr)
-        ");
-
-        $stmt->execute([
-            ':user_id'    => $userId,
-            ':type'       => $incidentTypeId,
-            ':loc'        => $locationId,
-            ':occurred'   => $occurredAt,
-            ':patient_id' => $patientId,
-            ':descr'      => $description,
-        ]);
-
-        $incidentId = (int)$pdo->lastInsertId();
 
         /* -------------------- TRATAMENTO -------------------- */
 
