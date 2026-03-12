@@ -33,7 +33,6 @@ public function store(): void
     $user   = Auth::user();
     $userId = (int)$user['id'];
 
-    /* -------------------- INCIDENTE -------------------- */
     $incidentTypeId    = ($_POST['incident_type_id'] ?? '') !== '' ? (int)$_POST['incident_type_id'] : 0;
     $incidentTypeInput = trim($_POST['incident_type_input'] ?? '');
 
@@ -43,22 +42,19 @@ public function store(): void
     $date = trim($_POST['date'] ?? '');
     $time = trim($_POST['time'] ?? '');
 
-    /* -------------------- PACIENTE (BÁSICO) -------------------- */
     $patientName   = trim($_POST['patient_name'] ?? '');
     $patientAge    = ($_POST['patient_age'] ?? '') !== '' ? (int)$_POST['patient_age'] : null;
     $patientGender = trim($_POST['patient_gender'] ?? '') ?: null;
 
     $description = trim($_POST['description'] ?? '') ?: null;
 
-    /* -------------------- TRATAMENTO -------------------- */
     $treatmentTypeId    = ($_POST['treatment_type_id'] ?? '') !== '' ? (int)$_POST['treatment_type_id'] : 0;
     $treatmentTypeInput = trim($_POST['treatment_type_input'] ?? '');
     $treatmentStatus    = in_array($_POST['treatment_status'] ?? '', ['em_curso','concluido'], true)
-                            ? $_POST['treatment_status']
-                            : 'em_curso';
+        ? $_POST['treatment_status']
+        : 'em_curso';
     $treatmentNotes     = trim($_POST['treatment_notes'] ?? '') ?: null;
 
-    /* -------------------- DADOS HOSPITAL -------------------- */
     $patientNationality = trim($_POST['patient_nationality'] ?? '') ?: null;
     $patientAddress     = trim($_POST['patient_address'] ?? '') ?: null;
     $patientPostalCode  = trim($_POST['patient_postal_code'] ?? '') ?: null;
@@ -67,27 +63,25 @@ public function store(): void
     $patientDob         = trim($_POST['patient_dob'] ?? '') ?: null;
     $patientIdType      = trim($_POST['patient_id_type'] ?? '') ?: null;
     $patientIdNumber    = trim($_POST['patient_id_number'] ?? '') ?: null;
-
     $patientRefusedHospital = isset($_POST['patient_refused_hospital']) ? 1 : 0;
-
-    /* -------------------- VALIDAÇÕES -------------------- */
 
     if ($incidentTypeId <= 0 && $incidentTypeInput === '') {
         $_SESSION['error'] = 'Tipo de acidente obrigatório.';
-        header('Location: '.$this->baseUrl.'?route=incidents_new'); exit;
+        header('Location: '.$this->baseUrl.'?route=incidents_new');
+        exit;
     }
 
     if ($locationId <= 0 && $locationInput === '') {
         $_SESSION['error'] = 'Local obrigatório.';
-        header('Location: '.$this->baseUrl.'?route=incidents_new'); exit;
+        header('Location: '.$this->baseUrl.'?route=incidents_new');
+        exit;
     }
 
     if ($date === '' || $time === '') {
         $_SESSION['error'] = 'Data e hora obrigatórias.';
-        header('Location: '.$this->baseUrl.'?route=incidents_new'); exit;
+        header('Location: '.$this->baseUrl.'?route=incidents_new');
+        exit;
     }
-
-    /* -------------------- NORMALIZAÇÃO -------------------- */
 
     if ($incidentTypeId <= 0) {
         $incidentTypeId = Incident::createTypeIfNotExists($incidentTypeInput);
@@ -101,7 +95,7 @@ public function store(): void
         $treatmentTypeId = Treatment::createTypeIfNotExists($treatmentTypeInput);
     }
 
-    $occurredAt = $date.' '.$time.':00';
+    $occurredAt = $date . ' ' . $time . ':00';
 
     $hospitalTypeId = Treatment::getHospitalTransferTypeId();
 
@@ -112,10 +106,7 @@ public function store(): void
     $pdo = Database::getConnection();
 
     try {
-
         $pdo->beginTransaction();
-
-        /* -------------------- INCIDENT -------------------- */
 
         $stmt = $pdo->prepare("
             INSERT INTO incidents
@@ -134,8 +125,6 @@ public function store(): void
 
         $incidentId = (int)$pdo->lastInsertId();
 
-                /* -------------------- PATIENT BÁSICO -------------------- */
-
         $patientId = Patient::createBasic(
             $incidentId,
             $patientName,
@@ -143,12 +132,18 @@ public function store(): void
             $patientGender
         );
 
+        $updateIncident = $pdo->prepare("
+            UPDATE incidents
+            SET patient_id = :patient_id
+            WHERE id = :incident_id
+        ");
 
-
-        /* -------------------- TRATAMENTO -------------------- */
+        $updateIncident->execute([
+            ':patient_id'  => $patientId,
+            ':incident_id' => $incidentId,
+        ]);
 
         if ($treatmentTypeId > 0) {
-
             Treatment::create([
                 'incident_id'       => $incidentId,
                 'user_id'           => $userId,
@@ -157,10 +152,7 @@ public function store(): void
                 'notes'             => $treatmentNotes,
             ]);
 
-            /* -------------------- UPDATE PATIENT HOSPITAL -------------------- */
-
             if ($isHospitalTreatment) {
-
                 Patient::updateHospitalData(
                     $patientId,
                     $patientNationality,
@@ -173,9 +165,7 @@ public function store(): void
                     $patientIdNumber,
                     $patientRefusedHospital
                 );
-
             }
-
         }
 
         $pdo->commit();
@@ -185,12 +175,9 @@ public function store(): void
         exit;
 
     } catch (\Throwable $e) {
-
-    $pdo->rollBack();
-
-    die($e->getMessage());
-
-}
+        $pdo->rollBack();
+        die($e->getMessage());
+    }
 }
     public function insuranceTerm()
     {
