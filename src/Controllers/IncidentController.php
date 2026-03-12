@@ -26,26 +26,96 @@ class IncidentController
         require __DIR__ . '/../Views/incidents/create.php';
     }
 
-    public function store(): void
-    {
-        Auth::requireRole(['Enfermeiro']);
+public function store(): void
+{
+    Auth::requireRole(['Enfermeiro']);
 
-        $user   = Auth::user();
-        $userId = (int)$user['id'];
+    $user   = Auth::user();
+    $userId = (int)$user['id'];
 
-        /* -------------------- INCIDENTE -------------------- */
-        $incidentTypeId    = ($_POST['incident_type_id'] ?? '') !== '' ? (int)$_POST['incident_type_id'] : 0;
-        $incidentTypeInput = trim($_POST['incident_type_input'] ?? '');
+    /* -------------------- INCIDENTE -------------------- */
+    $incidentTypeId    = ($_POST['incident_type_id'] ?? '') !== '' ? (int)$_POST['incident_type_id'] : 0;
+    $incidentTypeInput = trim($_POST['incident_type_input'] ?? '');
 
-        $locationId    = ($_POST['location_id'] ?? '') !== '' ? (int)$_POST['location_id'] : 0;
-        $locationInput = trim($_POST['location_input'] ?? '');
+    $locationId    = ($_POST['location_id'] ?? '') !== '' ? (int)$_POST['location_id'] : 0;
+    $locationInput = trim($_POST['location_input'] ?? '');
 
-        $date = trim($_POST['date'] ?? '');
-        $time = trim($_POST['time'] ?? '');
+    $date = trim($_POST['date'] ?? '');
+    $time = trim($_POST['time'] ?? '');
 
-        $patientName   = trim($_POST['patient_name'] ?? '');
-        $patientAge    = ($_POST['patient_age'] ?? '') !== '' ? (int)$_POST['patient_age'] : null;
-        $patientGender = trim($_POST['patient_gender'] ?? '') ?: null;
+    /* -------------------- PACIENTE (BÁSICO) -------------------- */
+    $patientName   = trim($_POST['patient_name'] ?? '');
+    $patientAge    = ($_POST['patient_age'] ?? '') !== '' ? (int)$_POST['patient_age'] : null;
+    $patientGender = trim($_POST['patient_gender'] ?? '') ?: null;
+
+    $description = trim($_POST['description'] ?? '') ?: null;
+
+    /* -------------------- TRATAMENTO -------------------- */
+    $treatmentTypeId    = ($_POST['treatment_type_id'] ?? '') !== '' ? (int)$_POST['treatment_type_id'] : 0;
+    $treatmentTypeInput = trim($_POST['treatment_type_input'] ?? '');
+    $treatmentStatus    = in_array($_POST['treatment_status'] ?? '', ['em_curso','concluido'], true)
+                            ? $_POST['treatment_status']
+                            : 'em_curso';
+    $treatmentNotes     = trim($_POST['treatment_notes'] ?? '') ?: null;
+
+    /* -------------------- DADOS HOSPITAL -------------------- */
+    $patientNationality = trim($_POST['patient_nationality'] ?? '') ?: null;
+    $patientAddress     = trim($_POST['patient_address'] ?? '') ?: null;
+    $patientPostalCode  = trim($_POST['patient_postal_code'] ?? '') ?: null;
+    $patientCity        = trim($_POST['patient_city'] ?? '') ?: null;
+    $patientPhone       = trim($_POST['patient_phone'] ?? '') ?: null;
+    $patientDob         = trim($_POST['patient_dob'] ?? '') ?: null;
+    $patientIdType      = trim($_POST['patient_id_type'] ?? '') ?: null;
+    $patientIdNumber    = trim($_POST['patient_id_number'] ?? '') ?: null;
+
+    $patientRefusedHospital = isset($_POST['patient_refused_hospital']) ? 1 : 0;
+
+    /* -------------------- VALIDAÇÕES -------------------- */
+
+    if ($incidentTypeId <= 0 && $incidentTypeInput === '') {
+        $_SESSION['error'] = 'Tipo de acidente obrigatório.';
+        header('Location: '.$this->baseUrl.'?route=incidents_new'); exit;
+    }
+
+    if ($locationId <= 0 && $locationInput === '') {
+        $_SESSION['error'] = 'Local obrigatório.';
+        header('Location: '.$this->baseUrl.'?route=incidents_new'); exit;
+    }
+
+    if ($date === '' || $time === '') {
+        $_SESSION['error'] = 'Data e hora obrigatórias.';
+        header('Location: '.$this->baseUrl.'?route=incidents_new'); exit;
+    }
+
+    /* -------------------- NORMALIZAÇÃO -------------------- */
+
+    if ($incidentTypeId <= 0) {
+        $incidentTypeId = Incident::createTypeIfNotExists($incidentTypeInput);
+    }
+
+    if ($locationId <= 0) {
+        $locationId = Location::createIfNotExists($locationInput);
+    }
+
+    if ($treatmentTypeId <= 0 && $treatmentTypeInput !== '') {
+        $treatmentTypeId = Treatment::createTypeIfNotExists($treatmentTypeInput);
+    }
+
+    $occurredAt = $date.' '.$time.':00';
+
+    $hospitalTypeId = Treatment::getHospitalTransferTypeId();
+
+    $isHospitalTreatment =
+        ($hospitalTypeId && $treatmentTypeId === (int)$hospitalTypeId) ||
+        strcasecmp($treatmentTypeInput, 'Enviado para hospital') === 0;
+
+    $pdo = Database::getConnection();
+
+    try {
+
+        $pdo->beginTransaction();
+
+        /* -------------------- PATIENT BÁSICO -------------------- */
 
         $patientId = Patient::createBasic(
             $patientName,
@@ -53,138 +123,75 @@ class IncidentController
             $patientGender
         );
 
-        $description = trim($_POST['description'] ?? '') ?: null;
+        /* -------------------- INCIDENT -------------------- */
+
+        $stmt = $pdo->prepare("
+            INSERT INTO incidents
+            (user_id, incident_type_id, location_id, occurred_at, patient_id, description)
+            VALUES
+            (:user_id, :type, :loc, :occurred, :patient_id, :descr)
+        ");
+
+        $stmt->execute([
+            ':user_id'    => $userId,
+            ':type'       => $incidentTypeId,
+            ':loc'        => $locationId,
+            ':occurred'   => $occurredAt,
+            ':patient_id' => $patientId,
+            ':descr'      => $description,
+        ]);
+
+        $incidentId = (int)$pdo->lastInsertId();
 
         /* -------------------- TRATAMENTO -------------------- */
-        $treatmentTypeId    = ($_POST['treatment_type_id'] ?? '') !== '' ? (int)$_POST['treatment_type_id'] : 0;
-        $treatmentTypeInput = trim($_POST['treatment_type_input'] ?? '');
-        $treatmentStatus    = in_array($_POST['treatment_status'] ?? '', ['em_curso','concluido'], true)
-                                ? $_POST['treatment_status']
-                                : 'em_curso';
-        $treatmentNotes     = trim($_POST['treatment_notes'] ?? '') ?: null;
 
-        /* -------------------- PACIENTE -------------------- */        
-        $patientNationality = trim($_POST['patient_nationality'] ?? '') ?: null;
-        $patientAddress     = trim($_POST['patient_address'] ?? '') ?: null;
-        $patientPostalCode  = trim($_POST['patient_postal_code'] ?? '') ?: null;
-        $patientCity        = trim($_POST['patient_city'] ?? '') ?: null;
-        $patientPhone       = trim($_POST['patient_phone'] ?? '') ?: null;
-        $patientDob         = trim($_POST['patient_dob'] ?? '') ?: null;
-        $patientIdType      = trim($_POST['patient_id_type'] ?? '') ?: null;
-        $patientIdNumber    = trim($_POST['patient_id_number'] ?? '') ?: null;
+        if ($treatmentTypeId > 0) {
 
-        // ✅ RECUSA DE HOSPITAL (0 ou 1)
-        $patientRefusedHospital = isset($_POST['patient_refused_hospital']) ? 1 : 0;
-
-        /* -------------------- VALIDAÇÕES -------------------- */
-        if ($incidentTypeId <= 0 && $incidentTypeInput === '') {
-            $_SESSION['error'] = 'Tipo de acidente obrigatório.';
-            header('Location: '.$this->baseUrl.'?route=incidents_new'); exit;
-        }
-
-        if ($locationId <= 0 && $locationInput === '') {
-            $_SESSION['error'] = 'Local obrigatório.';
-            header('Location: '.$this->baseUrl.'?route=incidents_new'); exit;
-        }
-
-        if ($date === '' || $time === '') {
-            $_SESSION['error'] = 'Data e hora obrigatórias.';
-            header('Location: '.$this->baseUrl.'?route=incidents_new'); exit;
-        }
-
-        /* -------------------- NORMALIZAÇÃO -------------------- */
-        if ($incidentTypeId <= 0) {
-            $incidentTypeId = Incident::createTypeIfNotExists($incidentTypeInput);
-        }
-
-        if ($locationId <= 0) {
-            $locationId = Location::createIfNotExists($locationInput);
-        }
-
-        if ($treatmentTypeId <= 0 && $treatmentTypeInput !== '') {
-            $treatmentTypeId = Treatment::createTypeIfNotExists($treatmentTypeInput);
-        }
-
-        $occurredAt = $date.' '.$time.':00';
-
-        /* -------------------- HOSPITAL -------------------- */
-        $hospitalTypeId = Treatment::getHospitalTransferTypeId();
-
-        $isHospitalTreatment =
-            ($hospitalTypeId && $treatmentTypeId === (int)$hospitalTypeId) ||
-            strcasecmp($treatmentTypeInput, 'Enviado para hospital') === 0;
-
-        if ($isHospitalTreatment && $patientName === '') {
-            $_SESSION['error'] = 'Nome do utente é obrigatório.';
-            header('Location: '.$this->baseUrl.'?route=incidents_new'); exit;
-        }
-
-        /* -------------------- TRANSAÇÃO -------------------- */
-        $pdo = Database::getConnection();
-
-        try {
-            $pdo->beginTransaction();
-
-            /* INCIDENTE */
-            $stmt = $pdo->prepare("
-                INSERT INTO incidents
-                (user_id, incident_type_id, location_id, occurred_at, patient_id, description)
-                VALUES
-                (:user_id, :type, :loc, :occurred, :patient_id, :descr)
-            ");
-
-            $stmt->execute([
-                ':user_id' => $userId,
-                ':type' => $incidentTypeId,
-                ':loc' => $locationId,
-                ':occurred' => $occurredAt,
-                ':patient_id' => $patientId,
-                ':descr' => $description,
+            Treatment::create([
+                'incident_id'       => $incidentId,
+                'user_id'           => $userId,
+                'treatment_type_id' => $treatmentTypeId,
+                'status'            => $treatmentStatus,
+                'notes'             => $treatmentNotes,
             ]);
 
-            $incidentId = (int)$pdo->lastInsertId();
+            /* -------------------- UPDATE PATIENT HOSPITAL -------------------- */
 
-            /* TRATAMENTO */
-            if ($treatmentTypeId > 0) {
-                Treatment::create([
-                    'incident_id'       => $incidentId,
-                    'user_id'           => $userId,
-                    'treatment_type_id' => $treatmentTypeId,
-                    'status'            => $treatmentStatus,
-                    'notes'             => $treatmentNotes,
-                ]);
+            if ($isHospitalTreatment) {
 
-                /* PACIENTE */
-                if ($isHospitalTreatment) {
-                    Patient::createForIncident(
-                        $incidentId,                        
-                        $patientNationality,
-                        $patientAddress,
-                        $patientPostalCode,
-                        $patientCity,
-                        $patientPhone,
-                        $patientDob,
-                        $patientIdType,
-                        $patientIdNumber,
-                        $patientRefusedHospital // ✅ AGORA GRAVA CORRETAMENTE
-                    );
-                }
+                Patient::updateHospitalData(
+                    $patientId,
+                    $patientNationality,
+                    $patientAddress,
+                    $patientPostalCode,
+                    $patientCity,
+                    $patientPhone,
+                    $patientDob,
+                    $patientIdType,
+                    $patientIdNumber,
+                    $patientRefusedHospital
+                );
+
             }
 
-            $pdo->commit();
-
-            $_SESSION['success'] = 'Acidente registado com sucesso.';
-            header('Location: '.$this->baseUrl.'?route=admin_incidents');
-            exit;
-
-        } catch (\Throwable $e) {
-            $pdo->rollBack();
-            $_SESSION['error'] = 'Erro ao guardar o acidente.';
-            header('Location: '.$this->baseUrl.'?route=incidents_new');
-            exit;
         }
-    }
 
+        $pdo->commit();
+
+        $_SESSION['success'] = 'Acidente registado com sucesso.';
+        header('Location: '.$this->baseUrl.'?route=admin_incidents');
+        exit;
+
+    } catch (\Throwable $e) {
+
+        $pdo->rollBack();
+
+        $_SESSION['error'] = 'Erro ao guardar o acidente.';
+        header('Location: '.$this->baseUrl.'?route=incidents_new');
+        exit;
+
+    }
+}
     public function insuranceTerm()
     {
         Auth::requireRole(['Administrador','Enfermeiro']);

@@ -85,4 +85,48 @@ class Patient
 
         return (int)$pdo->lastInsertId();
     }
+
+    public static function updateHospitalData(
+    int $patientId,
+    ?string $nationality,
+    ?string $address,
+    ?string $postalCode,
+    ?string $city,
+    ?string $phone,
+    ?string $dob,
+    ?string $idType,
+    ?string $idNumber,
+    int $refusedHospital
+): void {
+
+    $pdo = Database::getConnection();
+
+    $stmt = $pdo->prepare("
+        UPDATE patients
+        SET
+            nationality = :nationality,
+            address = :address,
+            postal_code = :postal_code,
+            city = :city,
+            phone = :phone,
+            dob = :dob,
+            id_type = :id_type,
+            id_number = :id_number,
+            refused_hospital = :refused
+        WHERE id = :id
+    ");
+
+    $stmt->execute([
+        ':id' => $patientId,
+        ':nationality' => $nationality,
+        ':address' => $address,
+        ':postal_code' => $postalCode,
+        ':city' => $city,
+        ':phone' => $phone,
+        ':dob' => $dob,
+        ':id_type' => $idType,
+        ':id_number' => $idNumber,
+        ':refused' => $refusedHospital
+    ]);
+}
 }
