@@ -269,11 +269,15 @@ foreach ($treatments as $t) {
         <div class="row" style="margin-top:1rem;">
             <div>
                 <div class="label">Idade (utente)</div>
-                <div class="value"><?= $incident['patient_age'] !== null ? (int)$incident['patient_age'] : '—' ?></div>
+                <div class="value">
+                    <?= $incident['patient_age'] !== null ? (int)$incident['patient_age'] : '—' ?>
+                </div>
             </div>
             <div>
                 <div class="label">Género (utente)</div>
-                <div class="value"><?= $incident['patient_gender'] ?: '—' ?></div>
+                <div class="value">
+                    <?= !empty($incident['patient_gender']) ? htmlspecialchars($incident['patient_gender']) : '—' ?>
+                </div>
             </div>
             <div>
                 <div class="label">Enfermeiro responsável</div>
