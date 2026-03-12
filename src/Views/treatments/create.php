@@ -10,6 +10,35 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>
+
+    #patient-block {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        border-radius: 8px;
+        background: #fff7e6;
+        border: 1px solid #ffe4b5;
+    }
+    .separator {
+        border: none;
+        border-top: 1px solid #ddd;
+        margin: 2rem 0;
+    }
+
+    .address-row {
+        grid-template-columns: 2.3fr 1fr 1.2fr 1fr; /* Morada, Código Postal, Cidade, Telefone */
+    }
+
+    .patient-row {
+        grid-template-columns: 2.5fr 1fr 1.2fr; /* Nome, Idade, Género */
+    }
+
+    .small-field {
+        max-width: 420px;
+    }
+    .medium-field {
+        max-width: 550px;
+    }
+
     body { 
         margin: 0; 
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
@@ -172,7 +201,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         <input type="hidden" name="incident_id" value="<?= (int)$incident['id'] ?>">
 
         <label class="required">Tipo de tratamento</label>
-        <select name="treatment_type_id" required>
+        <select name="treatment_type_id" id="treatment_type_id" required>
             <option value="">-- Selecionar --</option>
             <?php foreach ($types as $t): ?>
                 <option value="<?= (int)$t['id'] ?>"><?= htmlspecialchars($t['name']) ?></option>
@@ -188,8 +217,110 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
             <label>Notas / Observações (opcional)</label>
             <textarea name="notes" placeholder="Descrição do tratamento realizado. Evite dados pessoais desnecessários."></textarea>
         </div>
+
+            <!-- Campos extra se for 'Enviado para hospital' -->
+            <div id="patient-block" style="display:none;">
+                <strong>Restantes dados do utente (para envio ao hospital)</strong>
+
+                <div class="row">
+                    <div style="margin-right: 24px; max-width: 400px;">
+                        <label>Nacionalidade</label>
+                        <input type="text" name="patient_nationality">
+                    </div>
+                </div>
+
+                <div class="row address-row">
+                    <div style="margin-right: 24px;">
+                        <label class="required">Morada</label>
+                        <input type="text" name="patient_address" id="patient_address">
+                    </div>
+             
+                    <div style="margin-right: 24px;">
+                        <label class="required">Código Postal</label>
+                        <input type="text" name="patient_postal_code" id="patient_postal_code">
+                    </div>
+                    
+                    <div style="margin-right: 24px;">
+                        <label class="required">Cidade</label>
+                        <input type="text" name="patient_city" id="patient_city">
+                    </div>
+
+                    <div style="margin-right: 24px;">
+                        <label class="required">Telefone</label>
+                        <input type="text" name="patient_phone" id="patient_phone" placeholder="+351 912 345 678">
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div style="margin-right: 24px;">
+                        <label>Data de Nascimento</label>
+                        <input type="date" name="patient_dob" id="patient_dob">
+                    </div>
+                    <div style="margin-right: 24px;">
+                        <label>Tipo de Identificação</label>
+                        <select name="patient_id_type" id="patient_id_type">
+                            <option value="">-- Selecionar --</option>
+                            <option value="CC">Cartão de Cidadão (CC)</option>
+                            <option value="Passaporte">Passaporte</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row small-field">
+                    <div style="margin-right: 24px;">
+                        <label>Número de Identificação</label>
+                        <input type="text" name="patient_id_number" id="patient_id_number" placeholder="Número do CC ou do Passaporte">
+                    </div>
+                </div>
+
+                <div class="form-check" style="margin-top:1rem;">
+                    <input
+                        type="checkbox"
+                        id="patient_refused_hospital"
+                        name="patient_refused_hospital"
+                        value="1"
+                    >
+                    <label for="patient_refused_hospital" style="cursor:pointer;">
+                        O utente recusou deslocação ao hospital
+                    </label>
+                </div>
+
+                <div class="small" style="margin-top:.3rem;">
+                    Assinalar apenas se o envio ao hospital foi recomendado
+                    e recusado pelo próprio utente.
+                </div>
+
+                <div class="small">
+                    Estes dados só serão visíveis para o administrador e para o enfermeiro responsável.
+                </div>
+            </div>
+
         <button type="submit">Guardar tratamento</button>
     </form>
 </main>
+
+<script>
+    const treatmentSelect = document.getElementById('treatment_type_id');
+    const patientBlock = document.getElementById('patient-block');
+
+    function togglePatientBlock() {
+
+        const selectedOption = treatmentSelect.options[treatmentSelect.selectedIndex];
+        const selectedText = selectedOption.text.trim().toLowerCase();
+
+        if (selectedText === 'enviado para hospital') {
+            patientBlock.style.display = 'block';
+        } else {
+            patientBlock.style.display = 'none';
+        }
+
+    }
+
+    treatmentSelect.addEventListener('change', togglePatientBlock);
+
+    // garantir estado correto quando a página abre
+    document.addEventListener('DOMContentLoaded', togglePatientBlock);
+</script>
+
 </body>
 </html>

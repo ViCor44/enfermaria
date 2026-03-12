@@ -63,7 +63,7 @@ class TreatmentController
         ]);
 
         $_SESSION['success'] = 'Tratamento registado com sucesso.';
-        header('Location: ' . $this->baseUrl . '?route=admin:treatments');
+        header('Location: ' . $this->baseUrl . '?route=admin_treatments');
     }
 
     public function changeStatus(): void

@@ -398,7 +398,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 
         </div>
 
-        <button type="submit">Guardar Acidente</button>
+        <button type="submit">Guardar Ocorrência</button>
     </form>
 
     <script>
