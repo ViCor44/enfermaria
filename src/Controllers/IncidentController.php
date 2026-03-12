@@ -184,13 +184,11 @@ public function store(): void
 
     } catch (\Throwable $e) {
 
-        $pdo->rollBack();
+    $pdo->rollBack();
 
-        $_SESSION['error'] = 'Erro ao guardar o acidente.';
-        header('Location: '.$this->baseUrl.'?route=incidents_new');
-        exit;
+    die($e->getMessage());
 
-    }
+}
 }
     public function insuranceTerm()
     {
