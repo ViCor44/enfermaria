@@ -10,35 +10,6 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>
-
-    #patient-block {
-        margin-top: 1.5rem;
-        padding: 1.5rem;
-        border-radius: 8px;
-        background: #fff7e6;
-        border: 1px solid #ffe4b5;
-    }
-    .separator {
-        border: none;
-        border-top: 1px solid #ddd;
-        margin: 2rem 0;
-    }
-
-    .address-row {
-        grid-template-columns: 2.3fr 1fr 1.2fr 1fr; /* Morada, Código Postal, Cidade, Telefone */
-    }
-
-    .patient-row {
-        grid-template-columns: 2.5fr 1fr 1.2fr; /* Nome, Idade, Género */
-    }
-
-    .small-field {
-        max-width: 420px;
-    }
-    .medium-field {
-        max-width: 550px;
-    }
-
     body { 
         margin: 0; 
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; 
@@ -81,7 +52,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
     }
     form {
         background: #fff; 
-        padding: 2rem; /* Aumentado para mais espaço */
+        padding: 2rem; /* Aumentado padding para mais espaço */
         border-radius: 12px;
         box-shadow: 0 8px 20px rgba(0,0,0,0.06);
         text-align: left; /* Alinha form à esquerda */
@@ -96,16 +67,16 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         content: " *";
         color: #e53e3e; /* Vermelho para required */
     }
-    select, textarea {
+    input, select, textarea {
         width: 100%; 
-        padding: 0.7rem 0.9rem; /* Aumentado para inputs maiores */
+        padding: 0.7rem 0.9rem; /* Aumentado padding para inputs maiores */
         margin-top: 0.3rem; 
         border-radius: 8px; 
         border: 1px solid #ddd; 
         background: #fff;
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
     }
-    select:focus, textarea:focus {
+    input:focus, select:focus, textarea:focus {
         border-color: #1f6feb;
         box-shadow: 0 0 0 3px rgba(31, 111, 235, 0.1);
         outline: none;
@@ -113,6 +84,12 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
     textarea { 
         min-height: 120px; 
         resize: vertical; 
+    }
+    .row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Melhorado para grid, mais responsivo */
+        gap: 1.5rem;
+        margin-bottom: 1.5rem;
     }
     button {
         margin-top: 1.5rem; 
@@ -136,29 +113,63 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         border-radius: 6px; 
         margin-bottom: 1rem; 
     }
-    .incident-box { 
-        background: #f0f4ff; 
-        padding: 1.5rem; 
-        border-radius: 12px; 
-        margin-bottom: 1.5rem; 
-        font-size: .95rem; 
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        text-align: left;
+    .small {
+        font-size: 0.85rem;
+        color: #777;
+        margin-top: 0.3rem;
     }
-    .badge { 
-        display: inline-block;
-        padding: 0.3rem 0.7rem; 
-        border-radius: 999px;
-        font-size: .8rem; 
-        background: #e5f2ff; 
-        color: #1f6feb;
-        font-weight: 500;
+    .section-title {
+        margin-top: 2rem;
+        font-weight: 600;
+        color: #555;
+        font-size: 1.1rem;
+    }
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 1rem 0;
+    }
+    input[type="checkbox"] {
+        accent-color: #1f6feb; /* Cor do checkbox */
+        width: 18px;
+        height: 18px;
+    }
+    #treatment-block {
+        margin-top: 1rem;
+        padding: 1.5rem;
+        background: #f8fafc;
+        border-radius: 8px;
+        border: 1px solid #eee;
+    }
+    #patient-block {
+        margin-top: 1.5rem;
+        padding: 1.5rem;
+        border-radius: 8px;
+        background: #fff7e6;
+        border: 1px solid #ffe4b5;
     }
     .separator {
         border: none;
         border-top: 1px solid #ddd;
         margin: 2rem 0;
     }
+
+    .address-row {
+        grid-template-columns: 2.3fr 1fr 1.2fr 1fr; /* Morada, Código Postal, Cidade, Telefone */
+    }
+
+    .patient-row {
+        grid-template-columns: 2.5fr 1fr 1.2fr; /* Nome, Idade, Género */
+    }
+
+    .small-field {
+        max-width: 420px;
+    }
+    .medium-field {
+        max-width: 550px;
+    }
+
 
     /* Responsividade */
     @media (max-width: 768px) {
