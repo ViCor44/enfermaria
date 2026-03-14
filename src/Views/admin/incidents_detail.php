@@ -213,6 +213,31 @@ foreach ($treatments as $t) {
         transform: translateY(-1px);
     }
 
+    .section-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+    }
+
+    .section-header h2{
+        margin:0;
+    }
+
+    .btn-primary{
+        background:#1f6feb;
+        color:white;
+        padding:.45rem .9rem;
+        border-radius:8px;
+        text-decoration:none;
+        font-weight:600;
+        font-size:.9rem;
+    }
+
+    .btn-primary:hover{
+        background:#0f5bdb;
+    }
+
     /* Responsividade */
     @media (max-width: 768px) {
         main {
@@ -355,10 +380,14 @@ foreach ($treatments as $t) {
 
     <!-- Tratamentos associados -->
     <div class="card">
-        <h2>Tratamentos associados</h2>
-        <a href="<?= $baseUrl ?>?route=treatments_new&incident_id=<?= (int)$incident['id'] ?>">
-            Adicionar tratamento
-        </a> 
+        <div class="section-header">
+            <h2>Tratamentos associados</h2>
+
+            <a class="btn-primary"
+            href="<?= $baseUrl ?>?route=treatments_new&incident_id=<?= (int)$incident['id'] ?>">
+                ➕ Adicionar tratamento
+            </a>
+        </div>
        <?php if (empty($treatments)): ?>
             <p class="subtitle">Não existem tratamentos registados para esta Ocorrência.</p>
         <?php else: ?>
