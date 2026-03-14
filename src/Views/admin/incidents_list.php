@@ -273,10 +273,14 @@ tr.hospital-refused:hover {
                 <?php
                     $rowClass = '';
 
-                    if (array_key_exists('refused_hospital', $i) && $i['refused_hospital'] !== null) {
-                        $rowClass = ((int)$i['refused_hospital'] === 1)
-                            ? 'hospital-refused'
-                            : 'hospital-accepted';
+                    if (isset($i['refused_hospital'])) {
+
+                        if ((int)$i['refused_hospital'] === 1) {
+                            $rowClass = 'hospital-refused';
+                        } elseif ((int)$i['refused_hospital'] === 0 && !empty($i['patient_address'])) {
+                            $rowClass = 'hospital-accepted';
+                        }
+
                     }
                     ?>
                     <tr class="<?= $rowClass ?>">                    
