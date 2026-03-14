@@ -203,23 +203,40 @@ public function printRefusalPdf(): void
     \App\Core\Auth::requireLogin();
 
     /* =====================================================
-       DETECTAR LÍNGUA PELO PAÍS / NACIONALIDADE
-    ====================================================== */
+    DETECTAR LÍNGUA PELO PAÍS / NACIONALIDADE
+    ===================================================== */
 
     $nationality = strtolower(trim($incident['patient_nationality'] ?? ''));
 
-    $lang = 'en'; // DEFAULT agora é inglês
+    /* remover acentos para facilitar comparação */
+    $nationality = iconv('UTF-8', 'ASCII//TRANSLIT', $nationality);
 
-    if (preg_match('/portugal|portugu|pt/i', $nationality)) {
+    $lang = 'en'; // DEFAULT inglês
+
+    if (preg_match('/portugal|portuguese/', $nationality)) {
+
         $lang = 'pt';
-    } elseif (preg_match('/spain|espanh|españa|espanhol/i', $nationality)) {
+
+    } elseif (preg_match('/brasil|brazil|brasileir/', $nationality)) {
+
+        $lang = 'pt';   // Brasil usa português
+
+    } elseif (preg_match('/spain|espan|spanish/', $nationality)) {
+
         $lang = 'es';
-    } elseif (preg_match('/france|fran|franc/i', $nationality)) {
+
+    } elseif (preg_match('/france|franc|french/', $nationality)) {
+
         $lang = 'fr';
-    } elseif (preg_match('/germany|alem|deutsch/i', $nationality)) {
+
+    } elseif (preg_match('/germany|alem|deutsch/', $nationality)) {
+
         $lang = 'de';
-    } elseif (preg_match('/england|brit|uk|usa|english/i', $nationality)) {
+
+    } elseif (preg_match('/england|british|uk|usa|american|english/', $nationality)) {
+
         $lang = 'en';
+
     }
 
     /* =====================================================
