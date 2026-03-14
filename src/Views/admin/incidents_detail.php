@@ -356,6 +356,7 @@ foreach ($treatments as $t) {
     <!-- Tratamentos associados -->
     <div class="card">
         <h2>Tratamentos associados</h2>
+        <a href="<?= $baseUrl ?>?route=treatments_new&incident_id=<?= (int)$i['id'] ?>">Adicionar tratamento</a>
         <?php if (empty($treatments)): ?>
             <p class="subtitle">Não existem tratamentos registados para esta Ocorrência.</p>
         <?php else: ?>
