@@ -310,8 +310,8 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                 <div style="margin-right: 24px;">
                     <label>Estado</label>
                     <select name="treatment_status">
-                        <option value="em_curso">Em curso</option>
                         <option value="concluido">Concluído</option>
+                        <option value="em_curso">Em curso</option>
                     </select>
                 </div>
             </div>
