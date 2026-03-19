@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Core\Database;
 use App\Models\Location;
+use App\Models\Treatment;
 
 class InternalRecordController
 {
@@ -18,6 +19,7 @@ class InternalRecordController
         Auth::requireRole(['Enfermeiro', 'Administrador']);
 
         $locations = Location::all();
+        $treatmentTypes = Treatment::getTypes();
 
         require __DIR__ . '/../Views/internal/create.php';
     }
@@ -42,6 +44,7 @@ class InternalRecordController
         $patientAge    = ($_POST['patient_age'] ?? '') !== '' ? (int)$_POST['patient_age'] : null;
         $patientGender = trim($_POST['patient_gender'] ?? '') ?: null;
 
+        $treatment = trim($_POST['treatment'] ?? '');
         $description = trim($_POST['description'] ?? '');
 
         /* -------------------- VALIDAÇÕES -------------------- */
@@ -70,9 +73,9 @@ class InternalRecordController
         try {
             $stmt = $pdo->prepare("
                 INSERT INTO internal_records
-                (user_id, occurred_at, location_id, patient_age, patient_gender, description)
+                (user_id, occurred_at, location_id, patient_age, patient_gender, treatment, description)
                 VALUES
-                (:user_id, :occurred_at, :location_id, :age, :gender, :descr)
+                (:user_id, :occurred_at, :location_id, :age, :gender, :treatment, :descr)
             ");
 
             $stmt->execute([
@@ -81,6 +84,7 @@ class InternalRecordController
                 ':location_id' => $locationId,
                 ':age'         => $patientAge,
                 ':gender'      => $patientGender,
+                ':treatment'  => $treatment,
                 ':descr'       => $description,
             ]);
 

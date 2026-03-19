@@ -178,6 +178,7 @@ th {
             <th>Local</th>
             <th>Idade</th>
             <th>Género</th>
+            <th>Tratamento</th>
             <th>Enfermeiro</th>
             <th>Descrição</th>
         </tr>
@@ -190,6 +191,7 @@ th {
             <td><?= htmlspecialchars($r['location_name'] ?? '—') ?></td>
             <td><?= $r['patient_age'] !== null ? (int)$r['patient_age'] : '—' ?></td>
             <td><?= $r['patient_gender'] ?: '—' ?></td>
+            <td><?= htmlspecialchars($r['treatment'] ?? '—') ?></td>
             <td><?= htmlspecialchars($r['nurse_name']) ?></td>
             <td><?= htmlspecialchars(mb_strimwidth($r['description'], 0, 60, '…')) ?></td>
         </tr>

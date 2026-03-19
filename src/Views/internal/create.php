@@ -148,15 +148,35 @@ button {
         </div>
     </div>
 
+    <!-- TRATAMENTO -->
+    <div class="row">
+        <div style="margin-right: 24px;">
+            <label>Tratamento</label>
+            <input
+                list="treatment-types-list"
+                name="treatment"
+                id="treatment"
+                placeholder="Escreva ou escolha..."
+                autocomplete="off"
+            >
+
+            <datalist id="treatment-types-list">
+                <?php foreach ($treatmentTypes as $tt): ?>
+                    <option value="<?= htmlspecialchars($tt['name']) ?>"></option>
+                <?php endforeach; ?>
+            </datalist>
+        </div>
+    </div>
+
     <!-- IDADE / GÉNERO -->
     <div class="row">
         <div style="margin-right: 24px;">
-            <label>Idade (opcional)</label>
+            <label>Idade</label>
             <input type="number" name="patient_age" min="0" max="120">
         </div>
 
         <div style="margin-right: 24px;">
-            <label>Género (opcional)</label>
+            <label>Género</label>
             <select name="patient_gender">
                 <option value="">-- Não especificar --</option>
                 <option value="M">Masculino</option>
@@ -177,6 +197,39 @@ button {
     <button type="submit">Guardar Registo Interno</button>
 
 </form>
+
+<script>
+    function wireDatalist(inputId, datalistId, hiddenId) {
+        const input = document.getElementById(inputId);
+        const datalist = document.getElementById(datalistId);
+        const hidden = document.getElementById(hiddenId);
+
+        function buildMap() {
+            const map = new Map();
+            datalist.querySelectorAll('option').forEach(opt => {
+                const v = opt.value?.trim();
+                const id = opt.getAttribute('data-id');
+                if (v) map.set(v, id);
+            });
+            return map;
+        }
+
+        let map = buildMap();
+
+        input.addEventListener('input', () => {
+            const v = input.value.trim();
+            if (map.has(v)) {
+                hidden.value = map.get(v);
+            } else {
+                hidden.value = '';
+            }
+        });
+
+        const obs = new MutationObserver(() => { map = buildMap(); });
+        obs.observe(datalist, { childList: true, subtree: true });
+    }
+    wireDatalist('location_input', 'locations-list', 'location_id');
+</script>
 
 </main>
 
