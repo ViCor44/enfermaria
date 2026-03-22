@@ -136,6 +136,7 @@ button {
                 id="location_input"
                 placeholder="Escreva ou escolha..."
                 autocomplete="off"
+                required
             >
 
             <datalist id="locations-list">
@@ -158,6 +159,7 @@ button {
                 id="treatment"
                 placeholder="Escreva ou escolha..."
                 autocomplete="off"
+                required
             >
 
             <datalist id="treatment-types-list">
@@ -191,7 +193,7 @@ button {
     <textarea
         name="description" style="margin-right: 24px;"
         placeholder="Descreva a situação interna. Não incluir dados pessoais."
-        required
+        
     ></textarea>
 
     <button type="submit">Guardar Registo Interno</button>
