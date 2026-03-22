@@ -129,7 +129,7 @@ button {
     <!-- LOCAL -->
     <div class="row">
         <div style="margin-right: 24px;">
-            <label>Local / Área</label>
+            <label class="required">Local / Área</label>
             <input
                 list="locations-list"
                 name="location_input"
@@ -152,7 +152,7 @@ button {
     <!-- TRATAMENTO -->
     <div class="row">
         <div style="margin-right: 24px;">
-            <label>Tratamento</label>
+            <label class="required">Tratamento</label>
             <input
                 list="treatment-types-list"
                 name="treatment"
@@ -189,7 +189,7 @@ button {
     </div>
 
     <!-- DESCRIÇÃO -->
-    <label class="required">Descrição / Observações</label>
+    <label>Descrição / Observações</label>
     <textarea
         name="description" style="margin-right: 24px;"
         placeholder="Descreva a situação interna. Não incluir dados pessoais."
