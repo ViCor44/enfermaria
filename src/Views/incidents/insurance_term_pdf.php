@@ -263,7 +263,7 @@ h2 {
     <div class="row clearfix">
         <div class="col col-100">
             <div class="label">Descrição</div>
-            <div class="value"><?= nl2br(htmlspecialchars($incident['description'] ?? '')) ?></div>
+            <div class="value"><?= nl2br(htmlspecialchars($incident['insurance_description'] ?? ($incident['description'] ?? ''))) ?></div>
         </div>
     </div>
 </div>

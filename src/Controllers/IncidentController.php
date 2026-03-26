@@ -231,10 +231,26 @@ public function store(): void
         $id = (int)($_GET['id'] ?? 0);
 
         $incident = Incident::findWithDetailsForAdmin($id);
+        $treatments = Incident::getTreatmentsForIncident($id);
 
         if (!$incident) {
             die('Ocorrência não encontrada');
         }
+
+        $insuranceDescription = trim((string)($incident['description'] ?? ''));
+        foreach ($treatments as $treatment) {
+            if (
+                isset($treatment['treatment_type_name'])
+                && strcasecmp((string)$treatment['treatment_type_name'], 'Enviado para hospital') === 0
+            ) {
+                $hospitalNotes = trim((string)($treatment['notes'] ?? ''));
+                if ($hospitalNotes !== '') {
+                    $insuranceDescription = $hospitalNotes;
+                }
+            }
+        }
+
+        $incident['insurance_description'] = $insuranceDescription;
 
         require_once __DIR__.'/../../vendor/autoload.php';
 
