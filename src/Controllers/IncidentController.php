@@ -48,8 +48,20 @@ public function store(): void
 
     $description = trim($_POST['description'] ?? '') ?: null;
 
-    $treatmentTypeId    = ($_POST['treatment_type_id'] ?? '') !== '' ? (int)$_POST['treatment_type_id'] : 0;
-    $treatmentTypeInput = trim($_POST['treatment_type_input'] ?? '');
+    $addTreatment = isset($_POST['add_treatment']);
+    $rawTreatmentTypeIds = $_POST['treatment_type_id'] ?? [];
+    $rawTreatmentTypeInputs = $_POST['treatment_type_input'] ?? [];
+
+    if (!is_array($rawTreatmentTypeIds)) {
+        $rawTreatmentTypeIds = [$rawTreatmentTypeIds];
+    }
+
+    if (!is_array($rawTreatmentTypeInputs)) {
+        $rawTreatmentTypeInputs = [$rawTreatmentTypeInputs];
+    }
+
+    $treatmentTypeIds = [];
+    $treatmentTypeInputs = [];
     $treatmentStatus    = in_array($_POST['treatment_status'] ?? '', ['em_curso','concluido'], true)
         ? $_POST['treatment_status']
         : 'em_curso';
@@ -91,17 +103,50 @@ public function store(): void
         $locationId = Location::createIfNotExists($locationInput);
     }
 
-    if ($treatmentTypeId <= 0 && $treatmentTypeInput !== '') {
-        $treatmentTypeId = Treatment::createTypeIfNotExists($treatmentTypeInput);
+    if ($addTreatment) {
+        $maxTreatments = max(count($rawTreatmentTypeIds), count($rawTreatmentTypeInputs));
+
+        for ($index = 0; $index < $maxTreatments; $index++) {
+            $treatmentTypeId = (int)($rawTreatmentTypeIds[$index] ?? 0);
+            $treatmentTypeInput = trim((string)($rawTreatmentTypeInputs[$index] ?? ''));
+
+            if ($treatmentTypeInput !== '') {
+                $treatmentTypeInputs[] = $treatmentTypeInput;
+            }
+
+            if ($treatmentTypeId <= 0 && $treatmentTypeInput !== '') {
+                $treatmentTypeId = Treatment::createTypeIfNotExists($treatmentTypeInput);
+            }
+
+            if ($treatmentTypeId > 0) {
+                $treatmentTypeIds[] = $treatmentTypeId;
+            }
+        }
+
+        $treatmentTypeIds = array_values(array_unique($treatmentTypeIds));
+
+        if ($treatmentTypeIds === []) {
+            $_SESSION['error'] = 'Selecione pelo menos um tratamento.';
+            header('Location: '.$this->baseUrl.'?route=incidents_new');
+            exit;
+        }
     }
 
     $occurredAt = $date . ' ' . $time . ':00';
 
     $hospitalTypeId = Treatment::getHospitalTransferTypeId();
 
+    $hasHospitalByName = false;
+    foreach ($treatmentTypeInputs as $inputName) {
+        if (strcasecmp($inputName, 'Enviado para hospital') === 0) {
+            $hasHospitalByName = true;
+            break;
+        }
+    }
+
     $isHospitalTreatment =
-        ($hospitalTypeId && $treatmentTypeId === (int)$hospitalTypeId) ||
-        strcasecmp($treatmentTypeInput, 'Enviado para hospital') === 0;
+        ($hospitalTypeId && in_array((int)$hospitalTypeId, $treatmentTypeIds, true)) ||
+        $hasHospitalByName;
 
     $pdo = Database::getConnection();
 
@@ -143,7 +188,7 @@ public function store(): void
             ':incident_id' => $incidentId,
         ]);
 
-        if ($treatmentTypeId > 0) {
+        foreach ($treatmentTypeIds as $treatmentTypeId) {
             Treatment::create([
                 'incident_id'       => $incidentId,
                 'user_id'           => $userId,
@@ -151,21 +196,21 @@ public function store(): void
                 'status'            => $treatmentStatus,
                 'notes'             => $treatmentNotes,
             ]);
+        }
 
-            if ($isHospitalTreatment) {
-                Patient::updateHospitalData(
-                    $patientId,
-                    $patientNationality,
-                    $patientAddress,
-                    $patientPostalCode,
-                    $patientCity,
-                    $patientPhone,
-                    $patientDob,
-                    $patientIdType,
-                    $patientIdNumber,
-                    $patientRefusedHospital
-                );
-            }
+        if ($isHospitalTreatment) {
+            Patient::updateHospitalData(
+                $patientId,
+                $patientNationality,
+                $patientAddress,
+                $patientPostalCode,
+                $patientCity,
+                $patientPhone,
+                $patientDob,
+                $patientIdType,
+                $patientIdNumber,
+                $patientRefusedHospital
+            );
         }
 
         $pdo->commit();
