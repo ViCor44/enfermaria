@@ -6,6 +6,17 @@ use PDO;
 
 class Patient
 {
+    public static function findById(int $id): ?array
+    {
+        $pdo = Database::getConnection();
+
+        $stmt = $pdo->prepare("SELECT * FROM patients WHERE id = :id LIMIT 1");
+        $stmt->execute([':id' => $id]);
+
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
     public static function createForIncident(
                 
         ?string $nationality,

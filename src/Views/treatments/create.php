@@ -2,6 +2,7 @@
 $baseUrl = '/enfermaria/public/index.php';
 $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
+$patientHospitalData = $patientHospitalData ?? [];
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -303,43 +304,43 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
                 <div class="row">
                     <div style="margin-right: 24px; max-width: 400px;">
                         <label>Nacionalidade</label>
-                        <input type="text" name="patient_nationality">
+                        <input type="text" name="patient_nationality" value="<?= htmlspecialchars((string)($patientHospitalData['nationality'] ?? '')) ?>">
                     </div>
                 </div>
 
                 <div class="row address-row">
                     <div style="margin-right: 24px;">
                         <label class="required">Morada</label>
-                        <input type="text" name="patient_address" id="patient_address">
+                        <input type="text" name="patient_address" id="patient_address" value="<?= htmlspecialchars((string)($patientHospitalData['address'] ?? '')) ?>">
                     </div>
              
                     <div style="margin-right: 24px;">
                         <label class="required">Código Postal</label>
-                        <input type="text" name="patient_postal_code" id="patient_postal_code">
+                        <input type="text" name="patient_postal_code" id="patient_postal_code" value="<?= htmlspecialchars((string)($patientHospitalData['postal_code'] ?? '')) ?>">
                     </div>
                     
                     <div style="margin-right: 24px;">
                         <label class="required">Cidade</label>
-                        <input type="text" name="patient_city" id="patient_city">
+                        <input type="text" name="patient_city" id="patient_city" value="<?= htmlspecialchars((string)($patientHospitalData['city'] ?? '')) ?>">
                     </div>
 
                     <div style="margin-right: 24px;">
                         <label class="required">Telefone</label>
-                        <input type="text" name="patient_phone" id="patient_phone" placeholder="+351 912 345 678">
+                        <input type="text" name="patient_phone" id="patient_phone" placeholder="+351 912 345 678" value="<?= htmlspecialchars((string)($patientHospitalData['phone'] ?? '')) ?>">
                     </div>
                 </div>
 
                 <div class="row">
                     <div style="margin-right: 24px;">
                         <label>Data de Nascimento</label>
-                        <input type="date" name="patient_dob" id="patient_dob">
+                        <input type="date" name="patient_dob" id="patient_dob" value="<?= htmlspecialchars((string)($patientHospitalData['dob'] ?? '')) ?>">
                     </div>
                     <div style="margin-right: 24px;">
                         <label>Tipo de Identificação</label>
                         <select name="patient_id_type" id="patient_id_type">
                             <option value="">-- Selecionar --</option>
-                            <option value="CC">Cartão de Cidadão (CC)</option>
-                            <option value="Passaporte">Passaporte</option>
+                            <option value="CC" <?= (($patientHospitalData['id_type'] ?? '') === 'CC') ? 'selected' : '' ?>>Cartão de Cidadão (CC)</option>
+                            <option value="Passaporte" <?= (($patientHospitalData['id_type'] ?? '') === 'Passaporte') ? 'selected' : '' ?>>Passaporte</option>
                         </select>
                     </div>
                 </div>
@@ -347,7 +348,7 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
                 <div class="row small-field">
                     <div style="margin-right: 24px;">
                         <label>Número de Identificação</label>
-                        <input type="text" name="patient_id_number" id="patient_id_number" placeholder="Número do CC ou do Passaporte">
+                        <input type="text" name="patient_id_number" id="patient_id_number" placeholder="Número do CC ou do Passaporte" value="<?= htmlspecialchars((string)($patientHospitalData['id_number'] ?? '')) ?>">
                     </div>
                 </div>
 
@@ -357,6 +358,7 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
                         id="patient_refused_hospital"
                         name="patient_refused_hospital"
                         value="1"
+                        <?= !empty($patientHospitalData['refused_hospital']) ? 'checked' : '' ?>
                     >
                     <label for="patient_refused_hospital" style="cursor:pointer;">
                         O utente recusou deslocação ao hospital

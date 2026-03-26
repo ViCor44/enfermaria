@@ -31,6 +31,11 @@ class TreatmentController
 
         $types = Treatment::getTypes();
         $hospitalTreatmentTypeId = Treatment::getHospitalTransferTypeId();
+        $patientHospitalData = null;
+
+        if (!empty($incident['patient_id'])) {
+            $patientHospitalData = Patient::findById((int)$incident['patient_id']);
+        }
 
         require __DIR__ . '/../Views/treatments/create.php';
     }
