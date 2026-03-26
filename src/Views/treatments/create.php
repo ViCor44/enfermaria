@@ -386,25 +386,82 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
     const patientBlock = document.getElementById('patient-block');
     const hospitalTreatmentTypeId = <?= $hospitalTreatmentTypeId ?>;
 
-    function buildTreatmentMap() {
+    function getMasterTreatmentOptions() {
+        return Array.from(treatmentDatalist.querySelectorAll('option'))
+            .map((option) => {
+                const value = option.value ? option.value.trim() : '';
+                const id = Number(option.getAttribute('data-id') || 0);
+
+                if (value === '' || id <= 0) {
+                    return null;
+                }
+
+                return { value, id };
+            })
+            .filter((option) => option !== null);
+    }
+
+    function buildTreatmentMap(options) {
         const map = new Map();
-
-        treatmentDatalist.querySelectorAll('option').forEach((option) => {
-            const value = option.value ? option.value.trim() : '';
-            const id = option.getAttribute('data-id');
-
-            if (value !== '' && id) {
-                map.set(value, id);
-            }
+        options.forEach((option) => {
+            map.set(option.value, String(option.id));
         });
-
         return map;
     }
 
-    let treatmentMap = buildTreatmentMap();
+    let masterTreatmentOptions = getMasterTreatmentOptions();
+    let treatmentMap = buildTreatmentMap(masterTreatmentOptions);
 
     function getTreatmentEntries() {
         return Array.from(treatmentList.querySelectorAll('[data-treatment-entry]'));
+    }
+
+    function getSelectedTreatmentIds(exceptEntry = null) {
+        const selectedIds = new Set();
+
+        getTreatmentEntries().forEach((entry) => {
+            if (entry === exceptEntry) {
+                return;
+            }
+
+            const hidden = entry.querySelector('input[name="treatment_type_id[]"]');
+            const selectedId = Number(hidden.value);
+            if (selectedId > 0) {
+                selectedIds.add(selectedId);
+            }
+        });
+
+        return selectedIds;
+    }
+
+    function refreshTreatmentChoices() {
+        getTreatmentEntries().forEach((entry, index) => {
+            const input = entry.querySelector('input[name="treatment_type_input[]"]');
+            let datalist = entry.querySelector('datalist[data-entry-datalist]');
+
+            if (!datalist) {
+                datalist = document.createElement('datalist');
+                datalist.setAttribute('data-entry-datalist', '');
+                entry.appendChild(datalist);
+            }
+
+            datalist.id = 'treatment-types-list-' + index;
+            input.setAttribute('list', datalist.id);
+
+            const selectedIds = getSelectedTreatmentIds(entry);
+            datalist.innerHTML = '';
+
+            masterTreatmentOptions.forEach((option) => {
+                if (selectedIds.has(option.id)) {
+                    return;
+                }
+
+                const optionElement = document.createElement('option');
+                optionElement.value = option.value;
+                optionElement.setAttribute('data-id', String(option.id));
+                datalist.appendChild(optionElement);
+            });
+        });
     }
 
     function syncTreatmentLabels() {
@@ -428,6 +485,7 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
         const syncHiddenValue = () => {
             const value = input.value.trim();
             hidden.value = treatmentMap.has(value) ? treatmentMap.get(value) : '';
+            refreshTreatmentChoices();
             updateSelectionValidity();
             togglePatientBlock();
         };
@@ -438,6 +496,7 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
         removeButton.addEventListener('click', () => {
             entry.remove();
             syncTreatmentLabels();
+            refreshTreatmentChoices();
             updateSelectionValidity();
             togglePatientBlock();
         });
@@ -464,6 +523,7 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
         wireTreatmentEntry(entry);
         treatmentList.appendChild(entry);
         syncTreatmentLabels();
+        refreshTreatmentChoices();
 
         const input = entry.querySelector('input[name="treatment_type_input[]"]');
         input.focus();
@@ -520,7 +580,9 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
     });
 
     const datalistObserver = new MutationObserver(() => {
-        treatmentMap = buildTreatmentMap();
+        masterTreatmentOptions = getMasterTreatmentOptions();
+        treatmentMap = buildTreatmentMap(masterTreatmentOptions);
+        refreshTreatmentChoices();
     });
     datalistObserver.observe(treatmentDatalist, { childList: true, subtree: true });
 
@@ -530,6 +592,7 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
             wireTreatmentEntry(entry);
         });
         syncTreatmentLabels();
+        refreshTreatmentChoices();
         updateSelectionValidity();
         togglePatientBlock();
     });
