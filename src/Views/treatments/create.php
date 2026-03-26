@@ -70,6 +70,7 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
     }
     input, select, textarea {
         width: 100%; 
+        box-sizing: border-box;
         padding: 0.7rem 0.9rem; /* Aumentado padding para inputs maiores */
         margin-top: 0.3rem; 
         border-radius: 8px; 
@@ -263,7 +264,6 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
                 <div class="treatment-entry-field">
                     <label for="treatment_type_input_0">Tratamento 1</label>
                     <input
-                        class="mr-4"
                         list="treatment-types-list"
                         name="treatment_type_input[]"
                         id="treatment_type_input_0"
