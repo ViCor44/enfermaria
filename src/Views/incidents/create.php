@@ -374,7 +374,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
             </div>
 
             <label>Notas do tratamento (opcional)</label>
-            <textarea name="treatment_notes" placeholder="Descreva o tratamento efetuado. Evite dados pessoais desnecessários."></textarea>
+            <textarea name="treatment_notes" placeholder="Descreva o tratamento efetuado. Evite dados pessoais desnecessários. Se incluir 'Enviado para hospital', este texto poderá aparecer no termo de seguro."></textarea>
 
             <!-- Campos extra se for 'Enviado para hospital' -->
             <div id="patient-block" style="display:none;">

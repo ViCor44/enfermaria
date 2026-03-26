@@ -294,7 +294,7 @@ $patientHospitalData = $patientHospitalData ?? [];
         </select>
         <div style="margin-right: 24px;">
             <label>Notas / Observações (opcional)</label>
-            <textarea name="notes" placeholder="Descrição do tratamento realizado. Evite dados pessoais desnecessários."></textarea>
+            <textarea name="notes" placeholder="Descrição do tratamento realizado. Evite dados pessoais desnecessários. Se incluir 'Enviado para hospital', este texto poderá aparecer no termo de seguro."></textarea>
         </div>
 
             <!-- Campos extra se for 'Enviado para hospital' -->
