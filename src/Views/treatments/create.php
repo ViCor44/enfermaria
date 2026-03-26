@@ -85,6 +85,9 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         min-height: 120px; 
         resize: vertical; 
     }
+    select[multiple] {
+        min-height: 220px;
+    }
     .row {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Melhorado para grid, mais responsivo */
@@ -211,13 +214,13 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
     <form method="post" action="<?= $baseUrl ?>?route=treatments_store">
         <input type="hidden" name="incident_id" value="<?= (int)$incident['id'] ?>">
 
-        <label class="required">Tipo de tratamento</label>
-        <select name="treatment_type_id" id="treatment_type_id" required>
-            <option value="">-- Selecionar --</option>
+        <label class="required">Tipos de tratamento</label>
+        <select name="treatment_type_ids[]" id="treatment_type_id" multiple required>
             <?php foreach ($types as $t): ?>
                 <option value="<?= (int)$t['id'] ?>"><?= htmlspecialchars($t['name']) ?></option>
             <?php endforeach; ?>
         </select>
+        <div class="small">Pode selecionar vários tratamentos com Ctrl + clique.</div>
 
         <label>Estado</label>
         <select name="status">            
@@ -315,16 +318,14 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
     const patientBlock = document.getElementById('patient-block');
 
     function togglePatientBlock() {
+        const hasHospitalTransfer = Array.from(treatmentSelect.selectedOptions)
+            .some((option) => option.text.trim().toLowerCase() === 'enviado para hospital');
 
-        const selectedOption = treatmentSelect.options[treatmentSelect.selectedIndex];
-        const selectedText = selectedOption.text.trim().toLowerCase();
-
-        if (selectedText === 'enviado para hospital') {
+        if (hasHospitalTransfer) {
             patientBlock.style.display = 'block';
         } else {
             patientBlock.style.display = 'none';
         }
-
     }
 
     treatmentSelect.addEventListener('change', togglePatientBlock);

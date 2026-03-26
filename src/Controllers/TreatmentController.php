@@ -41,12 +41,21 @@ public function store(): void
     $user   = Auth::user();
     $userId = (int)$user['id'];
 
-    $incidentId      = (int)($_POST['incident_id'] ?? 0);
-    $treatmentTypeId = (int)($_POST['treatment_type_id'] ?? 0);
-    $status          = $_POST['status'] ?? 'em_curso';
-    $notes           = trim($_POST['notes'] ?? '') ?: null;
+    $incidentId = (int)($_POST['incident_id'] ?? 0);
+    $status     = $_POST['status'] ?? 'em_curso';
+    $notes      = trim($_POST['notes'] ?? '') ?: null;
 
-    if ($incidentId <= 0 || $treatmentTypeId <= 0) {
+    $rawTreatmentTypeIds = $_POST['treatment_type_ids'] ?? ($_POST['treatment_type_id'] ?? []);
+    if (!is_array($rawTreatmentTypeIds)) {
+        $rawTreatmentTypeIds = [$rawTreatmentTypeIds];
+    }
+
+    $treatmentTypeIds = array_values(array_unique(array_filter(
+        array_map(static fn ($value): int => (int)$value, $rawTreatmentTypeIds),
+        static fn (int $value): bool => $value > 0
+    )));
+
+    if ($incidentId <= 0 || $treatmentTypeIds === []) {
         $_SESSION['error'] = 'Dados inválidos.';
         header('Location: '.$this->baseUrl.'?route=admin_incidents');
         exit;
@@ -60,20 +69,22 @@ public function store(): void
 
         /* -------------------- CRIAR TRATAMENTO -------------------- */
 
-        Treatment::create([
-            'incident_id'       => $incidentId,
-            'user_id'           => $userId,
-            'treatment_type_id' => $treatmentTypeId,
-            'status'            => $status,
-            'notes'             => $notes,
-        ]);
+        foreach ($treatmentTypeIds as $treatmentTypeId) {
+            Treatment::create([
+                'incident_id'       => $incidentId,
+                'user_id'           => $userId,
+                'treatment_type_id' => $treatmentTypeId,
+                'status'            => $status,
+                'notes'             => $notes,
+            ]);
+        }
 
         /* -------------------- DETETAR SE É HOSPITAL -------------------- */
 
         $hospitalTypeId = Treatment::getHospitalTransferTypeId();
 
         $isHospitalTreatment =
-            $hospitalTypeId && $treatmentTypeId === (int)$hospitalTypeId;
+            $hospitalTypeId && in_array((int)$hospitalTypeId, $treatmentTypeIds, true);
 
         /* -------------------- UPDATE PACIENTE -------------------- */
 
@@ -115,7 +126,9 @@ public function store(): void
 
         $pdo->commit();
 
-        $_SESSION['success'] = 'Tratamento registado com sucesso.';
+        $_SESSION['success'] = count($treatmentTypeIds) === 1
+            ? 'Tratamento registado com sucesso.'
+            : 'Tratamentos registados com sucesso.';
         header('Location: '.$this->baseUrl.'?route=admin_incident_detail&id='.$incidentId);
         exit;
 
