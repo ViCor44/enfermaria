@@ -85,9 +85,6 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         min-height: 120px; 
         resize: vertical; 
     }
-    select[multiple] {
-        min-height: 220px;
-    }
     .row {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Melhorado para grid, mais responsivo */
@@ -132,6 +129,35 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         align-items: center;
         gap: 0.5rem;
         margin: 1rem 0;
+    }
+    .treatment-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.85rem;
+        margin-top: 0.5rem;
+    }
+    .treatment-option {
+        display: flex;
+        align-items: center;
+        gap: 0.7rem;
+        padding: 0.9rem 1rem;
+        border: 1px solid #d9e2f1;
+        border-radius: 10px;
+        background: #f8fbff;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+    .treatment-option:hover {
+        border-color: #1f6feb;
+        background: #eef5ff;
+    }
+    .treatment-option input[type="checkbox"] {
+        margin: 0;
+        flex: 0 0 auto;
+    }
+    .treatment-option span {
+        font-weight: 500;
+        color: #344054;
     }
     input[type="checkbox"] {
         accent-color: #1f6feb; /* Cor do checkbox */
@@ -215,12 +241,21 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         <input type="hidden" name="incident_id" value="<?= (int)$incident['id'] ?>">
 
         <label class="required">Tipos de tratamento</label>
-        <select name="treatment_type_ids[]" id="treatment_type_id" multiple required>
+        <div class="treatment-options" id="treatment-options">
             <?php foreach ($types as $t): ?>
-                <option value="<?= (int)$t['id'] ?>"><?= htmlspecialchars($t['name']) ?></option>
+                <label class="treatment-option" for="treatment_type_<?= (int)$t['id'] ?>">
+                    <input
+                        type="checkbox"
+                        id="treatment_type_<?= (int)$t['id'] ?>"
+                        name="treatment_type_ids[]"
+                        value="<?= (int)$t['id'] ?>"
+                        data-treatment-name="<?= htmlspecialchars(mb_strtolower($t['name']), ENT_QUOTES, 'UTF-8') ?>"
+                    >
+                    <span><?= htmlspecialchars($t['name']) ?></span>
+                </label>
             <?php endforeach; ?>
-        </select>
-        <div class="small">Pode selecionar vários tratamentos com Ctrl + clique.</div>
+        </div>
+        <div class="small">Pode assinalar vários tratamentos no mesmo registo.</div>
 
         <label>Estado</label>
         <select name="status">            
@@ -314,12 +349,12 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 </main>
 
 <script>
-    const treatmentSelect = document.getElementById('treatment_type_id');
+    const treatmentCheckboxes = Array.from(document.querySelectorAll('input[name="treatment_type_ids[]"]'));
     const patientBlock = document.getElementById('patient-block');
 
     function togglePatientBlock() {
-        const hasHospitalTransfer = Array.from(treatmentSelect.selectedOptions)
-            .some((option) => option.text.trim().toLowerCase() === 'enviado para hospital');
+        const hasHospitalTransfer = treatmentCheckboxes
+            .some((checkbox) => checkbox.checked && checkbox.dataset.treatmentName === 'enviado para hospital');
 
         if (hasHospitalTransfer) {
             patientBlock.style.display = 'block';
@@ -328,7 +363,9 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         }
     }
 
-    treatmentSelect.addEventListener('change', togglePatientBlock);
+    treatmentCheckboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', togglePatientBlock);
+    });
 
     // garantir estado correto quando a página abre
     document.addEventListener('DOMContentLoaded', togglePatientBlock);
