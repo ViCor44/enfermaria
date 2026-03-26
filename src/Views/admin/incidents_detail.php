@@ -444,7 +444,7 @@ foreach ($treatments as $t) {
                 </div>
                 
                 <div class="followup-actions">
-                <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
+                <?php if (!empty($canGenerateHospitalDocs) && $canGenerateHospitalDocs === true): ?>
                     <a class="btn-outline"
                     target="_blank"
                     href="/enfermaria/public/index.php?route=admin_incident_print_refusal&id=<?= (int)$incident['id'] ?>">
@@ -471,7 +471,7 @@ foreach ($treatments as $t) {
                     🏥 Utente encaminhado para o hospital.
                 </div>                
                 <div class="followup-actions">
-                <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
+                <?php if (!empty($canGenerateHospitalDocs) && $canGenerateHospitalDocs === true): ?>
                     <a class="btn-outline"
                     target="_blank"
                     href="<?= $baseUrl ?>?route=incident_insurance_term&id=<?= (int)$incident['id'] ?>">

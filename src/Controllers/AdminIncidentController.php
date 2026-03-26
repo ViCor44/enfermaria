@@ -57,6 +57,8 @@ class AdminIncidentController
         $treatments = Incident::getTreatmentsForIncident($id);
         $role          = $_SESSION['role'] ?? '';
         $currentUserId = (int)($_SESSION['user_id'] ?? 0);
+        $canSeePatient = false;
+        $canGenerateHospitalDocs = in_array($role, ['Administrador', 'Enfermeiro'], true);
 
         $followups = HospitalFollowup::findByIncident($id);
 
@@ -184,6 +186,8 @@ class AdminIncidentController
 
 public function printRefusalPdf(): void
 {
+    Auth::requireRole(['Administrador', 'Enfermeiro']);
+
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
     if ($id <= 0) {
@@ -199,8 +203,6 @@ public function printRefusalPdf(): void
         echo 'Não existe recusa registada para este incidente.';
         exit;
     }
-
-    \App\Core\Auth::requireLogin();
 
     /* =====================================================
     DETECTAR LÍNGUA PELO PAÍS / NACIONALIDADE
