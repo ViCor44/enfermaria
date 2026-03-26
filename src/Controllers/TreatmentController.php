@@ -46,15 +46,34 @@ public function store(): void
     $status     = $_POST['status'] ?? 'em_curso';
     $notes      = trim($_POST['notes'] ?? '') ?: null;
 
-    $rawTreatmentTypeIds = $_POST['treatment_type_ids'] ?? ($_POST['treatment_type_id'] ?? []);
+    $rawTreatmentTypeIds = $_POST['treatment_type_id'] ?? ($_POST['treatment_type_ids'] ?? []);
+    $rawTreatmentTypeInputs = $_POST['treatment_type_input'] ?? [];
+
     if (!is_array($rawTreatmentTypeIds)) {
         $rawTreatmentTypeIds = [$rawTreatmentTypeIds];
     }
 
-    $treatmentTypeIds = array_values(array_unique(array_filter(
-        array_map(static fn ($value): int => (int)$value, $rawTreatmentTypeIds),
-        static fn (int $value): bool => $value > 0
-    )));
+    if (!is_array($rawTreatmentTypeInputs)) {
+        $rawTreatmentTypeInputs = [$rawTreatmentTypeInputs];
+    }
+
+    $treatmentTypeIds = [];
+    $maxTreatments = max(count($rawTreatmentTypeIds), count($rawTreatmentTypeInputs));
+
+    for ($index = 0; $index < $maxTreatments; $index++) {
+        $treatmentTypeId = (int)($rawTreatmentTypeIds[$index] ?? 0);
+        $treatmentTypeInput = trim((string)($rawTreatmentTypeInputs[$index] ?? ''));
+
+        if ($treatmentTypeId <= 0 && $treatmentTypeInput !== '') {
+            $treatmentTypeId = Treatment::createTypeIfNotExists($treatmentTypeInput);
+        }
+
+        if ($treatmentTypeId > 0) {
+            $treatmentTypeIds[] = $treatmentTypeId;
+        }
+    }
+
+    $treatmentTypeIds = array_values(array_unique($treatmentTypeIds));
 
     if ($incidentId <= 0 || $treatmentTypeIds === []) {
         $_SESSION['error'] = 'Dados inválidos.';

@@ -134,34 +134,47 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
         gap: 0.5rem;
         margin: 1rem 0;
     }
-    .treatment-options {
+    .treatment-list {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 0.85rem;
         margin-top: 0.5rem;
     }
-    .treatment-option {
-        display: flex;
-        align-items: center;
-        gap: 0.7rem;
+    .treatment-entry {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 0.85rem;
+        align-items: end;
+    }
+    .treatment-entry-field {
         padding: 0.9rem 1rem;
         border: 1px solid #d9e2f1;
         border-radius: 10px;
         background: #f8fbff;
-        cursor: pointer;
-        transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
     }
-    .treatment-option:hover {
-        border-color: #1f6feb;
-        background: #eef5ff;
+    .treatment-entry-field label {
+        margin-top: 0;
     }
-    .treatment-option input[type="checkbox"] {
-        margin: 0;
-        flex: 0 0 auto;
+    .secondary-button {
+        padding: 0.75rem 1rem;
+        background: #e8f0fe;
+        color: #174ea6;
     }
-    .treatment-option span {
-        font-weight: 500;
-        color: #344054;
+    .secondary-button:hover {
+        background: #d7e6fd;
+    }
+    .remove-treatment {
+        background: #fff1f2;
+        color: #b42318;
+        margin-top: 0;
+    }
+    .remove-treatment:hover {
+        background: #ffe4e6;
+    }
+    .treatment-actions {
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
     }
     input[type="checkbox"] {
         accent-color: #1f6feb; /* Cor do checkbox */
@@ -245,21 +258,32 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
         <input type="hidden" name="incident_id" value="<?= (int)$incident['id'] ?>">
 
         <label class="required">Tipos de tratamento</label>
-        <div class="treatment-options" id="treatment-options">
-            <?php foreach ($types as $t): ?>
-                <label class="treatment-option" for="treatment_type_<?= (int)$t['id'] ?>">
+        <div class="treatment-list" id="treatment-list">
+            <div class="treatment-entry" data-treatment-entry>
+                <div class="treatment-entry-field">
+                    <label for="treatment_type_input_0">Tratamento 1</label>
                     <input
-                        type="checkbox"
-                        id="treatment_type_<?= (int)$t['id'] ?>"
-                        name="treatment_type_ids[]"
-                        value="<?= (int)$t['id'] ?>"
+                        list="treatment-types-list"
+                        name="treatment_type_input[]"
+                        id="treatment_type_input_0"
+                        placeholder="Escreva ou escolha..."
+                        autocomplete="off"
                     >
-                    <span><?= htmlspecialchars($t['name']) ?></span>
-                </label>
-            <?php endforeach; ?>
+                    <input type="hidden" name="treatment_type_id[]" value="">
+                </div>
+                <button type="button" class="remove-treatment" data-remove-treatment style="display:none;">Remover</button>
+            </div>
         </div>
-        <div class="small">Pode assinalar vários tratamentos no mesmo registo.</div>
+        <datalist id="treatment-types-list">
+            <?php foreach ($types as $t): ?>
+                <option value="<?= htmlspecialchars($t['name']) ?>" data-id="<?= (int)$t['id'] ?>"></option>
+            <?php endforeach; ?>
+        </datalist>
+        <div class="small">Pode escolher um tratamento existente ou escrever um novo nome.</div>
         <div class="small error" id="treatment-selection-error" style="display:none;">Selecione pelo menos um tratamento.</div>
+        <div class="treatment-actions">
+            <button type="button" class="secondary-button" id="add-treatment">Adicionar outro tratamento</button>
+        </div>
 
         <label>Estado</label>
         <select name="status">            
@@ -354,28 +378,122 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
 
 <script>
     const form = document.getElementById('treatments-form');
-    const treatmentCheckboxes = Array.from(document.querySelectorAll('input[name="treatment_type_ids[]"]'));
+    const treatmentList = document.getElementById('treatment-list');
+    const addTreatmentButton = document.getElementById('add-treatment');
+    const treatmentDatalist = document.getElementById('treatment-types-list');
     const selectionError = document.getElementById('treatment-selection-error');
     const patientBlock = document.getElementById('patient-block');
     const hospitalTreatmentTypeId = <?= $hospitalTreatmentTypeId ?>;
 
+    function buildTreatmentMap() {
+        const map = new Map();
+
+        treatmentDatalist.querySelectorAll('option').forEach((option) => {
+            const value = option.value ? option.value.trim() : '';
+            const id = option.getAttribute('data-id');
+
+            if (value !== '' && id) {
+                map.set(value, id);
+            }
+        });
+
+        return map;
+    }
+
+    let treatmentMap = buildTreatmentMap();
+
+    function getTreatmentEntries() {
+        return Array.from(treatmentList.querySelectorAll('[data-treatment-entry]'));
+    }
+
+    function syncTreatmentLabels() {
+        getTreatmentEntries().forEach((entry, index) => {
+            const label = entry.querySelector('label');
+            const input = entry.querySelector('input[name="treatment_type_input[]"]');
+            const removeButton = entry.querySelector('[data-remove-treatment]');
+
+            label.textContent = 'Tratamento ' + (index + 1);
+            label.setAttribute('for', 'treatment_type_input_' + index);
+            input.id = 'treatment_type_input_' + index;
+            removeButton.style.display = index === 0 && getTreatmentEntries().length === 1 ? 'none' : 'inline-flex';
+        });
+    }
+
+    function wireTreatmentEntry(entry) {
+        const input = entry.querySelector('input[name="treatment_type_input[]"]');
+        const hidden = entry.querySelector('input[name="treatment_type_id[]"]');
+        const removeButton = entry.querySelector('[data-remove-treatment]');
+
+        const syncHiddenValue = () => {
+            const value = input.value.trim();
+            hidden.value = treatmentMap.has(value) ? treatmentMap.get(value) : '';
+            updateSelectionValidity();
+            togglePatientBlock();
+        };
+
+        input.addEventListener('input', syncHiddenValue);
+        input.addEventListener('change', syncHiddenValue);
+
+        removeButton.addEventListener('click', () => {
+            entry.remove();
+            syncTreatmentLabels();
+            updateSelectionValidity();
+            togglePatientBlock();
+        });
+    }
+
+    function createTreatmentEntry() {
+        const entry = document.createElement('div');
+        entry.className = 'treatment-entry';
+        entry.setAttribute('data-treatment-entry', '');
+        entry.innerHTML = `
+            <div class="treatment-entry-field">
+                <label>Tratamento</label>
+                <input
+                    list="treatment-types-list"
+                    name="treatment_type_input[]"
+                    placeholder="Escreva ou escolha..."
+                    autocomplete="off"
+                >
+                <input type="hidden" name="treatment_type_id[]" value="">
+            </div>
+            <button type="button" class="remove-treatment" data-remove-treatment>Remover</button>
+        `;
+
+        wireTreatmentEntry(entry);
+        treatmentList.appendChild(entry);
+        syncTreatmentLabels();
+
+        const input = entry.querySelector('input[name="treatment_type_input[]"]');
+        input.focus();
+    }
+
     function hasSelectedTreatments() {
-        return treatmentCheckboxes.some((checkbox) => checkbox.checked);
+        return getTreatmentEntries().some((entry) => {
+            const input = entry.querySelector('input[name="treatment_type_input[]"]');
+            return input.value.trim() !== '';
+        });
     }
 
     function updateSelectionValidity() {
         const hasSelection = hasSelectedTreatments();
 
-        if (treatmentCheckboxes.length > 0) {
-            treatmentCheckboxes[0].setCustomValidity(hasSelection ? '' : 'Selecione pelo menos um tratamento.');
+        const firstInput = treatmentList.querySelector('input[name="treatment_type_input[]"]');
+        if (firstInput) {
+            firstInput.setCustomValidity(hasSelection ? '' : 'Selecione pelo menos um tratamento.');
         }
 
         selectionError.style.display = hasSelection ? 'none' : 'block';
     }
 
     function togglePatientBlock() {
-        const hasHospitalTransfer = treatmentCheckboxes
-            .some((checkbox) => checkbox.checked && Number(checkbox.value) === hospitalTreatmentTypeId);
+        const hasHospitalTransfer = getTreatmentEntries().some((entry) => {
+            const input = entry.querySelector('input[name="treatment_type_input[]"]');
+            const hidden = entry.querySelector('input[name="treatment_type_id[]"]');
+            const typedValue = input.value.trim().toLowerCase();
+
+            return Number(hidden.value) === hospitalTreatmentTypeId || typedValue === 'enviado para hospital';
+        });
 
         if (hasHospitalTransfer) {
             patientBlock.style.display = 'block';
@@ -384,11 +502,8 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
         }
     }
 
-    treatmentCheckboxes.forEach((checkbox) => {
-        checkbox.addEventListener('change', () => {
-            updateSelectionValidity();
-            togglePatientBlock();
-        });
+    addTreatmentButton.addEventListener('click', () => {
+        createTreatmentEntry();
     });
 
     form.addEventListener('submit', (event) => {
@@ -396,14 +511,24 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
 
         if (!hasSelectedTreatments()) {
             event.preventDefault();
-            if (treatmentCheckboxes.length > 0) {
-                treatmentCheckboxes[0].reportValidity();
+            const firstInput = treatmentList.querySelector('input[name="treatment_type_input[]"]');
+            if (firstInput) {
+                firstInput.reportValidity();
             }
         }
     });
 
+    const datalistObserver = new MutationObserver(() => {
+        treatmentMap = buildTreatmentMap();
+    });
+    datalistObserver.observe(treatmentDatalist, { childList: true, subtree: true });
+
     // garantir estado correto quando a página abre
     document.addEventListener('DOMContentLoaded', () => {
+        getTreatmentEntries().forEach((entry) => {
+            wireTreatmentEntry(entry);
+        });
+        syncTreatmentLabels();
         updateSelectionValidity();
         togglePatientBlock();
     });
