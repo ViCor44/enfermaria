@@ -263,6 +263,7 @@ $hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
                 <div class="treatment-entry-field">
                     <label for="treatment_type_input_0">Tratamento 1</label>
                     <input
+                        class="mr-4"
                         list="treatment-types-list"
                         name="treatment_type_input[]"
                         id="treatment_type_input_0"
