@@ -30,6 +30,7 @@ class TreatmentController
         }
 
         $types = Treatment::getTypes();
+        $hospitalTreatmentTypeId = Treatment::getHospitalTransferTypeId();
 
         require __DIR__ . '/../Views/treatments/create.php';
     }

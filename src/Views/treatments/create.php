@@ -1,6 +1,7 @@
 <?php
 $baseUrl = '/enfermaria/public/index.php';
 $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
+$hospitalTreatmentTypeId = (int)($hospitalTreatmentTypeId ?? 0);
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -117,6 +118,9 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         font-size: 0.85rem;
         color: #777;
         margin-top: 0.3rem;
+    }
+    .small.error {
+        color: #b42318;
     }
     .section-title {
         margin-top: 2rem;
@@ -237,7 +241,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         </div>
     <?php endif; ?>
 
-    <form method="post" action="<?= $baseUrl ?>?route=treatments_store">
+    <form method="post" action="<?= $baseUrl ?>?route=treatments_store" id="treatments-form">
         <input type="hidden" name="incident_id" value="<?= (int)$incident['id'] ?>">
 
         <label class="required">Tipos de tratamento</label>
@@ -249,13 +253,13 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                         id="treatment_type_<?= (int)$t['id'] ?>"
                         name="treatment_type_ids[]"
                         value="<?= (int)$t['id'] ?>"
-                        data-treatment-name="<?= htmlspecialchars(mb_strtolower($t['name']), ENT_QUOTES, 'UTF-8') ?>"
                     >
                     <span><?= htmlspecialchars($t['name']) ?></span>
                 </label>
             <?php endforeach; ?>
         </div>
         <div class="small">Pode assinalar vários tratamentos no mesmo registo.</div>
+        <div class="small error" id="treatment-selection-error" style="display:none;">Selecione pelo menos um tratamento.</div>
 
         <label>Estado</label>
         <select name="status">            
@@ -349,12 +353,29 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 </main>
 
 <script>
+    const form = document.getElementById('treatments-form');
     const treatmentCheckboxes = Array.from(document.querySelectorAll('input[name="treatment_type_ids[]"]'));
+    const selectionError = document.getElementById('treatment-selection-error');
     const patientBlock = document.getElementById('patient-block');
+    const hospitalTreatmentTypeId = <?= $hospitalTreatmentTypeId ?>;
+
+    function hasSelectedTreatments() {
+        return treatmentCheckboxes.some((checkbox) => checkbox.checked);
+    }
+
+    function updateSelectionValidity() {
+        const hasSelection = hasSelectedTreatments();
+
+        if (treatmentCheckboxes.length > 0) {
+            treatmentCheckboxes[0].setCustomValidity(hasSelection ? '' : 'Selecione pelo menos um tratamento.');
+        }
+
+        selectionError.style.display = hasSelection ? 'none' : 'block';
+    }
 
     function togglePatientBlock() {
         const hasHospitalTransfer = treatmentCheckboxes
-            .some((checkbox) => checkbox.checked && checkbox.dataset.treatmentName === 'enviado para hospital');
+            .some((checkbox) => checkbox.checked && Number(checkbox.value) === hospitalTreatmentTypeId);
 
         if (hasHospitalTransfer) {
             patientBlock.style.display = 'block';
@@ -364,11 +385,28 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
     }
 
     treatmentCheckboxes.forEach((checkbox) => {
-        checkbox.addEventListener('change', togglePatientBlock);
+        checkbox.addEventListener('change', () => {
+            updateSelectionValidity();
+            togglePatientBlock();
+        });
+    });
+
+    form.addEventListener('submit', (event) => {
+        updateSelectionValidity();
+
+        if (!hasSelectedTreatments()) {
+            event.preventDefault();
+            if (treatmentCheckboxes.length > 0) {
+                treatmentCheckboxes[0].reportValidity();
+            }
+        }
     });
 
     // garantir estado correto quando a página abre
-    document.addEventListener('DOMContentLoaded', togglePatientBlock);
+    document.addEventListener('DOMContentLoaded', () => {
+        updateSelectionValidity();
+        togglePatientBlock();
+    });
 </script>
 
 </body>
