@@ -5,6 +5,11 @@ $nome    = $nome    ?? ($_SESSION['user_name'] ?? 'Utilizador');
 $role    = $role    ?? ($_SESSION['role'] ?? '');
 $roleLabel = $role;
 $route = $_GET['route'] ?? 'dashboard';
+if (!isset($pendingApprovalsCount)) {
+    $pendingApprovalsCount = ($role === 'Administrador')
+        ? count(\App\Models\User::getPendingApprovals())
+        : 0;
+}
 ?>
 <style>
     .topbar {
@@ -72,6 +77,25 @@ $route = $_GET['route'] ?? 'dashboard';
     .nav-link.active {
         background: rgba(255,255,255,0.2);
         font-weight: 600;
+    }
+    .nav-link-with-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: .5rem;
+    }
+    .nav-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 .35rem;
+        border-radius: 999px;
+        background: #ff4d4f;
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 700;
+        line-height: 1;
     }
     .user-area {
         display: flex;
@@ -266,8 +290,13 @@ $route = $_GET['route'] ?? 'dashboard';
                 </a>
 
                 <a href="<?= $baseUrl ?>?route=admin_users"
-                class="nav-link <?= $route === 'admin_users' ? 'active' : '' ?>">
+                class="nav-link nav-link-with-badge <?= $route === 'admin_users' ? 'active' : '' ?>">
                     Utilizadores
+                    <?php if ($pendingApprovalsCount > 0): ?>
+                        <span class="nav-badge" title="Utilizadores por aprovar">
+                            <?= (int)$pendingApprovalsCount ?>
+                        </span>
+                    <?php endif; ?>
                 </a>
 
                 <a href="<?= $baseUrl ?>?route=admin_stats"
