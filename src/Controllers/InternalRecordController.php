@@ -48,6 +48,11 @@ class InternalRecordController
         $treatment = Text::toPortugueseTitleCase((string)($_POST['treatment'] ?? ''));
         $description = trim($_POST['description'] ?? '');
 
+        if ($treatment !== '') {
+            // Mantem os tratamentos escritos no registo interno reutilizaveis nas listas.
+            Treatment::createTypeIfNotExists($treatment);
+        }
+
         /* -------------------- VALIDAÇÕES -------------------- */
         if ($date === '' || $time === '') {
             $_SESSION['error'] = 'Data e hora são obrigatórias.';
