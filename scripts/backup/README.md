@@ -1,3 +1,25 @@
+## Normalizar textos antigos (Ocorrencias/Local/Tratamentos)
+
+Existe um script para normalizar valores antigos para formato com iniciais maiusculas
+(ex.: "zona de cimento" -> "Zona de Cimento") e consolidar duplicados quando necessario.
+
+Script:
+- `php scripts/normalize_legacy_text.php` (dry-run, nao grava)
+- `php scripts/normalize_legacy_text.php --apply` (grava alteracoes)
+- `php scripts/normalize_legacy_text.php --apply --skip-internal` (nao altera `internal_records.treatment`)
+
+Tabelas abrangidas:
+- `incident_types.name`
+- `locations.name`
+- `treatment_types.name`
+- `internal_records.treatment` (opcional, por omissao ligado)
+
+Recomendacao:
+1. Fazer backup da BD.
+2. Executar primeiro em dry-run.
+3. Validar o resumo.
+4. Executar com `--apply`.
+
 # Backup automation (local Windows)
 
 This folder contains a ready setup for:
