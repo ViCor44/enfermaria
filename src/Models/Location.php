@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use App\Core\Database;
+use App\Helpers\Text;
 use PDO;
 
 class Location
@@ -15,6 +16,9 @@ class Location
 
     public static function create(string $name): int
     {
+        $name = Text::toPortugueseTitleCase($name);
+        if ($name === '') return 0;
+
         $pdo = Database::getConnection();
 
         // opcional: evitar duplicados simples
@@ -33,7 +37,7 @@ class Location
 
     public static function createIfNotExists(string $name): int
     {
-        $name = trim($name);
+        $name = Text::toPortugueseTitleCase($name);
         if ($name === '') return 0;
 
         $pdo = Database::getConnection();

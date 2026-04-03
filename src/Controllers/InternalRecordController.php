@@ -4,6 +4,7 @@ namespace App\Controllers;
 
 use App\Core\Auth;
 use App\Core\Database;
+use App\Helpers\Text;
 use App\Models\Location;
 use App\Models\Treatment;
 
@@ -44,7 +45,7 @@ class InternalRecordController
         $patientAge    = ($_POST['patient_age'] ?? '') !== '' ? (int)$_POST['patient_age'] : null;
         $patientGender = trim($_POST['patient_gender'] ?? '') ?: null;
 
-        $treatment = trim($_POST['treatment'] ?? '');
+        $treatment = Text::toPortugueseTitleCase((string)($_POST['treatment'] ?? ''));
         $description = trim($_POST['description'] ?? '');
 
         /* -------------------- VALIDAÇÕES -------------------- */

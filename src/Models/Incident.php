@@ -2,6 +2,7 @@
 namespace App\Models;
 
 use App\Core\Database;
+use App\Helpers\Text;
 use PDO;
 
 class Incident
@@ -244,7 +245,7 @@ class Incident
 
     public static function createTypeIfNotExists(string $name): int
     {
-        $name = trim($name);
+        $name = Text::toPortugueseTitleCase($name);
         if ($name === '') return 0;
 
         $pdo = Database::getConnection();
