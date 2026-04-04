@@ -120,6 +120,112 @@ th {
     border-top: 1px solid #ddd;
     margin: 2rem 0;
 }
+
+tbody tr.record-row {
+    cursor: pointer;
+}
+
+tbody tr.record-row:hover {
+    background: #f8fbff;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    z-index: 9999;
+}
+
+.modal-backdrop.open {
+    display: flex;
+}
+
+.modal-card {
+    width: min(720px, 100%);
+    max-height: 90vh;
+    overflow: auto;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    text-align: left;
+}
+
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #edf0f5;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #1f2937;
+}
+
+.modal-close {
+    border: none;
+    background: #eef2ff;
+    color: #334155;
+    border-radius: 8px;
+    padding: 0.4rem 0.65rem;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.modal-body {
+    padding: 1rem 1.25rem 1.25rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.8rem 1rem;
+    margin-bottom: 1rem;
+}
+
+.detail-item {
+    background: #f8fafc;
+    border: 1px solid #e6edf5;
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+}
+
+.detail-item small {
+    display: block;
+    color: #64748b;
+    margin-bottom: 0.15rem;
+}
+
+.detail-item strong {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+.detail-description {
+    background: #fff;
+    border: 1px solid #e6edf5;
+    border-radius: 10px;
+    padding: 0.85rem;
+}
+
+.detail-description small {
+    display: block;
+    color: #64748b;
+    margin-bottom: 0.4rem;
+}
+
+#modal_description {
+    margin: 0;
+    color: #334155;
+    white-space: pre-wrap;
+}
 </style>
 </head>
 <body>
@@ -185,7 +291,20 @@ th {
     </thead>
     <tbody>
     <?php foreach ($records as $r): ?>
-        <tr>
+        <tr
+            class="record-row"
+            role="button"
+            tabindex="0"
+            aria-label="Abrir detalhes do registo interno <?= (int)$r['id'] ?>"
+            data-id="<?= (int)$r['id'] ?>"
+            data-occurred-at="<?= htmlspecialchars((string)$r['occurred_at'], ENT_QUOTES, 'UTF-8') ?>"
+            data-location="<?= htmlspecialchars((string)($r['location_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?>"
+            data-patient-age="<?= htmlspecialchars((string)($r['patient_age'] !== null ? (int)$r['patient_age'] : '—'), ENT_QUOTES, 'UTF-8') ?>"
+            data-patient-gender="<?= htmlspecialchars((string)($r['patient_gender'] ?: '—'), ENT_QUOTES, 'UTF-8') ?>"
+            data-treatment="<?= htmlspecialchars((string)($r['treatment'] ?? '—'), ENT_QUOTES, 'UTF-8') ?>"
+            data-nurse-name="<?= htmlspecialchars((string)$r['nurse_name'], ENT_QUOTES, 'UTF-8') ?>"
+            data-description="<?= htmlspecialchars((string)($r['description'] ?: 'Sem descrição.'), ENT_QUOTES, 'UTF-8') ?>"
+        >
             <td><?= (int)$r['id'] ?></td>
             <td><?= htmlspecialchars($r['occurred_at']) ?></td>
             <td><?= htmlspecialchars($r['location_name'] ?? '—') ?></td>
@@ -202,6 +321,99 @@ th {
 <?php endif; ?>
 
 </main>
+
+<div class="modal-backdrop" id="recordModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="recordModalTitle">
+        <div class="modal-header">
+            <h2 id="recordModalTitle">Detalhes do Registo Interno #<span id="modal_id"></span></h2>
+            <button type="button" class="modal-close" id="modalCloseBtn" aria-label="Fechar">x</button>
+        </div>
+        <div class="modal-body">
+            <div class="detail-grid">
+                <div class="detail-item"><small>Data / Hora</small><strong id="modal_occurred_at"></strong></div>
+                <div class="detail-item"><small>Local</small><strong id="modal_location"></strong></div>
+                <div class="detail-item"><small>Idade</small><strong id="modal_patient_age"></strong></div>
+                <div class="detail-item"><small>Género</small><strong id="modal_patient_gender"></strong></div>
+                <div class="detail-item"><small>Tratamento</small><strong id="modal_treatment"></strong></div>
+                <div class="detail-item"><small>Enfermeiro</small><strong id="modal_nurse_name"></strong></div>
+            </div>
+
+            <div class="detail-description">
+                <small>Descrição / Observações</small>
+                <p id="modal_description"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(() => {
+    const modal = document.getElementById('recordModal');
+    const closeBtn = document.getElementById('modalCloseBtn');
+    const rows = document.querySelectorAll('tr.record-row');
+    const fields = {
+        id: document.getElementById('modal_id'),
+        occurred_at: document.getElementById('modal_occurred_at'),
+        location: document.getElementById('modal_location'),
+        patient_age: document.getElementById('modal_patient_age'),
+        patient_gender: document.getElementById('modal_patient_gender'),
+        treatment: document.getElementById('modal_treatment'),
+        nurse_name: document.getElementById('modal_nurse_name'),
+        description: document.getElementById('modal_description')
+    };
+
+    function fillModalFromRow(row) {
+        const d = row.dataset;
+        fields.id.textContent = d.id || '—';
+        fields.occurred_at.textContent = d.occurredAt || '—';
+        fields.location.textContent = d.location || '—';
+        fields.patient_age.textContent = d.patientAge || '—';
+        fields.patient_gender.textContent = d.patientGender || '—';
+        fields.treatment.textContent = d.treatment || '—';
+        fields.nurse_name.textContent = d.nurseName || '—';
+        fields.description.textContent = d.description || 'Sem descrição.';
+    }
+
+    function openModal() {
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+
+    function closeModal() {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    rows.forEach((row) => {
+        row.addEventListener('click', () => {
+            fillModalFromRow(row);
+            openModal();
+        });
+
+        row.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                fillModalFromRow(row);
+                openModal();
+            }
+        });
+    });
+
+    closeBtn.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('open')) {
+            closeModal();
+        }
+    });
+})();
+</script>
 
 </body>
 </html>
