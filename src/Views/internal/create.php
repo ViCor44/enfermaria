@@ -148,6 +148,19 @@ button {
                         <label class="required">Último Nome</label>
                         <input type="text" name="last_name" required maxlength="100" placeholder="Último nome">
                     </div>
+                    <div style="margin-right: 24px;">
+                        <label>Idade</label>
+                        <input type="number" name="patient_age" min="0" max="120">
+                    </div>
+                    <div style="margin-right: 24px;">
+                        <label>Género</label>
+                        <select name="patient_gender">
+                            <option value="">-- Não especificar --</option>
+                            <option value="M">Masculino</option>
+                            <option value="F">Feminino</option>
+                            <option value="Outro">Outro</option>
+                        </select>
+                    </div>
                 </div>
 
             <datalist id="locations-list">
@@ -157,24 +170,6 @@ button {
             </datalist>
 
             <input type="hidden" name="location_id" id="location_id">
-        </div>
-    </div>
-
-    <!-- IDADE / GÉNERO -->
-    <div class="row">
-        <div style="margin-right: 24px;">
-            <label>Idade</label>
-            <input type="number" name="patient_age" min="0" max="120">
-        </div>
-
-        <div style="margin-right: 24px;">
-            <label>Género</label>
-            <select name="patient_gender">
-                <option value="">-- Não especificar --</option>
-                <option value="M">Masculino</option>
-                <option value="F">Feminino</option>
-                <option value="Outro">Outro</option>
-            </select>
         </div>
     </div>
 
