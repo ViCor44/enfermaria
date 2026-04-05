@@ -16,7 +16,7 @@ class InternalRecord
 
         $sql = "
             SELECT
-                ir.*,
+                ir.*, ir.first_name, ir.last_name,
                 l.name AS location_name,
                 u.full_name AS nurse_name
             FROM internal_records ir

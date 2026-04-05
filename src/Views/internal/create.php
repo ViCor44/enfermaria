@@ -138,6 +138,17 @@ button {
                 autocomplete="off"
                 required
             >
+                <!-- PRIMEIRO E ÚLTIMO NOME -->
+                <div class="row">
+                    <div style="margin-right: 24px;">
+                        <label class="required">Primeiro Nome</label>
+                        <input type="text" name="first_name" required maxlength="100" placeholder="Primeiro nome">
+                    </div>
+                    <div style="margin-right: 24px;">
+                        <label class="required">Último Nome</label>
+                        <input type="text" name="last_name" required maxlength="100" placeholder="Último nome">
+                    </div>
+                </div>
 
             <datalist id="locations-list">
                 <?php foreach ($locations as $loc): ?>

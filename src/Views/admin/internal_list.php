@@ -280,6 +280,8 @@ tbody tr.record-row:hover {
     <thead>
         <tr>
             <th>Episódio</th>
+            <th>Primeiro Nome</th>
+            <th>Último Nome</th>
             <th>Data / Hora</th>
             <th>Local</th>
             <th>Idade</th>
@@ -297,6 +299,8 @@ tbody tr.record-row:hover {
             tabindex="0"
             aria-label="Abrir detalhes do registo interno <?= (int)$r['id'] ?>"
             data-id="<?= (int)$r['id'] ?>"
+            data-first-name="<?= htmlspecialchars((string)($r['first_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?>"
+            data-last-name="<?= htmlspecialchars((string)($r['last_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?>"
             data-occurred-at="<?= htmlspecialchars((string)$r['occurred_at'], ENT_QUOTES, 'UTF-8') ?>"
             data-location="<?= htmlspecialchars((string)($r['location_name'] ?? '—'), ENT_QUOTES, 'UTF-8') ?>"
             data-patient-age="<?= htmlspecialchars((string)($r['patient_age'] !== null ? (int)$r['patient_age'] : '—'), ENT_QUOTES, 'UTF-8') ?>"
@@ -306,6 +310,8 @@ tbody tr.record-row:hover {
             data-description="<?= htmlspecialchars((string)($r['description'] ?: 'Sem descrição.'), ENT_QUOTES, 'UTF-8') ?>"
         >
             <td><?= (int)$r['id'] ?></td>
+            <td><?= htmlspecialchars($r['first_name'] ?? '—') ?></td>
+            <td><?= htmlspecialchars($r['last_name'] ?? '—') ?></td>
             <td><?= htmlspecialchars($r['occurred_at']) ?></td>
             <td><?= htmlspecialchars($r['location_name'] ?? '—') ?></td>
             <td><?= $r['patient_age'] !== null ? (int)$r['patient_age'] : '—' ?></td>
@@ -330,6 +336,8 @@ tbody tr.record-row:hover {
         </div>
         <div class="modal-body">
             <div class="detail-grid">
+                <div class="detail-item"><small>Primeiro Nome</small><strong id="modal_first_name"></strong></div>
+                <div class="detail-item"><small>Último Nome</small><strong id="modal_last_name"></strong></div>
                 <div class="detail-item"><small>Data / Hora</small><strong id="modal_occurred_at"></strong></div>
                 <div class="detail-item"><small>Local</small><strong id="modal_location"></strong></div>
                 <div class="detail-item"><small>Idade</small><strong id="modal_patient_age"></strong></div>
@@ -353,6 +361,8 @@ tbody tr.record-row:hover {
     const rows = document.querySelectorAll('tr.record-row');
     const fields = {
         id: document.getElementById('modal_id'),
+        first_name: document.getElementById('modal_first_name'),
+        last_name: document.getElementById('modal_last_name'),
         occurred_at: document.getElementById('modal_occurred_at'),
         location: document.getElementById('modal_location'),
         patient_age: document.getElementById('modal_patient_age'),
@@ -365,6 +375,8 @@ tbody tr.record-row:hover {
     function fillModalFromRow(row) {
         const d = row.dataset;
         fields.id.textContent = d.id || '—';
+        fields.first_name.textContent = d.firstName || '—';
+        fields.last_name.textContent = d.lastName || '—';
         fields.occurred_at.textContent = d.occurredAt || '—';
         fields.location.textContent = d.location || '—';
         fields.patient_age.textContent = d.patientAge || '—';

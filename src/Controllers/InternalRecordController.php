@@ -36,6 +36,9 @@ class InternalRecordController
         $userId = (int)$user['id'];
 
         /* -------------------- INPUT -------------------- */
+
+        $firstName = trim($_POST['first_name'] ?? '');
+        $lastName = trim($_POST['last_name'] ?? '');
         $date = trim($_POST['date'] ?? '');
         $time = trim($_POST['time'] ?? '');
 
@@ -54,12 +57,17 @@ class InternalRecordController
         }
 
         /* -------------------- VALIDAÇÕES -------------------- */
+
+        if ($firstName === '' || $lastName === '') {
+            $_SESSION['error'] = 'Primeiro e último nome são obrigatórios.';
+            header('Location: '.$this->baseUrl.'?route=internal_new');
+            exit;
+        }
         if ($date === '' || $time === '') {
             $_SESSION['error'] = 'Data e hora são obrigatórias.';
             header('Location: '.$this->baseUrl.'?route=internal_new');
             exit;
         }
-
         if ($description === '') {
             $_SESSION['error'] = 'Descrição obrigatória.';
             header('Location: '.$this->baseUrl.'?route=internal_new');
@@ -76,21 +84,24 @@ class InternalRecordController
         /* -------------------- INSERT -------------------- */
         $pdo = Database::getConnection();
 
+
         try {
             $stmt = $pdo->prepare("
                 INSERT INTO internal_records
-                (user_id, occurred_at, location_id, patient_age, patient_gender, treatment, description)
+                (user_id, first_name, last_name, occurred_at, location_id, patient_age, patient_gender, treatment, description)
                 VALUES
-                (:user_id, :occurred_at, :location_id, :age, :gender, :treatment, :descr)
+                (:user_id, :first_name, :last_name, :occurred_at, :location_id, :age, :gender, :treatment, :descr)
             ");
 
             $stmt->execute([
                 ':user_id'     => $userId,
+                ':first_name'  => $firstName,
+                ':last_name'   => $lastName,
                 ':occurred_at' => $occurredAt,
                 ':location_id' => $locationId,
                 ':age'         => $patientAge,
                 ':gender'      => $patientGender,
-                ':treatment'  => $treatment,
+                ':treatment'   => $treatment,
                 ':descr'       => $description,
             ]);
 
