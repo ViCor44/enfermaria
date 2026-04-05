@@ -160,6 +160,24 @@ button {
         </div>
     </div>
 
+    <!-- IDADE / GÉNERO -->
+    <div class="row">
+        <div style="margin-right: 24px;">
+            <label>Idade</label>
+            <input type="number" name="patient_age" min="0" max="120">
+        </div>
+
+        <div style="margin-right: 24px;">
+            <label>Género</label>
+            <select name="patient_gender">
+                <option value="">-- Não especificar --</option>
+                <option value="M">Masculino</option>
+                <option value="F">Feminino</option>
+                <option value="Outro">Outro</option>
+            </select>
+        </div>
+    </div>
+
     <!-- TRATAMENTO -->
     <div class="row">
         <div style="margin-right: 24px;">
@@ -178,24 +196,6 @@ button {
                     <option value="<?= htmlspecialchars($tt['name']) ?>"></option>
                 <?php endforeach; ?>
             </datalist>
-        </div>
-    </div>
-
-    <!-- IDADE / GÉNERO -->
-    <div class="row">
-        <div style="margin-right: 24px;">
-            <label>Idade</label>
-            <input type="number" name="patient_age" min="0" max="120">
-        </div>
-
-        <div style="margin-right: 24px;">
-            <label>Género</label>
-            <select name="patient_gender">
-                <option value="">-- Não especificar --</option>
-                <option value="M">Masculino</option>
-                <option value="F">Feminino</option>
-                <option value="Outro">Outro</option>
-            </select>
         </div>
     </div>
 
