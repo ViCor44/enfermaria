@@ -113,7 +113,7 @@ button {
 
 <form method="post" action="<?= $baseUrl ?>?route=internal_store">
 
-    <!-- DATA / HORA -->
+    <!-- DATA / HORA / LOCAL -->
     <div class="row">
         <div style="margin-right: 24px;">
             <label class="required">Data</label>
@@ -124,10 +124,7 @@ button {
             <label class="required">Hora</label>
             <input type="time" name="time" required value="<?= date('H:i') ?>">
         </div>
-    </div>
 
-    <!-- LOCAL -->
-    <div class="row">
         <div style="margin-right: 24px;">
             <label class="required">Local / Área</label>
             <input
@@ -138,8 +135,19 @@ button {
                 autocomplete="off"
                 required
             >
-                <!-- PRIMEIRO E ÚLTIMO NOME -->
-                <div class="row">
+        </div>
+    </div>
+
+    <datalist id="locations-list">
+        <?php foreach ($locations as $loc): ?>
+            <option value="<?= htmlspecialchars($loc['name']) ?>" data-id="<?= (int)$loc['id'] ?>"></option>
+        <?php endforeach; ?>
+    </datalist>
+
+    <input type="hidden" name="location_id" id="location_id">
+
+    <!-- PRIMEIRO E ÚLTIMO NOME -->
+    <div class="row">
                     <div style="margin-right: 24px;">
                         <label class="required">Primeiro Nome</label>
                         <input type="text" name="first_name" required maxlength="100" placeholder="Primeiro nome">
@@ -162,16 +170,6 @@ button {
                         </select>
                     </div>
                 </div>
-
-            <datalist id="locations-list">
-                <?php foreach ($locations as $loc): ?>
-                    <option value="<?= htmlspecialchars($loc['name']) ?>" data-id="<?= (int)$loc['id'] ?>"></option>
-                <?php endforeach; ?>
-            </datalist>
-
-            <input type="hidden" name="location_id" id="location_id">
-        </div>
-    </div>
 
     <!-- TRATAMENTO -->
     <div class="row">
