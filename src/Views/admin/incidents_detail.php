@@ -468,10 +468,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Fechar modal ao clicar fora
     modal.addEventListener('click', function(e) {
         if (e.target === modal) modal.style.display = 'none';
+
     });
 });
 </script>
-        <?php endif; ?>
 
         <?php if ($hasHospitalTreatment): ?>
             <?php if (!empty($incident['refused_hospital']) && (int)$incident['refused_hospital'] === 1): ?>
