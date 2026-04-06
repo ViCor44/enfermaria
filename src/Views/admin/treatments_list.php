@@ -3,6 +3,11 @@ $baseUrl = '/enfermaria/public/index.php';
 $nome = $_SESSION['user_name'] ?? 'Administrador';
 $role = $_SESSION['role'] ?? '';
 $statusFilter = $_GET['status'] ?? '';
+$flashSuccess = $_SESSION['success'] ?? null;
+$flashError = $_SESSION['error'] ?? null;
+$flashInfo = $_SESSION['info'] ?? null;
+
+unset($_SESSION['success'], $_SESSION['error'], $_SESSION['info']);
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -347,6 +352,50 @@ a:hover {
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    var flashSuccess = <?= json_encode($flashSuccess, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    var flashError = <?= json_encode($flashError, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+    var flashInfo = <?= json_encode($flashInfo, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
+    function showNativeAlert(prefix, message) {
+        if (!message) {
+            return;
+        }
+        alert(prefix + ': ' + message);
+    }
+
+    if (typeof Swal !== 'undefined') {
+        if (flashSuccess) {
+            Swal.fire({
+                icon: 'success',
+                title: 'Sucesso',
+                text: flashSuccess,
+                confirmButtonText: 'OK'
+            });
+        } else if (flashError) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Erro',
+                text: flashError,
+                confirmButtonText: 'OK'
+            });
+        } else if (flashInfo) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Informação',
+                text: flashInfo,
+                confirmButtonText: 'OK'
+            });
+        }
+    } else {
+        if (flashSuccess) {
+            showNativeAlert('Sucesso', flashSuccess);
+        } else if (flashError) {
+            showNativeAlert('Erro', flashError);
+        } else if (flashInfo) {
+            showNativeAlert('Informação', flashInfo);
+        }
+    }
+
     var modal = document.getElementById('treatment-modal');
     var rows = document.querySelectorAll('.treatment-row');
     var closeBtn = document.getElementById('close-modal');
