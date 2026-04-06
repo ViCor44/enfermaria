@@ -521,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     saveBtn.addEventListener('click', function() {
         saveBtn.disabled = true;
-        fetch('<?= $baseUrl ?>?route=update_treatment_notes', {
+        fetch('/enfermaria/public/update_treatment_notes.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'treatment_id=' + encodeURIComponent(currentTreatmentId) + '&notes=' + encodeURIComponent(notesEdit.value)
