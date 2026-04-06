@@ -195,10 +195,12 @@ class Incident
             SELECT 
                 tr.*,
                 tt.name      AS treatment_type_name,
-                u.full_name  AS nurse_name
+                u.full_name  AS nurse_name,
+                ue.full_name AS notes_edited_by_name
             FROM treatments tr
             JOIN treatment_types tt ON tt.id = tr.treatment_type_id
             JOIN users u            ON u.id = tr.user_id
+            LEFT JOIN users ue      ON ue.id = tr.notes_edited_by
             WHERE tr.incident_id = :incident_id
             ORDER BY tr.created_at ASC
         ";

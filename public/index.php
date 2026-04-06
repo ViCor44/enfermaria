@@ -122,6 +122,9 @@ if ($route === 'login') {
 } elseif ($route === 'admin_treatments') {
     $controller = new App\Controllers\AdminTreatmentController();
     $controller->index();
+} elseif ($route === 'admin_treatment_update_notes' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new App\Controllers\AdminTreatmentController();
+    $controller->updateNotes();
 } elseif ($route === 'treatment_conclude') {
     $controller = new App\Controllers\TreatmentController();
     $controller->conclude();

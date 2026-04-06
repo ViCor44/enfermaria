@@ -1,6 +1,7 @@
 <?php
 $baseUrl = '/enfermaria/public/index.php';
 $nome = $_SESSION['user_name'] ?? 'Administrador';
+$role = $_SESSION['role'] ?? '';
 $statusFilter = $_GET['status'] ?? '';
 ?>
 <!DOCTYPE html>
@@ -252,7 +253,18 @@ a:hover {
             </thead>
             <tbody>
                 <?php foreach ($treatments as $tr): ?>
-                    <tr>
+                    <tr class="treatment-row" style="cursor:pointer"
+                        data-id="<?= (int)$tr['id'] ?>"
+                        data-created_at="<?= htmlspecialchars($tr['created_at']) ?>"
+                        data-incident_id="<?= (int)$tr['incident_id'] ?>"
+                        data-incident_type="<?= htmlspecialchars($tr['incident_type_name'] ?? '') ?>"
+                        data-location="<?= htmlspecialchars($tr['location_name'] ?? '') ?>"
+                        data-type="<?= htmlspecialchars($tr['treatment_type_name'] ?? '') ?>"
+                        data-status="<?= $tr['status'] === 'em_curso' ? 'Em curso' : 'Concluído' ?>"
+                        data-nurse="<?= htmlspecialchars($tr['nurse_name'] ?? '') ?>"
+                        data-notes="<?= htmlspecialchars($tr['notes'] ?? '') ?>"
+                        data-editinfo="<?php if (!empty($tr['notes_edited_by_name'])): ?>Editado por <?= htmlspecialchars($tr['notes_edited_by_name']) ?><?php if (!empty($tr['notes_edited_at'])): ?> em <?= htmlspecialchars($tr['notes_edited_at']) ?><?php endif; ?><?php endif; ?>"
+                    >
                         <td><?= htmlspecialchars($tr['created_at'] ?? $tr['created_at']) ?></td>
                         <td>
                             <a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$tr['incident_id'] ?>">
@@ -303,7 +315,176 @@ a:hover {
                 <?php endforeach; ?>
             </tbody>
         </table>
+
+        <div id="treatment-modal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;">
+            <div style="background:#fff;padding:2rem 2.5rem;border-radius:12px;max-width:520px;width:92vw;box-shadow:0 8px 32px rgba(0,0,0,0.18);position:relative;">
+                <button id="close-modal" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>
+                <h3 style="margin-top:0;font-size:1.15rem;color:#1f6feb;">Detalhes do Tratamento</h3>
+                <div style="margin-bottom:1rem;">
+                    <strong>Data registo:</strong> <span id="modal-created-at"></span><br>
+                    <strong>Ocorrência:</strong> <span id="modal-incident"></span><br>
+                    <strong>Local:</strong> <span id="modal-location"></span><br>
+                    <strong>Tipo de tratamento:</strong> <span id="modal-type"></span><br>
+                    <strong>Estado:</strong> <span id="modal-status"></span><br>
+                    <strong>Enfermeiro:</strong> <span id="modal-nurse"></span><br>
+                </div>
+                <div>
+                    <strong>Notas:</strong>
+                    <div id="modal-notes-view" style="margin-top:.5rem;white-space:pre-line;background:#f8f9fb;padding:.7rem 1rem;border-radius:8px;min-height:40px;"></div>
+                    <textarea id="modal-notes-edit" style="display:none;width:100%;min-height:90px;margin-top:.5rem;padding:.7rem 1rem;border-radius:8px;border:1px solid #ddd;font-size:1rem;"></textarea>
+                    <div id="modal-edit-info" style="font-size:.85rem;color:#888;margin-top:.5rem;"></div>
+                    <div style="margin-top:1rem;display:flex;gap:8px;">
+                        <button id="edit-notes-btn" style="background:#1f6feb;color:#fff;border:none;padding:.5rem 1.2rem;border-radius:8px;cursor:pointer;font-size:.95rem;">Editar notas</button>
+                        <button id="save-notes-btn" style="display:none;background:#059669;color:#fff;border:none;padding:.5rem 1.2rem;border-radius:8px;cursor:pointer;font-size:.95rem;">Guardar</button>
+                        <button id="cancel-notes-btn" style="display:none;background:#e5e7eb;color:#333;border:none;padding:.5rem 1.2rem;border-radius:8px;cursor:pointer;font-size:.95rem;">Cancelar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     <?php endif; ?>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var modal = document.getElementById('treatment-modal');
+    var rows = document.querySelectorAll('.treatment-row');
+    var closeBtn = document.getElementById('close-modal');
+    var notesView = document.getElementById('modal-notes-view');
+    var notesEdit = document.getElementById('modal-notes-edit');
+    var editBtn = document.getElementById('edit-notes-btn');
+    var saveBtn = document.getElementById('save-notes-btn');
+    var cancelBtn = document.getElementById('cancel-notes-btn');
+    var editInfo = document.getElementById('modal-edit-info');
+    var currentTreatmentId = null;
+    var currentNotes = '';
+
+    function truncateNotes(text, maxLen) {
+        return text.length > maxLen ? text.slice(0, maxLen - 1) + '…' : text;
+    }
+
+    function fillModalFromRow(row) {
+        document.getElementById('modal-created-at').textContent = row.getAttribute('data-created_at') || '';
+        document.getElementById('modal-incident').textContent = '#' + (row.getAttribute('data-incident_id') || '') + ' - ' + (row.getAttribute('data-incident_type') || '');
+        document.getElementById('modal-location').textContent = row.getAttribute('data-location') || '';
+        document.getElementById('modal-type').textContent = row.getAttribute('data-type') || '';
+        document.getElementById('modal-status').textContent = row.getAttribute('data-status') || '';
+        document.getElementById('modal-nurse').textContent = row.getAttribute('data-nurse') || '';
+
+        currentTreatmentId = row.getAttribute('data-id');
+        currentNotes = row.getAttribute('data-notes') || '';
+        notesView.textContent = currentNotes;
+        notesEdit.value = currentNotes;
+        editInfo.textContent = row.getAttribute('data-editinfo') || '';
+
+        notesView.style.display = '';
+        notesEdit.style.display = 'none';
+        editBtn.style.display = '';
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+    }
+
+    rows.forEach(function(row) {
+        row.addEventListener('click', function(event) {
+            if (event.target.closest('a, button, form, input, select, textarea')) {
+                return;
+            }
+            fillModalFromRow(row);
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+        });
+    });
+
+    if (editBtn) {
+        editBtn.addEventListener('click', function() {
+            notesView.style.display = 'none';
+            notesEdit.style.display = '';
+            editBtn.style.display = 'none';
+            saveBtn.style.display = '';
+            cancelBtn.style.display = '';
+            notesEdit.focus();
+        });
+    }
+
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            notesEdit.value = currentNotes;
+            notesView.style.display = '';
+            notesEdit.style.display = 'none';
+            editBtn.style.display = '';
+            saveBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+        });
+    }
+
+    if (saveBtn) {
+        saveBtn.addEventListener('click', function() {
+            if (!currentTreatmentId) {
+                return;
+            }
+
+            saveBtn.disabled = true;
+            fetch('<?= $baseUrl ?>?route=admin_treatment_update_notes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                body: 'treatment_id=' + encodeURIComponent(currentTreatmentId) + '&notes=' + encodeURIComponent(notesEdit.value)
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('HTTP ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                if (!data.success) {
+                    throw new Error(data.error || 'erro_desconhecido');
+                }
+
+                var selector = '.treatment-row[data-id="' + String(currentTreatmentId).replace(/"/g, '\\"') + '"]';
+                var activeRow = document.querySelector(selector);
+
+                currentNotes = data.notes;
+                notesView.textContent = data.notes;
+                editInfo.textContent = data.editinfo || '';
+
+                notesView.style.display = '';
+                notesEdit.style.display = 'none';
+                editBtn.style.display = '';
+                saveBtn.style.display = 'none';
+                cancelBtn.style.display = 'none';
+
+                if (activeRow) {
+                    activeRow.setAttribute('data-notes', data.notes);
+                    activeRow.setAttribute('data-editinfo', data.editinfo || '');
+                    var notesCell = activeRow.children[6];
+                    if (notesCell) {
+                        notesCell.textContent = truncateNotes(data.notes, 120);
+                    }
+                }
+            })
+            .catch(function(error) {
+                alert('Erro ao guardar notas: ' + error.message);
+            })
+            .finally(function() {
+                saveBtn.disabled = false;
+            });
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            modal.style.display = 'none';
+        });
+    }
+
+    if (modal) {
+        modal.addEventListener('click', function(event) {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
 </body>
 </html>

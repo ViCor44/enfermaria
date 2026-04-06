@@ -404,11 +404,13 @@ foreach ($treatments as $t) {
                 <tbody>
                 <?php foreach ($treatments as $tr): ?>
                     <tr class="treatment-row" style="cursor:pointer"
+                        data-id="<?= (int)$tr['id'] ?>"
                         data-created_at="<?= htmlspecialchars($tr['created_at']) ?>"
                         data-type="<?= htmlspecialchars($tr['treatment_type_name']) ?>"
                         data-status="<?= $tr['status'] === 'em_curso' ? 'Em curso' : 'Concluído' ?>"
                         data-nurse="<?= htmlspecialchars($tr['nurse_name'] ?? '') ?>"
                         data-notes="<?= htmlspecialchars($tr['notes'] ?? '') ?>"
+                        data-editinfo="<?php if (!empty($tr['notes_edited_by_name'])): ?>Editado por <?= htmlspecialchars($tr['notes_edited_by_name']) ?><?php if (!empty($tr['notes_edited_at'])): ?> em <?= htmlspecialchars($tr['notes_edited_at']) ?><?php endif; ?><?php endif; ?>"
                     >
                         <td><?= htmlspecialchars($tr['created_at']) ?></td>
                         <td><?= htmlspecialchars($tr['treatment_type_name']) ?></td>
@@ -440,7 +442,14 @@ foreach ($treatments as $t) {
         </div>
         <div>
             <strong>Notas:</strong>
-            <div id="modal-notes" style="margin-top:.5rem;white-space:pre-line;background:#f8f9fb;padding:.7rem 1rem;border-radius:8px;min-height:40px;"></div>
+            <div id="modal-notes-view" style="margin-top:.5rem;white-space:pre-line;background:#f8f9fb;padding:.7rem 1rem;border-radius:8px;min-height:40px;"></div>
+            <textarea id="modal-notes-edit" style="display:none;width:100%;min-height:80px;margin-top:.5rem;padding:.7rem 1rem;border-radius:8px;border:1px solid #ddd;font-size:1rem;"></textarea>
+            <div id="modal-edit-info" style="font-size:.85rem;color:#888;margin-top:.5rem;"></div>
+            <div style="margin-top:1rem;display:flex;gap:8px;">
+                <button id="edit-notes-btn" style="background:#1f6feb;color:#fff;border:none;padding:.5rem 1.2rem;border-radius:8px;cursor:pointer;font-size:.95rem;">Editar notas</button>
+                <button id="save-notes-btn" style="display:none;background:#059669;color:#fff;border:none;padding:.5rem 1.2rem;border-radius:8px;cursor:pointer;font-size:.95rem;">Guardar</button>
+                <button id="cancel-notes-btn" style="display:none;background:#e5e7eb;color:#333;border:none;padding:.5rem 1.2rem;border-radius:8px;cursor:pointer;font-size:.95rem;">Cancelar</button>
+            </div>
         </div>
     </div>
 </div>
@@ -450,18 +459,108 @@ document.addEventListener('DOMContentLoaded', function() {
     var modal = document.getElementById('treatment-modal');
     var closeBtn = document.getElementById('close-modal');
     var rows = document.querySelectorAll('.treatment-row');
+    var notesView = document.getElementById('modal-notes-view');
+    var notesEdit = document.getElementById('modal-notes-edit');
+    var editBtn = document.getElementById('edit-notes-btn');
+    var saveBtn = document.getElementById('save-notes-btn');
+    var cancelBtn = document.getElementById('cancel-notes-btn');
+    var editInfo = document.getElementById('modal-edit-info');
+    var currentTreatmentId = null;
+    var currentNotes = '';
+
     rows.forEach(function(row) {
         row.addEventListener('click', function() {
             document.getElementById('modal-created-at').textContent = row.getAttribute('data-created_at');
             document.getElementById('modal-type').textContent = row.getAttribute('data-type');
             document.getElementById('modal-status').textContent = row.getAttribute('data-status');
             document.getElementById('modal-nurse').textContent = row.getAttribute('data-nurse');
-            document.getElementById('modal-notes').textContent = row.getAttribute('data-notes');
+            notesView.textContent = row.getAttribute('data-notes');
+            notesEdit.value = row.getAttribute('data-notes');
+            editInfo.textContent = row.getAttribute('data-editinfo') || '';
+            currentNotes = row.getAttribute('data-notes') || '';
+            currentTreatmentId = row.getAttribute('data-id');
+
+            notesView.style.display = '';
+            notesEdit.style.display = 'none';
+            editBtn.style.display = '';
+            saveBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+
             modal.style.display = 'flex';
             modal.style.alignItems = 'center';
             modal.style.justifyContent = 'center';
         });
     });
+
+    editBtn.addEventListener('click', function() {
+        notesView.style.display = 'none';
+        notesEdit.style.display = '';
+        editBtn.style.display = 'none';
+        saveBtn.style.display = '';
+        cancelBtn.style.display = '';
+        notesEdit.focus();
+    });
+
+    cancelBtn.addEventListener('click', function() {
+        notesEdit.value = currentNotes;
+        notesView.style.display = '';
+        notesEdit.style.display = 'none';
+        editBtn.style.display = '';
+        saveBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+    });
+
+    saveBtn.addEventListener('click', function() {
+        if (!currentTreatmentId) {
+            return;
+        }
+
+        saveBtn.disabled = true;
+        fetch('<?= $baseUrl ?>?route=admin_treatment_update_notes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+            body: 'treatment_id=' + encodeURIComponent(currentTreatmentId) + '&notes=' + encodeURIComponent(notesEdit.value)
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('HTTP ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            if (!data.success) {
+                throw new Error(data.error || 'erro_desconhecido');
+            }
+
+            var selector = '.treatment-row[data-id="' + String(currentTreatmentId).replace(/"/g, '\\"') + '"]';
+            var activeRow = document.querySelector(selector);
+
+            currentNotes = data.notes;
+            notesView.textContent = data.notes;
+            editInfo.textContent = data.editinfo || '';
+            notesView.style.display = '';
+            notesEdit.style.display = 'none';
+            editBtn.style.display = '';
+            saveBtn.style.display = 'none';
+            cancelBtn.style.display = 'none';
+
+            if (activeRow) {
+                activeRow.setAttribute('data-notes', data.notes);
+                activeRow.setAttribute('data-editinfo', data.editinfo || '');
+                var notesCell = activeRow.children[4];
+                if (notesCell) {
+                    notesCell.textContent = data.notes.length > 100 ? data.notes.slice(0, 99) + '…' : data.notes;
+                }
+            }
+        })
+        .catch(function(error) {
+            alert('Erro ao guardar notas: ' + error.message);
+        })
+        .finally(function() {
+            saveBtn.disabled = false;
+        });
+    });
+
     closeBtn.addEventListener('click', function() {
         modal.style.display = 'none';
     });

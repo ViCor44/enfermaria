@@ -118,6 +118,7 @@ class Treatment
             tt.name AS treatment_type_name,
             u.full_name AS nurse_name,
             u2.full_name AS concluded_by_name,
+            u3.full_name AS notes_edited_by_name,
 
             -- dados retirados da tabela incidents (garantidos)
             i.occurred_at AS incident_occurred_at,
@@ -135,6 +136,7 @@ class Treatment
         LEFT JOIN locations l ON l.id = i.location_id
         LEFT JOIN patients p ON p.incident_id = i.id
         LEFT JOIN users u2 ON u2.id = tr.concluded_by
+        LEFT JOIN users u3 ON u3.id = tr.notes_edited_by
         WHERE 1 = 1
     ";
 
