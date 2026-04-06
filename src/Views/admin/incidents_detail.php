@@ -403,7 +403,13 @@ foreach ($treatments as $t) {
                 </thead>
                 <tbody>
                 <?php foreach ($treatments as $tr): ?>
-                    <tr>
+                    <tr class="treatment-row" style="cursor:pointer"
+                        data-created_at="<?= htmlspecialchars($tr['created_at']) ?>"
+                        data-type="<?= htmlspecialchars($tr['treatment_type_name']) ?>"
+                        data-status="<?= $tr['status'] === 'em_curso' ? 'Em curso' : 'Concluído' ?>"
+                        data-nurse="<?= htmlspecialchars($tr['nurse_name'] ?? '') ?>"
+                        data-notes="<?= htmlspecialchars($tr['notes'] ?? '') ?>"
+                    >
                         <td><?= htmlspecialchars($tr['created_at']) ?></td>
                         <td><?= htmlspecialchars($tr['treatment_type_name']) ?></td>
                         <td>
@@ -422,6 +428,48 @@ foreach ($treatments as $t) {
         <?php endif; ?>
 
         <?php if (!empty($incident['hospital_refusal_pdf'])): ?>
+            <!-- Modal para detalhes do tratamento -->
+            <div id="treatment-modal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;">
+                <div style="background:#fff;padding:2rem 2.5rem;border-radius:12px;max-width:420px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.18);position:relative;">
+                    <button id="close-modal" style="position:absolute;top:12px;right:16px;background:none;border:none;font-size:1.5rem;cursor:pointer;color:#888;">&times;</button>
+                    <h3 style="margin-top:0;font-size:1.15rem;color:#1f6feb;">Detalhes do Tratamento</h3>
+                    <div style="margin-bottom:1rem;">
+                        <strong>Data registo:</strong> <span id="modal-created-at"></span><br>
+                        <strong>Tipo de tratamento:</strong> <span id="modal-type"></span><br>
+                        <strong>Estado:</strong> <span id="modal-status"></span><br>
+                        <strong>Enfermeiro:</strong> <span id="modal-nurse"></span><br>
+                    </div>
+                    <div>
+                        <strong>Notas:</strong>
+                        <div id="modal-notes" style="margin-top:.5rem;white-space:pre-line;background:#f8f9fb;padding:.7rem 1rem;border-radius:8px;min-height:40px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var modal = document.getElementById('treatment-modal');
+                var closeBtn = document.getElementById('close-modal');
+                var rows = document.querySelectorAll('.treatment-row');
+                rows.forEach(function(row) {
+                    row.addEventListener('click', function() {
+                        document.getElementById('modal-created-at').textContent = row.getAttribute('data-created_at');
+                        document.getElementById('modal-type').textContent = row.getAttribute('data-type');
+                        document.getElementById('modal-status').textContent = row.getAttribute('data-status');
+                        document.getElementById('modal-nurse').textContent = row.getAttribute('data-nurse');
+                        document.getElementById('modal-notes').textContent = row.getAttribute('data-notes');
+                        modal.style.display = 'flex';
+                    });
+                });
+                closeBtn.addEventListener('click', function() {
+                    modal.style.display = 'none';
+                });
+                // Fechar modal ao clicar fora
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) modal.style.display = 'none';
+                });
+            });
+            </script>
             <a target="_blank"
             href="/enfermaria/public/pdfs/<?= $incident['hospital_refusal_pdf'] ?>"
             class="btn-warning">
