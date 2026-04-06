@@ -344,6 +344,7 @@ a:hover {
     <?php endif; ?>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var modal = document.getElementById('treatment-modal');
@@ -488,36 +489,113 @@ document.addEventListener('DOMContentLoaded', function() {
     var concludeForms = document.querySelectorAll('.js-conclude-form');
     concludeForms.forEach(function(form) {
         form.addEventListener('submit', function(event) {
-            var shouldConclude = confirm('Concluir este tratamento? Esta ação será registada.');
-            if (!shouldConclude) {
-                event.preventDefault();
+            if (form.dataset.swalConfirmed === '1') {
+                form.dataset.swalConfirmed = '0';
                 return;
             }
+
+            event.preventDefault();
 
             var notesInput = form.querySelector('.js-conclusion-notes');
             if (notesInput) {
                 notesInput.value = '';
             }
 
-            var wantsConclusionNotes = confirm('Deseja adicionar notas de conclusão?');
-            if (!wantsConclusionNotes) {
+            if (typeof Swal === 'undefined') {
+                var shouldConclude = confirm('Concluir este tratamento? Esta ação será registada.');
+                if (!shouldConclude) {
+                    return;
+                }
+
+                var wantsConclusionNotes = confirm('Deseja adicionar notas de conclusão?');
+                if (wantsConclusionNotes) {
+                    var noteText = prompt('Introduza as notas de conclusão:');
+                    if (noteText === null) {
+                        return;
+                    }
+
+                    var sanitized = noteText.trim();
+                    if (sanitized !== '' && notesInput) {
+                        notesInput.value = sanitized;
+                    }
+                }
+
+                form.dataset.swalConfirmed = '1';
+                form.submit();
                 return;
             }
 
-            var noteText = prompt('Introduza as notas de conclusão:');
-            if (noteText === null) {
-                event.preventDefault();
-                return;
-            }
+            Swal.fire({
+                title: 'Concluir tratamento?',
+                text: 'Esta ação será registada.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, concluir',
+                cancelButtonText: 'Cancelar',
+                reverseButtons: true
+            }).then(function(confirmResult) {
+                if (!confirmResult.isConfirmed) {
+                    return;
+                }
 
-            var sanitized = noteText.trim();
-            if (sanitized === '') {
-                return;
-            }
+                return Swal.fire({
+                    title: 'Adicionar nota de conclusão?',
+                    text: 'Pode concluir sem nota.',
+                    icon: 'info',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'Adicionar nota',
+                    denyButtonText: 'Concluir sem nota',
+                    cancelButtonText: 'Cancelar',
+                    reverseButtons: true
+                });
+            }).then(function(choiceResult) {
+                if (!choiceResult || choiceResult.isDismissed) {
+                    return;
+                }
 
-            if (notesInput) {
-                notesInput.value = sanitized;
-            }
+                if (choiceResult.isDenied) {
+                    form.dataset.swalConfirmed = '1';
+                    form.submit();
+                    return;
+                }
+
+                return Swal.fire({
+                    title: 'Notas de conclusão',
+                    input: 'textarea',
+                    inputLabel: 'Introduza as notas',
+                    inputPlaceholder: 'Escreva aqui...',
+                    inputAttributes: {
+                        'aria-label': 'Notas de conclusão'
+                    },
+                    showCancelButton: true,
+                    confirmButtonText: 'Guardar e concluir',
+                    cancelButtonText: 'Cancelar',
+                    reverseButtons: true,
+                    inputValidator: function(value) {
+                        if (!value || !value.trim()) {
+                            return 'Escreva uma nota ou escolha "Concluir sem nota".';
+                        }
+                        return null;
+                    }
+                });
+            }).then(function(noteResult) {
+                if (!noteResult || noteResult.isDismissed) {
+                    return;
+                }
+
+                var noteValue = '';
+                if (typeof noteResult.value === 'string') {
+                    noteValue = noteResult.value.trim();
+                }
+
+                if (noteValue !== '' && notesInput) {
+                    notesInput.value = noteValue;
+                }
+
+                form.dataset.swalConfirmed = '1';
+                form.submit();
+            });
         });
     });
 });
