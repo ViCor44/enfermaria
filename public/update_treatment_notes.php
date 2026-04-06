@@ -21,24 +21,26 @@ if ($treatmentId <= 0 || $notes === '') {
     exit;
 }
 
-require_once __DIR__ . '/../src/Core/Database.php';
-$db = Database::getInstance();
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
+
+$db = \App\Core\Database::getConnection();
 
 // Atualizar notas, user e data/hora
-$sql = "UPDATE treatments SET notes = ?, notes_edited_by = ?, notes_edited_at = NOW() WHERE id = ?";
-$stmt = $db->prepare($sql);
+$stmt = $db->prepare("UPDATE treatments SET notes = ?, notes_edited_by = ?, notes_edited_at = NOW() WHERE id = ?");
 $stmt->execute([$notes, $userId, $treatmentId]);
 
 // Buscar nome do utilizador
-$sqlUser = "SELECT name FROM users WHERE id = ?";
-$stmtUser = $db->prepare($sqlUser);
+$stmtUser = $db->prepare("SELECT full_name FROM users WHERE id = ?");
 $stmtUser->execute([$userId]);
 $userName = $stmtUser->fetchColumn() ?: 'Utilizador';
 
-$editInfo = 'Editado por ' . htmlspecialchars($userName) . ' em ' . date('Y-m-d H:i');
+$editInfo = 'Editado por ' . htmlspecialchars($userName) . ' em ' . date('d/m/Y H:i');
 
 echo json_encode([
-    'success' => true,
+    'success'  => true,
     'editinfo' => $editInfo,
-    'notes' => $notes
+    'notes'    => $notes
 ]);
