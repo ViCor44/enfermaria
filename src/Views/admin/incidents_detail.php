@@ -427,15 +427,6 @@ foreach ($treatments as $t) {
             </table>
         <?php endif; ?>
 
-        <?php if (!empty($incident['hospital_refusal_pdf'])): ?>
-            <?php if (!empty($incident['hospital_refusal_pdf'])): ?>
-                <a target="_blank"
-                href="/enfermaria/public/pdfs/<?= $incident['hospital_refusal_pdf'] ?>"
-                class="btn-warning">
-                Termo de Recusa
-                </a>
-            <?php endif; ?>
-
 <!-- Modal para detalhes do tratamento (sempre presente) -->
 <div id="treatment-modal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;">
     <div style="background:#fff;padding:2rem 2.5rem;border-radius:12px;max-width:420px;width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.18);position:relative;">
