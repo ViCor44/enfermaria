@@ -521,12 +521,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     saveBtn.addEventListener('click', function() {
         saveBtn.disabled = true;
-        fetch('/enfermaria/public/update_treatment_notes.php', {
+        fetch('<?= $baseUrl ?>?route=update_treatment_notes', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: 'treatment_id=' + encodeURIComponent(currentTreatmentId) + '&notes=' + encodeURIComponent(notesEdit.value)
         })
-        .then(function(response) { return response.json(); })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('HTTP status ' + response.status);
+            }
+            return response.json();
+        })
         .then(function(data) {
             if (data.success) {
                 notesView.textContent = data.notes;
@@ -541,8 +546,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Erro ao guardar notas: ' + (data.error || 'Erro desconhecido'));
             }
         })
-        .catch(function() {
-            alert('Erro de comunicação com o servidor.');
+        .catch(function(e) {
+            alert('Erro de comunicação com o servidor: ' + e);
+            console.error(e);
         })
         .finally(function() {
             saveBtn.disabled = false;
