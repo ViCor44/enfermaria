@@ -1,4 +1,5 @@
 <?php
+ob_start();
 session_start();
 header('Content-Type: application/json');
 
@@ -44,3 +45,4 @@ echo json_encode([
     'editinfo' => $editInfo,
     'notes'    => $notes
 ]);
+ob_end_flush();
