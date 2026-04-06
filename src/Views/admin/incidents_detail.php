@@ -467,6 +467,8 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('modal-nurse').textContent = row.getAttribute('data-nurse');
             document.getElementById('modal-notes').textContent = row.getAttribute('data-notes');
             modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
         });
     });
     closeBtn.addEventListener('click', function() {
