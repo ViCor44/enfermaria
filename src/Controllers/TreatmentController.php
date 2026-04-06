@@ -220,6 +220,11 @@ public function store(): void
 
         // CSRF protection recomendada (ver se tens token)
         $treatmentId = isset($_POST['treatment_id']) ? (int)$_POST['treatment_id'] : 0;
+        $conclusionNotes = trim((string)($_POST['conclusion_notes'] ?? ''));
+        if ($conclusionNotes === '') {
+            $conclusionNotes = null;
+        }
+
         if ($treatmentId <= 0) {
             $_SESSION['error'] = 'Tratamento inválido.';
             header('Location: ' . $this->baseUrl . '?route=admin_treatments');
@@ -227,7 +232,7 @@ public function store(): void
         }
 
         try {
-            $ok = Treatment::conclude($treatmentId, $userId);
+            $ok = Treatment::conclude($treatmentId, $userId, $conclusionNotes);
             if ($ok) {
                 $_SESSION['success'] = 'Tratamento concluído com sucesso.';
             } else {

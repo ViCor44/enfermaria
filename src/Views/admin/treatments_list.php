@@ -291,11 +291,11 @@ a:hover {
                         <td><?= htmlspecialchars(mb_strimwidth($tr['notes'] ?? '', 0, 120, '…')) ?></td>
                         <td>
                             <?php if ($role === 'Enfermeiro' && $tr['status'] === 'em_curso'): ?>
-                                <form method="post" action="<?= $baseUrl ?>?route=treatment_conclude" style="display:inline;">
+                                <form method="post" action="<?= $baseUrl ?>?route=treatment_conclude" style="display:inline;" class="js-conclude-form">
                                     <input type="hidden" name="treatment_id" value="<?= (int)$tr['id'] ?>">
+                                    <input type="hidden" name="conclusion_notes" value="" class="js-conclusion-notes">
                                     <!-- CSRF token se tiveres -->
-                                    <button type="submit" class="btn btn-primary btn-sm"
-                                        onclick="return confirm('Concluir este tratamento? Esta ação será registada.');">
+                                    <button type="submit" class="btn btn-primary btn-sm">
                                         Concluir
                                     </button>
                                 </form>
@@ -484,6 +484,42 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    var concludeForms = document.querySelectorAll('.js-conclude-form');
+    concludeForms.forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            var shouldConclude = confirm('Concluir este tratamento? Esta ação será registada.');
+            if (!shouldConclude) {
+                event.preventDefault();
+                return;
+            }
+
+            var notesInput = form.querySelector('.js-conclusion-notes');
+            if (notesInput) {
+                notesInput.value = '';
+            }
+
+            var wantsConclusionNotes = confirm('Deseja adicionar notas de conclusão?');
+            if (!wantsConclusionNotes) {
+                return;
+            }
+
+            var noteText = prompt('Introduza as notas de conclusão:');
+            if (noteText === null) {
+                event.preventDefault();
+                return;
+            }
+
+            var sanitized = noteText.trim();
+            if (sanitized === '') {
+                return;
+            }
+
+            if (notesInput) {
+                notesInput.value = sanitized;
+            }
+        });
+    });
 });
 </script>
 </body>

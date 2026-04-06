@@ -193,12 +193,12 @@ class Treatment
         return (int)$pdo->lastInsertId();
     }
 
-    public static function conclude(int $treatmentId, int $concludedByUserId): bool
+    public static function conclude(int $treatmentId, int $concludedByUserId, ?string $conclusionNotes = null): bool
     {
         $pdo = Database::getConnection();
 
         // validar existência e estado atual
-        $stmt = $pdo->prepare("SELECT status, user_id FROM treatments WHERE id = :id FOR UPDATE");
+        $stmt = $pdo->prepare("SELECT status, user_id, notes FROM treatments WHERE id = :id FOR UPDATE");
         $stmt->execute([':id' => $treatmentId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) {
@@ -212,13 +212,22 @@ class Treatment
         // transacção para actualizar e auditar
         $pdo->beginTransaction();
         try {
+            $updatedNotes = $row['notes'];
+            if ($conclusionNotes !== null && $conclusionNotes !== '') {
+                $prefix = "[Nota de conclusão " . date('d/m/Y H:i') . "]";
+                $newBlock = $prefix . "\n" . $conclusionNotes;
+                $current = trim((string)$row['notes']);
+                $updatedNotes = $current === '' ? $newBlock : ($current . "\n\n" . $newBlock);
+            }
+
             $upd = $pdo->prepare("
                 UPDATE treatments
-                SET status = 'concluido', concluded_by = :concluded_by, concluded_at = NOW()
+                SET status = 'concluido', concluded_by = :concluded_by, concluded_at = NOW(), notes = :notes
                 WHERE id = :id
             ");
             $upd->execute([
                 ':concluded_by' => $concludedByUserId,
+                ':notes' => $updatedNotes,
                 ':id' => $treatmentId
             ]);
 
@@ -229,7 +238,8 @@ class Treatment
             ");
             $meta = json_encode([
                 'previous_status' => $row['status'],
-                'original_owner_user_id' => (int)$row['user_id']
+                'original_owner_user_id' => (int)$row['user_id'],
+                'has_conclusion_note' => $conclusionNotes !== null && $conclusionNotes !== ''
             ]);
             $audit->execute([
                 ':user_id' => $concludedByUserId,
