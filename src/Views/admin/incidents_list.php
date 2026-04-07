@@ -262,6 +262,7 @@ tr.hospital-refused:hover {
                     <th>Utente</th>
                     <th>Idade</th>
                     <th>Género</th>
+                    <th>Colaborador</th>
                     <th>Enfermeiro</th>
                     <?php if ($role === 'Enfermeiro'): ?>
                     <th>Ações</th>
@@ -303,6 +304,7 @@ tr.hospital-refused:hover {
                         </td>
                     <td><?= $i['patient_age'] !== null ? (int)$i['patient_age'] : '—' ?></td>
                     <td><?= $i['patient_gender'] ?: '—' ?></td>
+                    <td><?= !empty($i['patient_is_employee']) ? 'Sim' : 'Não' ?></td>
                     <td><?= htmlspecialchars($i['nurse_name'] ?? '') ?></td>
                     <?php if ($role === 'Enfermeiro'): ?>
                     <td><a href="<?= $baseUrl ?>?route=treatments_new&incident_id=<?= (int)$i['id'] ?>">Adicionar tratamento</a></td>
