@@ -92,6 +92,24 @@ button {
     border-top: 1px solid #ddd;
     margin: 2rem 0;
 }
+
+.form-check {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.6rem;
+}
+
+.form-check input[type="checkbox"] {
+    width: auto;
+    margin-top: 0;
+    padding: 0;
+}
+
+.form-check label {
+    display: inline;
+    margin-top: 0;
+}
 </style>
 </head>
 
