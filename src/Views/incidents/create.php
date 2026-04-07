@@ -320,6 +320,13 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
             </div>
         </div>
 
+        <div class="form-check" style="margin: 0 24px 16px 0;">
+            <input type="checkbox" id="patient_is_employee" name="patient_is_employee" value="1">
+            <label for="patient_is_employee" style="cursor:pointer;">
+                O utente é colaborador
+            </label>
+        </div>
+
         <div style="margin-right: 24px;">
         <label>Descrição / Observações</label>
         <textarea style="margin-right: 24px;" name="description" placeholder="Descrição sucinta da Ocorrência, sem dados de identificação desnecessários."></textarea>

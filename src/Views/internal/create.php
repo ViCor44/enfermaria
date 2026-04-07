@@ -171,6 +171,11 @@ button {
                     </div>
                 </div>
 
+    <div class="form-check" style="margin-bottom: 16px;">
+        <input type="checkbox" id="is_employee" name="is_employee" value="1">
+        <label for="is_employee" style="cursor:pointer;">O paciente é colaborador</label>
+    </div>
+
     <!-- TRATAMENTO -->
     <div class="row">
         <div style="margin-right: 24px;">

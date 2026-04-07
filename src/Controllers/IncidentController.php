@@ -45,6 +45,7 @@ public function store(): void
     $patientName   = trim($_POST['patient_name'] ?? '');
     $patientAge    = ($_POST['patient_age'] ?? '') !== '' ? (int)$_POST['patient_age'] : null;
     $patientGender = trim($_POST['patient_gender'] ?? '') ?: null;
+    $patientIsEmployee = isset($_POST['patient_is_employee']) ? 1 : 0;
 
     $description = trim($_POST['description'] ?? '') ?: null;
 
@@ -174,7 +175,8 @@ public function store(): void
             $incidentId,
             $patientName,
             $patientAge,
-            $patientGender
+            $patientGender,
+            $patientIsEmployee
         );
 
         $updateIncident = $pdo->prepare("

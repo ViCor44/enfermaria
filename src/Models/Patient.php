@@ -77,23 +77,25 @@ class Patient
         int $incidentId,
         string $name,
         ?int $age,
-        ?string $gender
+        ?string $gender,
+        int $isEmployee = 0
     ): int {
 
         $pdo = Database::getConnection();
 
         $stmt = $pdo->prepare("
             INSERT INTO patients
-            (incident_id, full_name, age, gender)
+            (incident_id, full_name, age, gender, is_employee)
             VALUES
-            (:incident_id, :name, :age, :gender)
+            (:incident_id, :name, :age, :gender, :is_employee)
         ");
 
         $stmt->execute([
             ':incident_id' => $incidentId,
             ':name' => $name,
             ':age' => $age,
-            ':gender' => $gender
+            ':gender' => $gender,
+            ':is_employee' => $isEmployee ? 1 : 0,
         ]);
 
         return (int)$pdo->lastInsertId();

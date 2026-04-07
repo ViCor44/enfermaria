@@ -47,6 +47,7 @@ class InternalRecordController
 
         $patientAge    = ($_POST['patient_age'] ?? '') !== '' ? (int)$_POST['patient_age'] : null;
         $patientGender = trim($_POST['patient_gender'] ?? '') ?: null;
+        $isEmployee    = isset($_POST['is_employee']) ? 1 : 0;
 
         $treatment = Text::toPortugueseTitleCase((string)($_POST['treatment'] ?? ''));
         $description = trim($_POST['description'] ?? '');
@@ -88,15 +89,16 @@ class InternalRecordController
         try {
             $stmt = $pdo->prepare("
                 INSERT INTO internal_records
-                (user_id, first_name, last_name, occurred_at, location_id, patient_age, patient_gender, treatment, description)
+                (user_id, first_name, last_name, is_employee, occurred_at, location_id, patient_age, patient_gender, treatment, description)
                 VALUES
-                (:user_id, :first_name, :last_name, :occurred_at, :location_id, :age, :gender, :treatment, :descr)
+                (:user_id, :first_name, :last_name, :is_employee, :occurred_at, :location_id, :age, :gender, :treatment, :descr)
             ");
 
             $stmt->execute([
                 ':user_id'     => $userId,
                 ':first_name'  => $firstName,
                 ':last_name'   => $lastName,
+                ':is_employee' => $isEmployee,
                 ':occurred_at' => $occurredAt,
                 ':location_id' => $locationId,
                 ':age'         => $patientAge,

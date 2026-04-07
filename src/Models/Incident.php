@@ -104,6 +104,7 @@ class Incident
                 p.full_name AS patient_name,
                 p.age AS patient_age,
                 p.gender AS patient_gender,
+                p.is_employee AS patient_is_employee,
                 p.refused_hospital
 
             FROM incidents i
@@ -163,6 +164,7 @@ class Incident
                 p.full_name AS patient_name,
                 p.age AS patient_age,
                 p.gender AS patient_gender,
+                p.is_employee AS patient_is_employee,
                 p.nationality AS patient_nationality,
                 p.address AS patient_address,
                 p.postal_code AS patient_postal_code,

@@ -331,6 +331,12 @@ foreach ($treatments as $t) {
                         </div>
                     </div>
                     <div>
+                        <div class="label">Colaborador</div>
+                        <div class="value">
+                            <?= !empty($incident['patient_is_employee']) ? 'Sim' : 'Não' ?>
+                        </div>
+                    </div>
+                    <div>
                         <div class="label">Nacionalidade</div>
                         <div class="value">
                             <?= $incident['patient_nationality'] ? htmlspecialchars($incident['patient_nationality']) : '—' ?>
