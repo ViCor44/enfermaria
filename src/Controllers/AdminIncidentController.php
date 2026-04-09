@@ -4,6 +4,7 @@ namespace App\Controllers;
 use App\Core\Auth;
 use App\Models\Incident;
 use App\Models\Location;
+use App\Models\Patient;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 use App\Models\HospitalFollowup;
@@ -11,6 +12,23 @@ use App\Models\HospitalFollowup;
 class AdminIncidentController
 {
     private string $baseUrl = '/enfermaria/public/index.php';
+
+    private function canCurrentUserSeePatient(array $incident): bool
+    {
+        $role = $_SESSION['role'] ?? '';
+        $currentUserId = (int)($_SESSION['user_id'] ?? 0);
+
+        if ($role === 'Administrador') {
+            return true;
+        }
+
+        if ($role === 'Enfermeiro') {
+            $responsavelId = (int)($incident['user_id'] ?? 0);
+            return $responsavelId === $currentUserId;
+        }
+
+        return false;
+    }
 
     public function index(): void
     {
@@ -55,30 +73,140 @@ class AdminIncidentController
         }
 
         $treatments = Incident::getTreatmentsForIncident($id);
-        $role          = $_SESSION['role'] ?? '';
-        $currentUserId = (int)($_SESSION['user_id'] ?? 0);
+        $role = $_SESSION['role'] ?? '';
         $canSeePatient = false;
         $canGenerateHospitalDocs = in_array($role, ['Administrador', 'Enfermeiro'], true);
 
         $followups = HospitalFollowup::findByIncident($id);
 
-                // 1. Administrador vê sempre
-        if ($role === 'Administrador') {
-            $canSeePatient = true;
+        $canSeePatient = $this->canCurrentUserSeePatient($incident);
+
+        require __DIR__ . '/../Views/admin/incidents_detail.php';
+    }
+
+    public function editPatient(): void
+    {
+        Auth::requireRole(['Administrador', 'Enfermeiro']);
+
+        $incidentId = isset($_GET['incident_id']) ? (int)$_GET['incident_id'] : 0;
+        if ($incidentId <= 0) {
+            $_SESSION['error'] = 'Ocorrência inválida.';
+            header('Location: ' . $this->baseUrl . '?route=admin_incidents');
+            exit;
         }
-        // 2. Enfermeiro responsável pelo acidente
-        elseif ($role === 'Enfermeiro') {
 
-            // confirmar como está o nome do campo que guarda o ID do enfermeiro no acidente
-            // assumo 'nurse_user_id' mas modifica se necessário
-            $responsavelId = (int)($incident['user_id'] ?? 0);
+        $incident = Incident::findWithDetailsForAdmin($incidentId);
+        if (!$incident) {
+            $_SESSION['error'] = 'Ocorrência não encontrada.';
+            header('Location: ' . $this->baseUrl . '?route=admin_incidents');
+            exit;
+        }
 
-            if ($responsavelId === $currentUserId) {
-                $canSeePatient = true;
+        if (!$this->canCurrentUserSeePatient($incident)) {
+            $_SESSION['error'] = 'Sem permissão para editar este utente.';
+            header('Location: ' . $this->baseUrl . '?route=admin_incident_detail&id=' . $incidentId);
+            exit;
+        }
+
+        $patientId = (int)($incident['patient_id'] ?? 0);
+        if ($patientId <= 0) {
+            $_SESSION['error'] = 'Não existe utente associado a esta ocorrência.';
+            header('Location: ' . $this->baseUrl . '?route=admin_incident_detail&id=' . $incidentId);
+            exit;
+        }
+
+        $patient = Patient::findById($patientId);
+        if (!$patient) {
+            $_SESSION['error'] = 'Utente não encontrado.';
+            header('Location: ' . $this->baseUrl . '?route=admin_incident_detail&id=' . $incidentId);
+            exit;
+        }
+
+        require __DIR__ . '/../Views/admin/patient_edit.php';
+    }
+
+    public function updatePatient(): void
+    {
+        Auth::requireRole(['Administrador', 'Enfermeiro']);
+
+        $incidentId = isset($_POST['incident_id']) ? (int)$_POST['incident_id'] : 0;
+        $patientId = isset($_POST['patient_id']) ? (int)$_POST['patient_id'] : 0;
+
+        if ($incidentId <= 0 || $patientId <= 0) {
+            $_SESSION['error'] = 'Dados inválidos para atualização do utente.';
+            header('Location: ' . $this->baseUrl . '?route=admin_incidents');
+            exit;
+        }
+
+        $incident = Incident::findWithDetailsForAdmin($incidentId);
+        if (!$incident || (int)($incident['patient_id'] ?? 0) !== $patientId) {
+            $_SESSION['error'] = 'Relação ocorrência/utente inválida.';
+            header('Location: ' . $this->baseUrl . '?route=admin_incidents');
+            exit;
+        }
+
+        if (!$this->canCurrentUserSeePatient($incident)) {
+            $_SESSION['error'] = 'Sem permissão para editar este utente.';
+            header('Location: ' . $this->baseUrl . '?route=admin_incident_detail&id=' . $incidentId);
+            exit;
+        }
+
+        $fullName = trim((string)($_POST['full_name'] ?? ''));
+        if ($fullName === '') {
+            $_SESSION['error'] = 'O nome do utente é obrigatório.';
+            header('Location: ' . $this->baseUrl . '?route=incident_patient_edit&incident_id=' . $incidentId);
+            exit;
+        }
+
+        $ageRaw = trim((string)($_POST['age'] ?? ''));
+        $age = null;
+        if ($ageRaw !== '') {
+            $age = (int)$ageRaw;
+            if ($age < 0 || $age > 120) {
+                $_SESSION['error'] = 'A idade deve estar entre 0 e 120.';
+                header('Location: ' . $this->baseUrl . '?route=incident_patient_edit&incident_id=' . $incidentId);
+                exit;
             }
         }
 
-        require __DIR__ . '/../Views/admin/incidents_detail.php';
+        $gender = trim((string)($_POST['gender'] ?? ''));
+        $allowedGenders = ['', 'M', 'F', 'Outro'];
+        if (!in_array($gender, $allowedGenders, true)) {
+            $gender = '';
+        }
+
+        $dob = trim((string)($_POST['dob'] ?? ''));
+        if ($dob !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dob)) {
+            $_SESSION['error'] = 'Data de nascimento inválida.';
+            header('Location: ' . $this->baseUrl . '?route=incident_patient_edit&incident_id=' . $incidentId);
+            exit;
+        }
+
+        try {
+            Patient::updateFromIncidentForm($patientId, [
+                'full_name' => $fullName,
+                'age' => $age,
+                'gender' => $gender !== '' ? $gender : null,
+                'is_employee' => isset($_POST['is_employee']) ? 1 : 0,
+                'nationality' => trim((string)($_POST['nationality'] ?? '')) ?: null,
+                'address' => trim((string)($_POST['address'] ?? '')) ?: null,
+                'postal_code' => trim((string)($_POST['postal_code'] ?? '')) ?: null,
+                'city' => trim((string)($_POST['city'] ?? '')) ?: null,
+                'phone' => trim((string)($_POST['phone'] ?? '')) ?: null,
+                'dob' => $dob !== '' ? $dob : null,
+                'id_type' => trim((string)($_POST['id_type'] ?? '')) ?: null,
+                'id_number' => trim((string)($_POST['id_number'] ?? '')) ?: null,
+                'refused_hospital' => isset($_POST['refused_hospital']) ? 1 : 0,
+            ]);
+
+            $_SESSION['success'] = 'Dados do utente atualizados com sucesso.';
+            header('Location: ' . $this->baseUrl . '?route=admin_incident_detail&id=' . $incidentId);
+            exit;
+        } catch (\Throwable $e) {
+            $_SESSION['error'] = 'Erro ao atualizar dados do utente.';
+            header('Location: ' . $this->baseUrl . '?route=incident_patient_edit&incident_id=' . $incidentId);
+            exit;
+        }
     }
 
     public function printPdf(): void

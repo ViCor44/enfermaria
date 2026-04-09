@@ -308,7 +308,14 @@ foreach ($treatments as $t) {
 
     <!-- Dados do paciente -->
     <div class="card">
-        <h2>Dados do utente</h2>
+        <div class="section-header">
+            <h2>Dados do utente</h2>
+            <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
+                <a class="btn-primary" href="<?= $baseUrl ?>?route=incident_patient_edit&incident_id=<?= (int)$incident['id'] ?>">
+                    Editar dados do utente
+                </a>
+            <?php endif; ?>
+        </div>
 
             <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
                 <!-- Admin ou enfermeiro que tratou vêem os dados -->

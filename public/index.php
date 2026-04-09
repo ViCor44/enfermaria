@@ -116,6 +116,14 @@ if ($route === 'login') {
     $controller = new App\Controllers\AdminIncidentController();
     $controller->show();
 
+} elseif ($route === 'incident_patient_edit') {
+    $controller = new App\Controllers\AdminIncidentController();
+    $controller->editPatient();
+
+} elseif ($route === 'incident_patient_update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new App\Controllers\AdminIncidentController();
+    $controller->updatePatient();
+
 } elseif ($route === 'treatments_change_status' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new App\Controllers\TreatmentController();
     $controller->changeStatus();

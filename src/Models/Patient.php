@@ -144,4 +144,45 @@ class Patient
         ':refused' => $refusedHospital
     ]);
 }
+
+    public static function updateFromIncidentForm(int $patientId, array $data): void
+    {
+        $pdo = Database::getConnection();
+
+        $stmt = $pdo->prepare("
+            UPDATE patients
+            SET
+                full_name = :full_name,
+                age = :age,
+                gender = :gender,
+                is_employee = :is_employee,
+                nationality = :nationality,
+                address = :address,
+                postal_code = :postal_code,
+                city = :city,
+                phone = :phone,
+                dob = :dob,
+                id_type = :id_type,
+                id_number = :id_number,
+                refused_hospital = :refused_hospital
+            WHERE id = :id
+        ");
+
+        $stmt->execute([
+            ':id' => $patientId,
+            ':full_name' => $data['full_name'],
+            ':age' => $data['age'],
+            ':gender' => $data['gender'],
+            ':is_employee' => $data['is_employee'],
+            ':nationality' => $data['nationality'],
+            ':address' => $data['address'],
+            ':postal_code' => $data['postal_code'],
+            ':city' => $data['city'],
+            ':phone' => $data['phone'],
+            ':dob' => $data['dob'],
+            ':id_type' => $data['id_type'],
+            ':id_number' => $data['id_number'],
+            ':refused_hospital' => $data['refused_hospital'],
+        ]);
+    }
 }
