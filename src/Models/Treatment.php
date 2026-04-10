@@ -122,6 +122,7 @@ class Treatment
 
             -- dados retirados da tabela incidents (garantidos)
             i.occurred_at AS incident_occurred_at,
+            (SELECT COUNT(*) FROM incidents i2 WHERE i2.id <= i.id) AS incident_episode_number,
             it.name AS incident_type_name,
             l.name AS location_name,
             i.patient_age AS patient_age,

@@ -5,7 +5,7 @@ $baseUrl = '/enfermaria/public/index.php';
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<title>Editar utente - Episódio #<?= (int)$incident['id'] ?></title>
+<title>Editar utente - Episódio #<?= (int)($incident['episode_number'] ?? $incident['id']) ?></title>
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 <style>
     body {
@@ -107,7 +107,7 @@ $baseUrl = '/enfermaria/public/index.php';
 
     <div class="card">
         <h1>Editar dados do utente</h1>
-        <p class="subtitle">Episódio #<?= (int)$incident['id'] ?> - Atualize os dados que não estavam completos no registo inicial.</p>
+        <p class="subtitle">Episódio #<?= (int)($incident['episode_number'] ?? $incident['id']) ?> - Atualize os dados que não estavam completos no registo inicial.</p>
 
         <form method="post" action="<?= $baseUrl ?>?route=incident_patient_update">
             <input type="hidden" name="incident_id" value="<?= (int)$incident['id'] ?>">

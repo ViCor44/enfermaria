@@ -165,7 +165,7 @@ tr:last-child td { border-bottom:none; }
                 <?php foreach ($incidents as $i): ?>
                 <tr>
                     <td><a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$i['id'] ?>">
-                            <?= (int)$i['id'] ?>
+                            <?= (int)($i['episode_number'] ?? $i['id']) ?>
                         </a>
                     </td>
                     <td><a ><?= htmlspecialchars($i['occurred_at']) ?></a></td>

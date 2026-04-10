@@ -18,7 +18,7 @@ foreach ($treatments as $t) {
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<title>Ocorrência #<?= (int)$incident['id'] ?> · Detalhes</title>
+<title>Ocorrência #<?= (int)($incident['episode_number'] ?? $incident['id']) ?> · Detalhes</title>
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 
 <style>
@@ -269,7 +269,7 @@ foreach ($treatments as $t) {
         </a>
     </div>
 
-    <h1>Episódio #<?= (int)$incident['id'] ?></h1>
+    <h1>Episódio #<?= (int)($incident['episode_number'] ?? $incident['id']) ?></h1>
 
     <hr class="separator-hr"> <!-- Adicionado para consistência com outras páginas -->
 

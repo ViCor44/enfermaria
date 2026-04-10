@@ -44,6 +44,7 @@ class Incident
 
         $stmt = $pdo->prepare("
             SELECT i.*,
+                (SELECT COUNT(*) FROM incidents i2 WHERE i2.id <= i.id) AS episode_number,
                 t.name AS incident_type_name,
                 l.name AS location_name
             FROM incidents i
@@ -63,6 +64,7 @@ class Incident
 
         $stmt = $pdo->prepare("
             SELECT i.*,
+                (SELECT COUNT(*) FROM incidents i2 WHERE i2.id <= i.id) AS episode_number,
                 t.name AS incident_type_name,
                 l.name AS location_name
             FROM incidents i
@@ -97,6 +99,7 @@ class Incident
         $sql = "
             SELECT
                 i.*,
+                (SELECT COUNT(*) FROM incidents i2 WHERE i2.id <= i.id) AS episode_number,
                 it.name AS incident_type_name,
                 l.name  AS location_name,
                 u.full_name AS nurse_name,
@@ -137,9 +140,10 @@ class Incident
             $params[':userId'] = $userId;
         }
 
-        if ($episode !== null) {
-            $sql .= " AND i.id = :episode";
-            $params[':episode'] = $episode;
+        if ($episode !== null && $episode > 0) {
+            $sql .= " AND (i.id = :episodeId OR (SELECT COUNT(*) FROM incidents i2 WHERE i2.id <= i.id) = :episodeNumber)";
+            $params[':episodeId'] = $episode;
+            $params[':episodeNumber'] = $episode;
         }
 
         $sql .= " ORDER BY i.occurred_at DESC";
@@ -157,6 +161,7 @@ class Incident
         $sql = "            
             SELECT
                 i.*,
+                (SELECT COUNT(*) FROM incidents i2 WHERE i2.id <= i.id) AS episode_number,
                 it.name AS incident_type_name,
                 l.name AS location_name,
                 u.full_name AS nurse_name,

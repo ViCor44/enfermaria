@@ -112,7 +112,7 @@ h1 span {
     <div class="footer">
         <div class="footer-line"></div>
         Documento gerado automaticamente pelo Sistema SAE —
-        Episódio nº <?= (int)$incident_data['id'] ?> —
+        Episódio nº <?= (int)($incident_data['episode_number'] ?? $incident_data['id']) ?> —
         <?= date('d/m/Y H:i') ?>
     </div>
 

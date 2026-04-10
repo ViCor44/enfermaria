@@ -262,6 +262,7 @@ a:hover {
                         data-id="<?= (int)$tr['id'] ?>"
                         data-created_at="<?= htmlspecialchars($tr['created_at']) ?>"
                         data-incident_id="<?= (int)$tr['incident_id'] ?>"
+                        data-incident_episode="<?= (int)($tr['incident_episode_number'] ?? $tr['incident_id']) ?>"
                         data-incident_type="<?= htmlspecialchars($tr['incident_type_name'] ?? '') ?>"
                         data-location="<?= htmlspecialchars($tr['location_name'] ?? '') ?>"
                         data-type="<?= htmlspecialchars($tr['treatment_type_name'] ?? '') ?>"
@@ -273,7 +274,7 @@ a:hover {
                         <td><?= htmlspecialchars($tr['created_at'] ?? $tr['created_at']) ?></td>
                         <td>
                             <a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$tr['incident_id'] ?>">
-                                <strong>#<?= (int)$tr['incident_id'] ?></strong> —
+                                <strong>#<?= (int)($tr['incident_episode_number'] ?? $tr['incident_id']) ?></strong> —
                                 <?= htmlspecialchars($tr['incident_type_name']) ?>
                             </a>
 
@@ -414,7 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function fillModalFromRow(row) {
         document.getElementById('modal-created-at').textContent = row.getAttribute('data-created_at') || '';
-        document.getElementById('modal-incident').textContent = '#' + (row.getAttribute('data-incident_id') || '') + ' - ' + (row.getAttribute('data-incident_type') || '');
+        document.getElementById('modal-incident').textContent = '#' + (row.getAttribute('data-incident_episode') || row.getAttribute('data-incident_id') || '') + ' - ' + (row.getAttribute('data-incident_type') || '');
         document.getElementById('modal-location').textContent = row.getAttribute('data-location') || '';
         document.getElementById('modal-type').textContent = row.getAttribute('data-type') || '';
         document.getElementById('modal-status').textContent = row.getAttribute('data-status') || '';

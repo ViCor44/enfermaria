@@ -147,7 +147,7 @@ button:hover {
 
 <div class="row">
     <div style="margin-right: 24px;">
-        <strong>Ocorrência #<?= (int)$incident['id'] ?></strong>
+        <strong>Ocorrência #<?= (int)($incident['episode_number'] ?? $incident['id']) ?></strong>
     </div>
 </div>
 

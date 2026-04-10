@@ -2,7 +2,7 @@
 // src/Views/admin/incident_pdf.php
 // Variáveis esperadas: $incident (array), $treatments (array), $canSeePatient (bool)
 $printDate = (new DateTime())->format('Y-m-d H:i:s');
-$episode = (int)($incident['id'] ?? 0);
+$episode = (int)($incident['episode_number'] ?? ($incident['id'] ?? 0));
 
 $hasHospitalTreatment = false;
 
@@ -18,7 +18,7 @@ foreach ($treatments as $t) {
 <html lang="pt">
 <head>
 <meta charset="utf-8">
-<title>Ocorrência #<?= (int)$incident['id'] ?> · Resumo</title>
+<title>Ocorrência #<?= $episode ?> · Resumo</title>
 <style>
 /* --- Reset simples --- */
 * { box-sizing: border-box; }
@@ -66,7 +66,7 @@ body { font-family: Arial, Helvetica, sans-serif; color:#222; margin:20px; backg
 <div class="header">
   <div class="title">SAE - Sistema de Apoio à Enfermaria</div>  
   <div><h3>Relatório de Ocorrência</h3></div>
-  <div class="subtitle">Episódio <?= (int)$incident['id'] ?></div>
+  <div class="subtitle">Episódio <?= $episode ?></div>
 </div>
 
 <div class="card">

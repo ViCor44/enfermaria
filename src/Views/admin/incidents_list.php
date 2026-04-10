@@ -216,8 +216,8 @@ tr.hospital-refused:hover {
             <input type="hidden" name="route" value="admin_incidents">
 
             <div>
-                <label>Episódio (ID)</label>
-                <input type="text" name="episode" value="<?= htmlspecialchars($_GET['episode'] ?? '') ?>" placeholder="Pesquisar por episódio">
+                <label>Episódio</label>
+                <input type="text" name="episode" value="<?= htmlspecialchars($_GET['episode'] ?? '') ?>" placeholder="N.º sequencial ou ID técnico">
             </div>
 
             <div>
@@ -286,7 +286,7 @@ tr.hospital-refused:hover {
                     ?>
                     <tr class="<?= $rowClass ?>">                    
                     <td><a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$i['id'] ?>">
-                            <?= (int)$i['id'] ?>
+                            <?= (int)($i['episode_number'] ?? $i['id']) ?>
                         </a>
                     </td>
                     <td><?= htmlspecialchars($i['occurred_at']) ?></td>                        
