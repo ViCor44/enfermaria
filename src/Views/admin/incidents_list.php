@@ -146,6 +146,13 @@ tr:last-child td {
 tr:hover {
     background: #f8faff;
 }
+.incident-row {
+    cursor: pointer;
+}
+.incident-row:focus-visible {
+    outline: 2px solid #1f6feb;
+    outline-offset: -2px;
+}
 a {
     color: #1f6feb;
     text-decoration: none;
@@ -284,7 +291,7 @@ tr.hospital-refused:hover {
 
                     }
                     ?>
-                    <tr class="<?= $rowClass ?>">                    
+                    <tr class="incident-row <?= $rowClass ?>" data-href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$i['id'] ?>" tabindex="0">                    
                     <td><a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$i['id'] ?>">
                             <?= (int)($i['episode_number'] ?? $i['id']) ?>
                         </a>
@@ -315,6 +322,37 @@ tr.hospital-refused:hover {
         </table>
     <?php endif; ?>
 </main>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var rows = document.querySelectorAll('.incident-row[data-href]');
+
+    rows.forEach(function (row) {
+        row.addEventListener('click', function (event) {
+            if (event.target.closest('a, button, input, select, textarea, label, form')) {
+                return;
+            }
+
+            var href = row.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
+
+        row.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+            }
+
+            event.preventDefault();
+            var href = row.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
+    });
+});
+</script>
 
 </body>
 </html>

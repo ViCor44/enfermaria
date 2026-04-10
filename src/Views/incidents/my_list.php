@@ -25,6 +25,8 @@ table { width:100%; border-collapse:collapse; background:#fff; border-radius:12p
 th,td { padding:.7rem; border-bottom:1px solid #eee; font-size:.9rem; }
 th { background:#f0f4ff; text-align:left; }
 tr:last-child td { border-bottom:none; }
+.incident-row { cursor:pointer; }
+.incident-row:focus-visible { outline:2px solid #1f6feb; outline-offset:-2px; }
 .badge { padding:.2rem .5rem; border-radius:999px; font-size:.75rem; background:#e5f2ff; color:#1f6feb; }
 .flash-success { background:#e6ffed; color:#047857; padding:.7rem; border-radius:6px; margin-bottom:1rem; }
 /* ---- Barra de filtros ---- */
@@ -163,12 +165,12 @@ tr:last-child td { border-bottom:none; }
             </thead>
             <tbody>
                 <?php foreach ($incidents as $i): ?>
-                <tr>
+                <tr class="incident-row" data-href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$i['id'] ?>" tabindex="0">
                     <td><a href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$i['id'] ?>">
                             <?= (int)($i['episode_number'] ?? $i['id']) ?>
                         </a>
                     </td>
-                    <td><a ><?= htmlspecialchars($i['occurred_at']) ?></a></td>
+                    <td><?= htmlspecialchars($i['occurred_at']) ?></td>
                     <td><span class="badge"><?= htmlspecialchars($i['incident_type_name']) ?></span></td>
                     <td><?= htmlspecialchars($i['location_name']) ?></td>
                     <td><?= $i['patient_age'] !== null ? (int)$i['patient_age'] : '—' ?></td>
@@ -181,5 +183,35 @@ tr:last-child td { border-bottom:none; }
         </table>
     <?php endif; ?>
 </main>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var rows = document.querySelectorAll('.incident-row[data-href]');
+
+    rows.forEach(function (row) {
+        row.addEventListener('click', function (event) {
+            if (event.target.closest('a, button, input, select, textarea, label, form')) {
+                return;
+            }
+
+            var href = row.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
+
+        row.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+            }
+
+            event.preventDefault();
+            var href = row.getAttribute('data-href');
+            if (href) {
+                window.location.href = href;
+            }
+        });
+    });
+});
+</script>
 </body>
 </html>
