@@ -58,12 +58,16 @@ unset($table);
         }
 
         .brand-logo-cell {
-            width: 78px;
+            width: 92px;
         }
 
         .brand-logo {
-            width: 58px;
-            height: 58px;
+            width: 70px;
+            height: 70px;
+        }
+
+        .brand-copy {
+            text-align: right;
         }
 
         .brand-kicker {
@@ -226,7 +230,7 @@ unset($table);
                         <img class="brand-logo" src="<?= htmlspecialchars($logoDataUri) ?>" alt="SAE">
                     <?php endif; ?>
                 </td>
-                <td>
+                <td class="brand-copy">
                     <div class="brand-kicker">Relatório institucional</div>
                     <div class="title">Relatório de Estatísticas</div>
                     <p class="subtitle">Sistema de Apoio à Enfermaria</p>
