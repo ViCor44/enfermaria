@@ -235,6 +235,39 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         margin-bottom: 22px;
     }
 
+    .comparison-banner {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        align-items: center;
+        margin-bottom: 16px;
+        padding: 16px 18px;
+        background: var(--stats-surface-alt);
+        border: 1px solid #dbe7f6;
+        border-radius: 14px;
+    }
+
+    .comparison-banner strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.8rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--stats-muted);
+    }
+
+    .comparison-banner span {
+        color: var(--stats-text);
+        font-weight: 700;
+    }
+
+    .comparison-note {
+        color: var(--stats-muted);
+        font-size: 0.9rem;
+        text-align: right;
+    }
+
     .summary-card {
         position: relative;
         overflow: hidden;
@@ -439,6 +472,7 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
 
         .stats-hero,
         .stats-filter-head,
+        .comparison-banner,
         .section-header,
         .summary-meta,
         .chart-header {
@@ -530,12 +564,20 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         </form>
     </section>
 
+    <section class="comparison-banner">
+        <div>
+            <strong>Base de comparação</strong>
+            <span><?= htmlspecialchars($comparison['previousLabel']) ?></span>
+        </div>
+        <div class="comparison-note">As variações dos cards seguintes são sempre calculadas face a este intervalo.</div>
+    </section>
+
     <section class="stats-summary-grid">
         <article class="summary-card">
             <div class="summary-label">Ocorrências</div>
             <div class="summary-value"><?= (int)$summary['incidents'] ?></div>
             <div class="summary-meta">
-                <span><?= htmlspecialchars($comparison['previousLabel']) ?></span>
+                <span>Variação vs base</span>
                 <span class="trend-pill <?= htmlspecialchars($comparisonIncidentsClass) ?>"><?= htmlspecialchars($comparisonIncidents) ?></span>
             </div>
         </article>
@@ -544,7 +586,7 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
             <div class="summary-label">Tratamentos</div>
             <div class="summary-value"><?= (int)$summary['treatments'] ?></div>
             <div class="summary-meta">
-                <span>Comparação temporal</span>
+                <span>Variação vs base</span>
                 <span class="trend-pill <?= htmlspecialchars($comparisonTreatmentsClass) ?>"><?= htmlspecialchars($comparisonTreatments) ?></span>
             </div>
         </article>
@@ -586,8 +628,8 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
                 <span><?= htmlspecialchars($insights['topTreatmentType']) ?></span>
             </div>
             <div class="insight-chip">
-                <strong>Base de comparação</strong>
-                <span><?= htmlspecialchars($insights['comparisonLabel']) ?></span>
+                <strong>Tipo dominante</strong>
+                <span><?= htmlspecialchars($insights['topIncidentType']) ?></span>
             </div>
         </div>
     </section>
