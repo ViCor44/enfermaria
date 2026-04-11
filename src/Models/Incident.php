@@ -15,6 +15,23 @@ class Incident
         return $stmt !== false && $stmt->fetch(PDO::FETCH_ASSOC) !== false;
     }
 
+    private static function buildDateFilterSql(array $filters, array &$params, string $alias = 'i'): string
+    {
+        $clauses = [];
+
+        if (!empty($filters['fromDate'])) {
+            $clauses[] = "DATE({$alias}.occurred_at) >= :stats_from_date";
+            $params[':stats_from_date'] = $filters['fromDate'];
+        }
+
+        if (!empty($filters['toDate'])) {
+            $clauses[] = "DATE({$alias}.occurred_at) <= :stats_to_date";
+            $params[':stats_to_date'] = $filters['toDate'];
+        }
+
+        return $clauses === [] ? '' : ' WHERE ' . implode(' AND ', $clauses);
+    }
+
     public static function getTypes(): array
     {
         $pdo = Database::getConnection();
@@ -281,7 +298,7 @@ class Incident
         return (int)$pdo->lastInsertId();
     }
 
-    public static function statsByAge(): array
+    public static function statsByAge(array $filters = []): array
     {
         $db = Database::getConnection();
         $hasPatientAge = self::columnExists('patients', 'age');
@@ -291,6 +308,8 @@ class Incident
         $joinPatients = $hasPatientAge
             ? 'LEFT JOIN patients p ON p.id = i.patient_id'
             : '';
+        $params = [];
+        $filterSql = self::buildDateFilterSql($filters, $params, 'i');
 
         $sql = "
             SELECT 
@@ -307,15 +326,19 @@ class Incident
                 SELECT {$ageExpression} AS idade
                 FROM incidents i
                 {$joinPatients}
+                {$filterSql}
             ) dados
             WHERE idade IS NOT NULL
             GROUP BY faixa
-            ORDER BY faixa;
+            ORDER BY FIELD(faixa, '0-4', '5-12', '13-17', '18-30', '31-50', '50+');
         ";
-        return $db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public static function statsByGender(): array
+    public static function statsByGender(array $filters = []): array
     {
         $db = Database::getConnection();
         $hasPatientGender = self::columnExists('patients', 'gender');
@@ -325,6 +348,8 @@ class Incident
         $joinPatients = $hasPatientGender
             ? 'LEFT JOIN patients p ON p.id = i.patient_id'
             : '';
+        $params = [];
+        $filterSql = self::buildDateFilterSql($filters, $params, 'i');
 
         $sql = "
             SELECT genero, COUNT(*) AS total
@@ -332,32 +357,110 @@ class Incident
                 SELECT {$genderExpression} AS genero
                 FROM incidents i
                 {$joinPatients}
+                {$filterSql}
             ) dados
-            WHERE genero IS NOT NULL
             GROUP BY genero
             ORDER BY FIELD(genero, 'M', 'F', 'Outro'), genero
         ";
-        return $db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return array_values(array_filter(
+            $stmt->fetchAll(\PDO::FETCH_ASSOC),
+            static fn(array $row): bool => (int)($row['total'] ?? 0) > 0
+        ));
     }
 
-    public static function statsByLocation(): array
+    public static function statsByLocation(array $filters = []): array
     {
         $db = Database::getConnection();
+        $params = [];
+        $filterSql = self::buildDateFilterSql($filters, $params, 'i');
         $sql = "SELECT l.name AS local, COUNT(*) AS total
                 FROM incidents i
                 JOIN locations l ON i.location_id = l.id
-                GROUP BY l.name";
-        return $db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+                {$filterSql}
+            GROUP BY l.name
+            ORDER BY total DESC, l.name ASC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public static function statsByIncidentType(): array
+    public static function statsByIncidentType(array $filters = []): array
     {
         $db = Database::getConnection();
+        $params = [];
+        $filterSql = self::buildDateFilterSql($filters, $params, 'i');
         $sql = "SELECT t.name AS tipo, COUNT(*) AS total
                 FROM incidents i
                 JOIN incident_types t ON i.incident_type_id = t.id
-                GROUP BY t.name";
-        return $db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+                {$filterSql}
+            GROUP BY t.name
+            ORDER BY total DESC, t.name ASC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public static function countByFilters(array $filters = []): int
+    {
+        $db = Database::getConnection();
+        $params = [];
+        $filterSql = self::buildDateFilterSql($filters, $params, 'i');
+
+        $stmt = $db->prepare("SELECT COUNT(*) FROM incidents i{$filterSql}");
+        $stmt->execute($params);
+
+        return (int)$stmt->fetchColumn();
+    }
+
+    public static function topLocation(array $filters = []): ?array
+    {
+        $db = Database::getConnection();
+        $params = [];
+        $filterSql = self::buildDateFilterSql($filters, $params, 'i');
+
+        $sql = "
+            SELECT l.name AS local, COUNT(*) AS total
+            FROM incidents i
+            JOIN locations l ON i.location_id = l.id
+            {$filterSql}
+            GROUP BY l.name
+            ORDER BY total DESC, l.name ASC
+            LIMIT 1
+        ";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ?: null;
+    }
+
+    public static function topIncidentType(array $filters = []): ?array
+    {
+        $db = Database::getConnection();
+        $params = [];
+        $filterSql = self::buildDateFilterSql($filters, $params, 'i');
+
+        $sql = "
+            SELECT t.name AS tipo, COUNT(*) AS total
+            FROM incidents i
+            JOIN incident_types t ON i.incident_type_id = t.id
+            {$filterSql}
+            GROUP BY t.name
+            ORDER BY total DESC, t.name ASC
+            LIMIT 1
+        ";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ?: null;
     }
 
     public static function find(int $id): ?array

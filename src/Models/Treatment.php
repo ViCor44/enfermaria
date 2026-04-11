@@ -7,6 +7,23 @@ use PDO;
 
 class Treatment
 {
+    private static function buildDateFilterSql(array $filters, array &$params, string $alias = 'i'): string
+    {
+        $clauses = [];
+
+        if (!empty($filters['fromDate'])) {
+            $clauses[] = "DATE({$alias}.occurred_at) >= :stats_from_date";
+            $params[':stats_from_date'] = $filters['fromDate'];
+        }
+
+        if (!empty($filters['toDate'])) {
+            $clauses[] = "DATE({$alias}.occurred_at) <= :stats_to_date";
+            $params[':stats_to_date'] = $filters['toDate'];
+        }
+
+        return $clauses === [] ? '' : ' WHERE ' . implode(' AND ', $clauses);
+    }
+
     public static function getTypes(): array
     {
         $pdo = Database::getConnection();
@@ -286,14 +303,58 @@ class Treatment
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public static function statsByType(): array
+    public static function statsByType(array $filters = []): array
     {
         $db = Database::getConnection();
+        $params = [];
+        $filterSql = self::buildDateFilterSql($filters, $params, 'i');
         $sql = "SELECT tt.name AS tipo, COUNT(*) AS total
                 FROM treatments tr
+                JOIN incidents i ON i.id = tr.incident_id
                 JOIN treatment_types tt ON tr.treatment_type_id = tt.id
-                GROUP BY tt.name";
-        return $db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+                {$filterSql}
+            GROUP BY tt.name
+            ORDER BY total DESC, tt.name ASC";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public static function countByFilters(array $filters = []): int
+    {
+        $db = Database::getConnection();
+        $params = [];
+        $filterSql = self::buildDateFilterSql($filters, $params, 'i');
+
+        $stmt = $db->prepare("SELECT COUNT(*) FROM treatments tr JOIN incidents i ON i.id = tr.incident_id{$filterSql}");
+        $stmt->execute($params);
+
+        return (int)$stmt->fetchColumn();
+    }
+
+    public static function topType(array $filters = []): ?array
+    {
+        $db = Database::getConnection();
+        $params = [];
+        $filterSql = self::buildDateFilterSql($filters, $params, 'i');
+
+        $sql = "
+            SELECT tt.name AS tipo, COUNT(*) AS total
+            FROM treatments tr
+            JOIN incidents i ON i.id = tr.incident_id
+            JOIN treatment_types tt ON tr.treatment_type_id = tt.id
+            {$filterSql}
+            GROUP BY tt.name
+            ORDER BY total DESC, tt.name ASC
+            LIMIT 1
+        ";
+
+        $stmt = $db->prepare($sql);
+        $stmt->execute($params);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $row ?: null;
     }
 
 }
