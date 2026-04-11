@@ -7,6 +7,14 @@ use PDO;
 
 class Incident
 {
+    private static function columnExists(string $table, string $column): bool
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->query("SHOW COLUMNS FROM {$table} LIKE " . $pdo->quote($column));
+
+        return $stmt !== false && $stmt->fetch(PDO::FETCH_ASSOC) !== false;
+    }
+
     public static function getTypes(): array
     {
         $pdo = Database::getConnection();
@@ -276,18 +284,31 @@ class Incident
     public static function statsByAge(): array
     {
         $db = Database::getConnection();
+        $hasPatientAge = self::columnExists('patients', 'age');
+        $ageExpression = $hasPatientAge
+            ? 'COALESCE(p.age, i.patient_age)'
+            : 'i.patient_age';
+        $joinPatients = $hasPatientAge
+            ? 'LEFT JOIN patients p ON p.id = i.patient_id'
+            : '';
+
         $sql = "
             SELECT 
                 CASE 
-                    WHEN patient_age < 5 THEN '0-4'
-                    WHEN patient_age BETWEEN 5 AND 12 THEN '5-12'
-                    WHEN patient_age BETWEEN 13 AND 17 THEN '13-17'
-                    WHEN patient_age BETWEEN 18 AND 30 THEN '18-30'
-                    WHEN patient_age BETWEEN 31 AND 50 THEN '31-50'
+                    WHEN idade < 5 THEN '0-4'
+                    WHEN idade BETWEEN 5 AND 12 THEN '5-12'
+                    WHEN idade BETWEEN 13 AND 17 THEN '13-17'
+                    WHEN idade BETWEEN 18 AND 30 THEN '18-30'
+                    WHEN idade BETWEEN 31 AND 50 THEN '31-50'
                     ELSE '50+' 
                 END AS faixa,
                 COUNT(*) AS total
-            FROM incidents
+            FROM (
+                SELECT {$ageExpression} AS idade
+                FROM incidents i
+                {$joinPatients}
+            ) dados
+            WHERE idade IS NOT NULL
             GROUP BY faixa
             ORDER BY faixa;
         ";
@@ -297,9 +318,25 @@ class Incident
     public static function statsByGender(): array
     {
         $db = Database::getConnection();
-        $sql = "SELECT patient_gender AS genero, COUNT(*) AS total 
-                FROM incidents 
-                GROUP BY patient_gender";
+        $hasPatientGender = self::columnExists('patients', 'gender');
+        $genderExpression = $hasPatientGender
+            ? "COALESCE(NULLIF(TRIM(p.gender), ''), NULLIF(TRIM(i.patient_gender), ''))"
+            : "NULLIF(TRIM(i.patient_gender), '')";
+        $joinPatients = $hasPatientGender
+            ? 'LEFT JOIN patients p ON p.id = i.patient_id'
+            : '';
+
+        $sql = "
+            SELECT genero, COUNT(*) AS total
+            FROM (
+                SELECT {$genderExpression} AS genero
+                FROM incidents i
+                {$joinPatients}
+            ) dados
+            WHERE genero IS NOT NULL
+            GROUP BY genero
+            ORDER BY FIELD(genero, 'M', 'F', 'Outro'), genero
+        ";
         return $db->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
     }
 
