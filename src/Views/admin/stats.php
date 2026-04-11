@@ -236,12 +236,12 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
     }
 
     .comparison-banner {
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 1fr;
         gap: 16px;
-        align-items: center;
+        align-items: stretch;
         margin-bottom: 16px;
-        padding: 16px 18px;
+        padding: 18px;
         background: var(--stats-surface-alt);
         border: 1px solid #dbe7f6;
         border-radius: 14px;
@@ -265,7 +265,45 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
     .comparison-note {
         color: var(--stats-muted);
         font-size: 0.9rem;
-        text-align: right;
+        line-height: 1.5;
+    }
+
+    .comparison-banner-intro {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .comparison-period-box {
+        padding: 14px 16px;
+        background: #ffffff;
+        border: 1px solid #dbe7f6;
+        border-radius: 12px;
+    }
+
+    .comparison-period-box.current {
+        border-color: #c9dcfb;
+        background: #f7fbff;
+    }
+
+    .comparison-period-box.base {
+        background: #fbfcfe;
+    }
+
+    .comparison-period-box .label {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--stats-muted);
+    }
+
+    .comparison-period-box .value {
+        color: var(--stats-text);
+        font-weight: 800;
+        line-height: 1.4;
     }
 
     .summary-card {
@@ -491,8 +529,39 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         }
 
         .stats-summary-grid,
-        .insights-grid,
+            .comparison-period-box {
+                padding: 14px 16px;
+                background: #ffffff;
+                border: 1px solid #dbe7f6;
+                border-radius: 12px;
+            }
+    
+            .comparison-period-box.current {
+                border-color: #c9dcfb;
+                background: #f7fbff;
+            }
+    
+            .comparison-period-box.base {
+                background: #fbfcfe;
+            }
+    
+            .comparison-period-box .label {
+                display: block;
+                margin-bottom: 6px;
+                font-size: 0.76rem;
+                font-weight: 800;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+                color: var(--stats-muted);
+            }
+    
+            .comparison-period-box .value {
+                color: var(--stats-text);
+                font-weight: 800;
+                line-height: 1.4;
+            }
         .stats-grid,
+        .comparison-banner,
         .stats-filter-form {
             grid-template-columns: 1fr;
         }
@@ -565,11 +634,18 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
     </section>
 
     <section class="comparison-banner">
-        <div>
+            <div class="comparison-banner-intro">
             <strong>Base de comparação</strong>
-            <span><?= htmlspecialchars($comparison['previousLabel']) ?></span>
+                <span class="comparison-note">As variações dos cards seguintes são calculadas comparando o período analisado com a base apresentada ao lado.</span>
         </div>
-        <div class="comparison-note">As variações dos cards seguintes são sempre calculadas face a este intervalo.</div>
+            <div class="comparison-period-box current">
+                <span class="label">Período analisado</span>
+                <span class="value"><?= htmlspecialchars($filters['rangeLabel']) ?></span>
+            </div>
+            <div class="comparison-period-box base">
+                <span class="label">Base de comparação</span>
+                <span class="value"><?= htmlspecialchars($comparison['previousLabel']) ?></span>
+            </div>
     </section>
 
     <section class="stats-summary-grid">
