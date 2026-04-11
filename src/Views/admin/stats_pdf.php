@@ -46,6 +46,7 @@ unset($table);
             border-bottom: 3px solid #1f6feb;
             padding-bottom: 16px;
             margin-bottom: 18px;
+            page-break-inside: avoid;
         }
 
         .brand-table {
@@ -100,6 +101,7 @@ unset($table);
             background: #f3f7fd;
             border: 1px solid #d6e4f5;
             border-radius: 10px;
+            page-break-inside: avoid;
         }
 
         .meta-row {
@@ -107,14 +109,27 @@ unset($table);
         }
 
         .section {
-            margin-top: 18px;
+            margin-top: 16px;
         }
 
         .section-title {
             font-size: 15px;
             color: #183153;
             font-weight: 700;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
+            page-break-after: avoid;
+        }
+
+        .section-compact,
+        .section-compact .summary-grid,
+        .section-compact .summary-table,
+        .section-compact .insights,
+        .section-compact .empty {
+            page-break-inside: avoid;
+        }
+
+        .table-block {
+            page-break-inside: auto;
         }
 
         .summary-grid {
@@ -160,6 +175,10 @@ unset($table);
             border-collapse: collapse;
         }
 
+        .summary-table {
+            page-break-inside: avoid;
+        }
+
         .summary-table td,
         .data-table th,
         .data-table td {
@@ -178,6 +197,20 @@ unset($table);
             background: #eef4ff;
             text-align: left;
             font-weight: 700;
+        }
+
+        .data-table thead {
+            display: table-header-group;
+        }
+
+        .data-table tfoot {
+            display: table-row-group;
+        }
+
+        .data-table tr,
+        .summary-table tr,
+        .summary-grid tr {
+            page-break-inside: avoid;
         }
 
         .bar-cell {
@@ -245,7 +278,7 @@ unset($table);
         </div>
     </div>
 
-    <div class="section">
+    <div class="section section-compact">
         <div class="section-title">Resumo</div>
         <table class="summary-grid">
             <tr>
@@ -263,7 +296,7 @@ unset($table);
         </table>
     </div>
 
-    <div class="section">
+    <div class="section section-compact">
         <div class="section-title">Resumo detalhado</div>
         <table class="summary-table">
             <?php foreach ($summaryRows as $row): ?>
@@ -275,7 +308,7 @@ unset($table);
         </table>
     </div>
 
-    <div class="section">
+    <div class="section section-compact">
         <div class="section-title">Leitura rápida</div>
         <div class="insights">
             <div class="insight-item"><strong>Género predominante:</strong> <?= htmlspecialchars($insights['dominantGender'] ?? 'Sem dados suficientes') ?></div>
@@ -287,9 +320,10 @@ unset($table);
     </div>
 
     <?php foreach ($tables as $table): ?>
-        <div class="section">
+        <div class="section table-section">
             <div class="section-title"><?= htmlspecialchars($table['title']) ?></div>
 
+            <div class="table-block">
             <?php if ($table['rows'] === []): ?>
                 <div class="empty">Sem dados para o período selecionado.</div>
             <?php else: ?>
@@ -320,6 +354,7 @@ unset($table);
                     </tbody>
                 </table>
             <?php endif; ?>
+            </div>
         </div>
     <?php endforeach; ?>
 
