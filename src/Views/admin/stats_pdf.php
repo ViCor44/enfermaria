@@ -113,6 +113,60 @@ unset($table);
             margin-top: 16px;
         }
 
+        .comparison-banner {
+            margin-top: 14px;
+            page-break-inside: avoid;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 10px 0;
+            margin-left: -10px;
+            margin-right: -10px;
+        }
+
+        .comparison-table td {
+            vertical-align: top;
+        }
+
+        .comparison-intro,
+        .comparison-box {
+            border: 1px solid #d9e4f2;
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+
+        .comparison-intro {
+            background: #f7fbff;
+        }
+
+        .comparison-box {
+            background: #fbfcfe;
+        }
+
+        .comparison-kicker {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #62748b;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .comparison-text {
+            color: #62748b;
+            line-height: 1.45;
+        }
+
+        .comparison-value {
+            display: block;
+            color: #183153;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
         .section-title {
             font-size: 15px;
             color: #183153;
@@ -278,6 +332,31 @@ unset($table);
         </div>
     </div>
 
+    <div class="comparison-banner">
+        <table class="comparison-table">
+            <tr>
+                <td style="width: 42%;">
+                    <div class="comparison-intro">
+                        <span class="comparison-kicker">Base de comparação</span>
+                        <div class="comparison-text">As variações apresentadas no resumo abaixo comparam o período analisado com a base de comparação indicada ao lado.</div>
+                    </div>
+                </td>
+                <td style="width: 29%;">
+                    <div class="comparison-box">
+                        <span class="comparison-kicker">Período analisado</span>
+                        <span class="comparison-value"><?= htmlspecialchars($filters['rangeLabel']) ?></span>
+                    </div>
+                </td>
+                <td style="width: 29%;">
+                    <div class="comparison-box">
+                        <span class="comparison-kicker">Base de comparação</span>
+                        <span class="comparison-value"><?= htmlspecialchars($comparison['previousLabel'] ?? 'Sem comparação') ?></span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+
     <div class="section section-compact">
         <div class="section-title">Resumo</div>
         <table class="summary-grid">
@@ -313,7 +392,7 @@ unset($table);
         <div class="insights">
             <div class="insight-item"><strong>Género predominante:</strong> <?= htmlspecialchars($insights['dominantGender'] ?? 'Sem dados suficientes') ?></div>
             <div class="insight-item"><strong>Tratamento dominante:</strong> <?= htmlspecialchars($insights['topTreatmentType'] ?? 'Sem dados') ?></div>
-            <div class="insight-item"><strong>Base de comparação:</strong> <?= htmlspecialchars($insights['comparisonLabel'] ?? 'Sem comparação') ?></div>
+            <div class="insight-item"><strong>Período analisado:</strong> <?= htmlspecialchars($filters['rangeLabel']) ?></div>
             <div class="insight-item"><strong>Variação de ocorrências:</strong> <?= htmlspecialchars($comparison['incidentsDelta']['value'] ?? '—') ?></div>
             <div class="insight-item"><strong>Variação de tratamentos:</strong> <?= htmlspecialchars($comparison['treatmentsDelta']['value'] ?? '—') ?></div>
         </div>
