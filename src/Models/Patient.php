@@ -2,10 +2,16 @@
 namespace App\Models;
 
 use App\Core\Database;
+use App\Helpers\Text;
 use PDO;
 
 class Patient
 {
+    private static function normalizePersonName(string $name): string
+    {
+        return Text::toPortugueseTitleCase($name);
+    }
+
     public static function findById(int $id): ?array
     {
         $pdo = Database::getConnection();
@@ -81,6 +87,8 @@ class Patient
         int $isEmployee = 0
     ): int {
 
+        $name = self::normalizePersonName($name);
+
         $pdo = Database::getConnection();
 
         $stmt = $pdo->prepare("
@@ -147,6 +155,8 @@ class Patient
 
     public static function updateFromIncidentForm(int $patientId, array $data): void
     {
+        $data['full_name'] = self::normalizePersonName((string)($data['full_name'] ?? ''));
+
         $pdo = Database::getConnection();
 
         $stmt = $pdo->prepare("

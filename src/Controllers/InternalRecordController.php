@@ -37,8 +37,8 @@ class InternalRecordController
 
         /* -------------------- INPUT -------------------- */
 
-        $firstName = trim($_POST['first_name'] ?? '');
-        $lastName = trim($_POST['last_name'] ?? '');
+        $firstName = Text::toPortugueseTitleCase((string)($_POST['first_name'] ?? ''));
+        $lastName = Text::toPortugueseTitleCase((string)($_POST['last_name'] ?? ''));
         $date = trim($_POST['date'] ?? '');
         $time = trim($_POST['time'] ?? '');
 
