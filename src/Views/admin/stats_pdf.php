@@ -128,8 +128,12 @@ unset($table);
             page-break-inside: avoid;
         }
 
+        .table-section {
+            page-break-inside: avoid;
+        }
+
         .table-block {
-            page-break-inside: auto;
+            page-break-inside: avoid;
         }
 
         .summary-grid {
@@ -197,14 +201,6 @@ unset($table);
             background: #eef4ff;
             text-align: left;
             font-weight: 700;
-        }
-
-        .data-table thead {
-            display: table-header-group;
-        }
-
-        .data-table tfoot {
-            display: table-row-group;
         }
 
         .data-table tr,
