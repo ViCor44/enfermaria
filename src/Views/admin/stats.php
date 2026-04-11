@@ -55,23 +55,28 @@ $comparisonIncidentsClass = $comparison['incidentsDelta']['direction'] ?? 'neutr
 $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neutral';
 ?>
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
     :root {
-        --stats-bg: linear-gradient(180deg, #eef4ff 0%, #f8fbff 48%, #eef3f8 100%);
-        --stats-surface: rgba(255, 255, 255, 0.92);
-        --stats-border: rgba(32, 90, 170, 0.08);
+        --stats-bg: #f4f7fb;
+        --stats-surface: #ffffff;
+        --stats-surface-alt: #f8fbff;
+        --stats-border: #d8e3f2;
         --stats-text: #183153;
-        --stats-muted: #5f7492;
+        --stats-muted: #62748b;
         --stats-accent: #1f6feb;
-        --stats-accent-soft: rgba(31, 111, 235, 0.12);
-        --stats-shadow: 0 18px 45px rgba(38, 70, 120, 0.12);
-        --stats-radius: 22px;
+        --stats-accent-soft: #e8f1ff;
+        --stats-shadow: 0 10px 26px rgba(17, 37, 68, 0.08);
+        --stats-radius: 18px;
     }
 
     body {
         margin: 0;
         background: var(--stats-bg);
         color: var(--stats-text);
+        font-family: 'Manrope', 'Segoe UI', sans-serif;
     }
 
     .stats-page {
@@ -94,13 +99,15 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
 
     .stats-title {
         margin: 0;
-        font-size: clamp(2rem, 3vw, 2.8rem);
+        font-size: clamp(2rem, 3vw, 2.6rem);
         color: var(--stats-accent);
         letter-spacing: -0.03em;
+        font-weight: 800;
     }
 
     .stats-subtitle {
         margin: 10px 0 0;
+        max-width: 62ch;
         font-size: 1rem;
         line-height: 1.6;
         color: var(--stats-muted);
@@ -134,15 +141,14 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
     }
 
     .stats-button-primary {
-        background: linear-gradient(135deg, #1f6feb, #4185f4);
+        background: #1f6feb;
         color: #fff;
     }
 
     .stats-button-secondary {
-        background: rgba(255, 255, 255, 0.75);
+        background: #ffffff;
         color: var(--stats-accent);
-        border-color: rgba(31, 111, 235, 0.22);
-        backdrop-filter: blur(10px);
+        border-color: #cfe0fb;
     }
 
     .stats-filter-panel,
@@ -153,7 +159,6 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         border: 1px solid var(--stats-border);
         border-radius: var(--stats-radius);
         box-shadow: var(--stats-shadow);
-        backdrop-filter: blur(14px);
     }
 
     .stats-filter-panel {
@@ -172,7 +177,8 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
     .stats-filter-head h2,
     .section-title {
         margin: 0;
-        font-size: 1.15rem;
+        font-size: 1.12rem;
+        font-weight: 800;
         color: var(--stats-text);
     }
 
@@ -206,12 +212,13 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
     .filter-field input {
         width: 100%;
         height: 46px;
-        border-radius: 14px;
+        border-radius: 12px;
         border: 1px solid rgba(24, 49, 83, 0.14);
-        background: rgba(255, 255, 255, 0.95);
+        background: #ffffff;
         padding: 0 14px;
         color: var(--stats-text);
         font-size: 0.95rem;
+        font-family: inherit;
     }
 
     .filter-actions {
@@ -238,13 +245,13 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         content: "";
         position: absolute;
         inset: 0;
-        background: radial-gradient(circle at top right, rgba(31, 111, 235, 0.16), transparent 42%);
+        background: linear-gradient(180deg, rgba(232, 241, 255, 0.85), rgba(255, 255, 255, 0));
         pointer-events: none;
     }
 
     .summary-label {
         position: relative;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 700;
         letter-spacing: 0.04em;
         text-transform: uppercase;
@@ -254,10 +261,11 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
     .summary-value {
         position: relative;
         margin-top: 12px;
-        font-size: clamp(1.9rem, 2.4vw, 2.5rem);
+        font-size: clamp(1.9rem, 2.4vw, 2.45rem);
         font-weight: 800;
         color: var(--stats-text);
         line-height: 1.05;
+        letter-spacing: -0.03em;
     }
 
     .summary-meta {
@@ -284,17 +292,17 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
     }
 
     .trend-pill.up {
-        background: rgba(18, 160, 82, 0.12);
+        background: #e6f7ee;
         color: #0c8c46;
     }
 
     .trend-pill.down {
-        background: rgba(224, 72, 72, 0.12);
+        background: #fdecec;
         color: #bf2f2f;
     }
 
     .trend-pill.neutral {
-        background: rgba(24, 49, 83, 0.08);
+        background: #eef3f9;
         color: #53657e;
     }
 
@@ -311,10 +319,10 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
     }
 
     .insight-chip {
-        border-radius: 18px;
+        border-radius: 14px;
         padding: 14px 16px;
-        background: rgba(31, 111, 235, 0.06);
-        border: 1px solid rgba(31, 111, 235, 0.08);
+        background: var(--stats-surface-alt);
+        border: 1px solid #e0ebf8;
     }
 
     .insight-chip strong {
@@ -350,11 +358,11 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         padding: 22px;
     }
 
-    .chart-card[data-tone="blue"] { border-top: 4px solid rgba(31, 111, 235, 0.55); }
-    .chart-card[data-tone="green"] { border-top: 4px solid rgba(17, 136, 94, 0.55); }
-    .chart-card[data-tone="gold"] { border-top: 4px solid rgba(212, 143, 22, 0.55); }
-    .chart-card[data-tone="rose"] { border-top: 4px solid rgba(207, 87, 93, 0.55); }
-    .chart-card[data-tone="purple"] { border-top: 4px solid rgba(110, 90, 197, 0.55); }
+    .chart-card[data-tone="blue"] { border-top: 4px solid #4b8ef7; }
+    .chart-card[data-tone="green"] { border-top: 4px solid #1f9a68; }
+    .chart-card[data-tone="gold"] { border-top: 4px solid #d79b21; }
+    .chart-card[data-tone="rose"] { border-top: 4px solid #d15f67; }
+    .chart-card[data-tone="purple"] { border-top: 4px solid #7761d8; }
 
     .chart-header {
         display: flex;
@@ -367,6 +375,7 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
     .chart-header h3 {
         margin: 0;
         font-size: 1.08rem;
+        font-weight: 800;
         color: var(--stats-text);
     }
 
@@ -381,7 +390,7 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         min-width: 60px;
         padding: 8px 12px;
         border-radius: 999px;
-        background: rgba(24, 49, 83, 0.06);
+        background: #eff4fb;
         color: var(--stats-text);
         text-align: center;
         font-weight: 800;
@@ -398,9 +407,9 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         align-items: center;
         justify-content: center;
         min-height: 280px;
-        border-radius: 18px;
-        background: linear-gradient(135deg, rgba(31, 111, 235, 0.06), rgba(31, 111, 235, 0.02));
-        border: 1px dashed rgba(31, 111, 235, 0.18);
+        border-radius: 14px;
+        background: #f8fbff;
+        border: 1px dashed #cfe0fb;
         padding: 24px;
         text-align: center;
         color: var(--stats-muted);
