@@ -28,7 +28,7 @@ unset($table);
     <title>Estatísticas</title>
     <style>
         @page {
-            margin: 22mm 16mm;
+            margin: 22mm 16mm 18mm 16mm;
         }
 
         body {
@@ -36,6 +36,7 @@ unset($table);
             font-size: 12px;
             color: #16324f;
             line-height: 1.45;
+            margin: 0;
         }
 
         h1, h2, h3, p {
@@ -243,7 +244,10 @@ unset($table);
         }
 
         .footer {
-            margin-top: 24px;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: -6mm;
             color: #62748b;
             font-size: 10px;
             text-align: right;
