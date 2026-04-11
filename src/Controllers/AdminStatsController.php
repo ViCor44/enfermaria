@@ -111,6 +111,7 @@ class AdminStatsController
         ] = $this->buildStatsPayload($filters);
 
         $generatedAt = (new DateTimeImmutable('now'))->format('d/m/Y H:i');
+        $logoDataUri = $this->buildPublicImageDataUri('assets/img/logo-sae.png');
 
         ob_start();
         require __DIR__ . '/../Views/admin/stats_pdf.php';
@@ -133,6 +134,22 @@ class AdminStatsController
         $filename = 'estatisticas-' . date('Ymd-His') . '.pdf';
         $dompdf->stream($filename, ['Attachment' => false]);
         exit;
+    }
+
+    private function buildPublicImageDataUri(string $relativePath): ?string
+    {
+        $filePath = realpath(__DIR__ . '/../../public/' . str_replace('/', DIRECTORY_SEPARATOR, $relativePath));
+        if ($filePath === false || !is_file($filePath)) {
+            return null;
+        }
+
+        $content = file_get_contents($filePath);
+        if ($content === false) {
+            return null;
+        }
+
+        $mime = mime_content_type($filePath) ?: 'image/png';
+        return 'data:' . $mime . ';base64,' . base64_encode($content);
     }
 
     private function buildStatsPayload(array $filters): array
