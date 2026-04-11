@@ -482,6 +482,7 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         </div>
 
         <div class="stats-actions">
+            <a class="stats-button stats-button-secondary" href="<?= htmlspecialchars($exportPdfUrl) ?>" target="_blank" rel="noopener">Exportar PDF</a>
             <a class="stats-button stats-button-secondary" href="<?= htmlspecialchars($exportUrl) ?>">Exportar CSV</a>
             <a class="stats-button stats-button-primary" href="<?= htmlspecialchars($baseUrl . '?route=admin_stats&period=30d') ?>">Ver últimos 30 dias</a>
         </div>

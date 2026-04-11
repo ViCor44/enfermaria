@@ -15,24 +15,25 @@ class AdminStatsController
 
         $filters = $this->resolveFilters();
 
-        $ageStats = Incident::statsByAge($filters);
-        $genderStats = $this->formatGenderStats(Incident::statsByGender($filters));
-        $locationStats = $this->formatCategoryStats(Incident::statsByLocation($filters), 'local', 'Local não definido');
-        $typeStats = $this->formatCategoryStats(Incident::statsByIncidentType($filters), 'tipo', 'Tipo não definido');
-        $treatmentStats = $this->formatCategoryStats(Treatment::statsByType($filters), 'tipo', 'Tratamento não definido');
+        [
+            'ageStats' => $ageStats,
+            'genderStats' => $genderStats,
+            'locationStats' => $locationStats,
+            'typeStats' => $typeStats,
+            'treatmentStats' => $treatmentStats,
+            'summary' => $summary,
+            'comparison' => $comparison,
+            'insights' => $insights,
+        ] = $this->buildStatsPayload($filters);
 
-        $summary = [
-            'incidents' => Incident::countByFilters($filters),
-            'treatments' => Treatment::countByFilters($filters),
-            'topLocation' => Incident::topLocation($filters),
-            'topIncidentType' => Incident::topIncidentType($filters),
-            'topTreatmentType' => Treatment::topType($filters),
-        ];
-
-        $comparison = $this->buildComparison($filters, $summary);
-        $insights = $this->buildInsights($summary, $genderStats, $comparison);
         $exportUrl = '/enfermaria/public/index.php?' . http_build_query([
             'route' => 'admin_stats_export',
+            'period' => $filters['period'],
+            'from' => $filters['fromDate'],
+            'to' => $filters['toDate'],
+        ]);
+        $exportPdfUrl = '/enfermaria/public/index.php?' . http_build_query([
+            'route' => 'admin_stats_export_pdf',
             'period' => $filters['period'],
             'from' => $filters['fromDate'],
             'to' => $filters['toDate'],
@@ -46,18 +47,21 @@ class AdminStatsController
         Auth::requireAdmin();
 
         $filters = $this->resolveFilters();
-        $ageStats = Incident::statsByAge($filters);
-        $genderStats = $this->formatGenderStats(Incident::statsByGender($filters));
-        $locationStats = $this->formatCategoryStats(Incident::statsByLocation($filters), 'local', 'Local não definido');
-        $typeStats = $this->formatCategoryStats(Incident::statsByIncidentType($filters), 'tipo', 'Tipo não definido');
-        $treatmentStats = $this->formatCategoryStats(Treatment::statsByType($filters), 'tipo', 'Tratamento não definido');
+        [
+            'ageStats' => $ageStats,
+            'genderStats' => $genderStats,
+            'locationStats' => $locationStats,
+            'typeStats' => $typeStats,
+            'treatmentStats' => $treatmentStats,
+            'summary' => $summaryData,
+        ] = $this->buildStatsPayload($filters);
 
         $summary = [
-            'Ocorrências' => Incident::countByFilters($filters),
-            'Tratamentos' => Treatment::countByFilters($filters),
-            'Local mais frequente' => $this->exportTopValue(Incident::topLocation($filters), 'local'),
-            'Tipo de ocorrência principal' => $this->exportTopValue(Incident::topIncidentType($filters), 'tipo'),
-            'Tratamento principal' => $this->exportTopValue(Treatment::topType($filters), 'tipo'),
+            'Ocorrências' => $summaryData['incidents'],
+            'Tratamentos' => $summaryData['treatments'],
+            'Local mais frequente' => $this->exportTopValue($summaryData['topLocation'], 'local'),
+            'Tipo de ocorrência principal' => $this->exportTopValue($summaryData['topIncidentType'], 'tipo'),
+            'Tratamento principal' => $this->exportTopValue($summaryData['topTreatmentType'], 'tipo'),
         ];
 
         header('Content-Type: text/csv; charset=UTF-8');
@@ -88,6 +92,78 @@ class AdminStatsController
 
         fclose($output);
         exit;
+    }
+
+    public function exportPdf(): void
+    {
+        Auth::requireAdmin();
+
+        $filters = $this->resolveFilters();
+        [
+            'ageStats' => $ageStats,
+            'genderStats' => $genderStats,
+            'locationStats' => $locationStats,
+            'typeStats' => $typeStats,
+            'treatmentStats' => $treatmentStats,
+            'summary' => $summary,
+            'comparison' => $comparison,
+            'insights' => $insights,
+        ] = $this->buildStatsPayload($filters);
+
+        $generatedAt = (new DateTimeImmutable('now'))->format('d/m/Y H:i');
+
+        ob_start();
+        require __DIR__ . '/../Views/admin/stats_pdf.php';
+        $html = ob_get_clean();
+
+        $options = new \Dompdf\Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+
+        $dompdf = new \Dompdf\Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4');
+        $dompdf->render();
+
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
+
+        $filename = 'estatisticas-' . date('Ymd-His') . '.pdf';
+        $dompdf->stream($filename, ['Attachment' => false]);
+        exit;
+    }
+
+    private function buildStatsPayload(array $filters): array
+    {
+        $ageStats = Incident::statsByAge($filters);
+        $genderStats = $this->formatGenderStats(Incident::statsByGender($filters));
+        $locationStats = $this->formatCategoryStats(Incident::statsByLocation($filters), 'local', 'Local não definido');
+        $typeStats = $this->formatCategoryStats(Incident::statsByIncidentType($filters), 'tipo', 'Tipo não definido');
+        $treatmentStats = $this->formatCategoryStats(Treatment::statsByType($filters), 'tipo', 'Tratamento não definido');
+
+        $summary = [
+            'incidents' => Incident::countByFilters($filters),
+            'treatments' => Treatment::countByFilters($filters),
+            'topLocation' => Incident::topLocation($filters),
+            'topIncidentType' => Incident::topIncidentType($filters),
+            'topTreatmentType' => Treatment::topType($filters),
+        ];
+
+        $comparison = $this->buildComparison($filters, $summary);
+        $insights = $this->buildInsights($summary, $genderStats, $comparison);
+
+        return [
+            'ageStats' => $ageStats,
+            'genderStats' => $genderStats,
+            'locationStats' => $locationStats,
+            'typeStats' => $typeStats,
+            'treatmentStats' => $treatmentStats,
+            'summary' => $summary,
+            'comparison' => $comparison,
+            'insights' => $insights,
+        ];
     }
 
     private function resolveFilters(): array

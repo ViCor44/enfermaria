@@ -148,6 +148,9 @@ if ($route === 'login') {
 } elseif ($route === 'admin_stats_export') {
     $controller = new App\Controllers\AdminStatsController();
     $controller->exportCsv();
+} elseif ($route === 'admin_stats_export_pdf') {
+    $controller = new App\Controllers\AdminStatsController();
+    $controller->exportPdf();
 } elseif ($route === 'forgot_password') {
     // Mostrar formulário para pedir recuperação
     $controller = new App\Controllers\AuthController();
