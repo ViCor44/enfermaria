@@ -130,15 +130,10 @@ unset($table);
             vertical-align: top;
         }
 
-        .comparison-intro,
         .comparison-box {
             border: 1px solid #d9e4f2;
             border-radius: 12px;
             padding: 12px 14px;
-        }
-
-        .comparison-intro {
-            background: #f7fbff;
         }
 
         .comparison-box {
@@ -335,19 +330,13 @@ unset($table);
     <div class="comparison-banner">
         <table class="comparison-table">
             <tr>
-                <td style="width: 42%;">
-                    <div class="comparison-intro">
-                        <span class="comparison-kicker">Base de comparação</span>
-                        <div class="comparison-text">As variações apresentadas no resumo abaixo comparam o período analisado com a base de comparação indicada ao lado.</div>
-                    </div>
-                </td>
-                <td style="width: 29%;">
+                <td style="width: 50%;">
                     <div class="comparison-box">
                         <span class="comparison-kicker">Período analisado</span>
                         <span class="comparison-value"><?= htmlspecialchars($filters['rangeLabel']) ?></span>
                     </div>
                 </td>
-                <td style="width: 29%;">
+                <td style="width: 50%;">
                     <div class="comparison-box">
                         <span class="comparison-kicker">Base de comparação</span>
                         <span class="comparison-value"><?= htmlspecialchars($comparison['previousLabel'] ?? 'Sem comparação') ?></span>
