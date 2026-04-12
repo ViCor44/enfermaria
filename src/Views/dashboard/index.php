@@ -13,6 +13,7 @@ $lastLogin = $lastLogin ?? 'Sem registo';
 
 $incidentTrend = $incidentTrend ?? ['label' => 'Sem variação face a ontem', 'value' => '0%', 'direction' => 'neutral'];
 $recentIncidents = $recentIncidents ?? [];
+$isNurse = ($role === 'Enfermeiro');
 
 $incidentTrendClass = 'trend-neutral';
 if (($incidentTrend['direction'] ?? '') === 'up') {
@@ -26,6 +27,7 @@ $inProgressTreatmentsHref = $baseUrl . '?route=admin_treatments&status=em_curso'
 $newIncidentHref = $baseUrl . '?route=incidents_new';
 $newInternalHref = $baseUrl . '?route=internal_new';
 $newTreatmentHref = $baseUrl . '?route=treatments_new';
+$statsHref = $baseUrl . '?route=admin_stats';
 ?>
 
 <!DOCTYPE html>
@@ -340,9 +342,15 @@ $newTreatmentHref = $baseUrl . '?route=treatments_new';
     </section>
 
     <section class="quick-actions">
-        <a class="quick-btn quick-btn-primary" href="<?= htmlspecialchars($newIncidentHref) ?>">Nova ocorrência</a>
-        <a class="quick-btn quick-btn-soft" href="<?= htmlspecialchars($newInternalHref) ?>">Novo registo interno</a>
-        <a class="quick-btn quick-btn-soft" href="<?= htmlspecialchars($newTreatmentHref) ?>">Novo tratamento</a>
+        <?php if ($isNurse): ?>
+            <a class="quick-btn quick-btn-primary" href="<?= htmlspecialchars($newIncidentHref) ?>">Nova ocorrência</a>
+            <a class="quick-btn quick-btn-soft" href="<?= htmlspecialchars($newInternalHref) ?>">Novo registo interno</a>
+            <a class="quick-btn quick-btn-soft" href="<?= htmlspecialchars($newTreatmentHref) ?>">Novo tratamento</a>
+        <?php else: ?>
+            <a class="quick-btn quick-btn-primary" href="<?= htmlspecialchars($todayIncidentsHref) ?>">Ver ocorrências de hoje</a>
+            <a class="quick-btn quick-btn-soft" href="<?= htmlspecialchars($inProgressTreatmentsHref) ?>">Ver tratamentos em curso</a>
+            <a class="quick-btn quick-btn-soft" href="<?= htmlspecialchars($statsHref) ?>">Abrir estatísticas</a>
+        <?php endif; ?>
     </section>
 
     <section class="metrics-grid">

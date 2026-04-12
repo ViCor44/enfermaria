@@ -17,7 +17,7 @@ class InternalRecordController
      * ===================================================== */
     public function create(): void
     {
-        Auth::requireRole(['Enfermeiro', 'Administrador']);
+        Auth::requireRole(['Enfermeiro']);
 
         $locations = Location::all();
         $treatmentTypes = Treatment::getTypes();

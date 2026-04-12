@@ -14,7 +14,7 @@ class IncidentController
 
     public function create(): void
     {
-        Auth::requireRole(['Enfermeiro', 'Administrador']);
+        Auth::requireRole(['Enfermeiro']);
 
         $types          = Incident::getTypes();
         $locations      = Location::allActive();
