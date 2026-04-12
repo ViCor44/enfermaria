@@ -387,8 +387,6 @@ $statsHref = $baseUrl . '?route=admin_stats';
                 <?php if ($isAdmin): ?>
                     <span>Pendências administrativas</span>
                     <span class="trend-chip trend-neutral"><?= (int)$pendingApprovals ?></span>
-                <?php else: ?>
-                    <span>Aprovações de utilizadores: apenas administrador</span>
                 <?php endif; ?>
             </div>
         </div>
