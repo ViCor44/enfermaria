@@ -1,13 +1,31 @@
 <?php
-    $nome = $nome ?? ($_SESSION['user_name'] ?? 'Utilizador');
-    $role = $role ?? ($_SESSION['role'] ?? '');
-    $lastLogin = $lastLogin ?? ($_SESSION['last_login'] ?? null);    
-    $baseUrl = $baseUrl ?? '/enfermaria/public/index.php';
+$nome = $nome ?? ($_SESSION['user_name'] ?? 'Utilizador');
+$role = $role ?? ($_SESSION['role'] ?? '');
+$baseUrl = $baseUrl ?? '/enfermaria/public/index.php';
+$today = date('Y-m-d');
 
-    // valores que já calculas no controller
-    $today = date('Y-m-d');
-    $AcidentesHoje = $AcidentesHoje ?? 0;
-    $tratamentosEmCurso = $tratamentosEmCurso ?? 0;    
+$AcidentesHoje = $AcidentesHoje ?? 0;
+$tratamentosEmCurso = $tratamentosEmCurso ?? 0;
+$completedTreatmentsToday = $completedTreatmentsToday ?? 0;
+$pendingApprovals = $pendingApprovals ?? 0;
+$currentDate = $currentDate ?? date('d/m/Y');
+$lastLogin = $lastLogin ?? 'Sem registo';
+
+$incidentTrend = $incidentTrend ?? ['label' => 'Sem variação face a ontem', 'value' => '0%', 'direction' => 'neutral'];
+$recentIncidents = $recentIncidents ?? [];
+
+$incidentTrendClass = 'trend-neutral';
+if (($incidentTrend['direction'] ?? '') === 'up') {
+    $incidentTrendClass = 'trend-up';
+} elseif (($incidentTrend['direction'] ?? '') === 'down') {
+    $incidentTrendClass = 'trend-down';
+}
+
+$todayIncidentsHref = $baseUrl . '?route=admin_incidents&from=' . $today . '&to=' . $today;
+$inProgressTreatmentsHref = $baseUrl . '?route=admin_treatments&status=em_curso';
+$newIncidentHref = $baseUrl . '?route=incidents_new';
+$newInternalHref = $baseUrl . '?route=internal_new';
+$newTreatmentHref = $baseUrl . '?route=treatments_new';
 ?>
 
 <!DOCTYPE html>
@@ -16,103 +34,295 @@
     <meta charset="UTF-8">
     <title>Enfermaria | Dashboard</title>
     <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
-
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --dash-bg: #f3f7fc;
+            --dash-surface: #ffffff;
+            --dash-surface-soft: #f8fbff;
+            --dash-text: #16324f;
+            --dash-muted: #62748b;
+            --dash-accent: #1f6feb;
+            --dash-border: #d9e4f2;
+            --dash-shadow: 0 14px 32px rgba(16, 38, 70, 0.08);
+            --dash-radius: 16px;
+        }
+
         body {
             margin: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-            background: #f5f7fb;
-            color: #333;
+            font-family: 'Manrope', 'Segoe UI', sans-serif;
+            background: var(--dash-bg);
+            color: var(--dash-text);
         }
 
-        /* Estilos consistentes com a página de login: minimalista, centralizado, com tons de azul */
-        header {
-            background: #1f6feb;
-            color: #fff;
-            padding: 1rem 2rem;
+        .dashboard-page {
+            max-width: 1240px;
+            margin: 0 auto;
+            padding: 30px 22px 44px;
+        }
+
+        .hero {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .logo {
-            font-weight: 700;
-            letter-spacing: .03em;
-            font-size: 1.2rem;
-        }
-        .user-info {
-            font-size: .9rem;
-            text-align: right;
-        }
-        .user-info a {
-            color: #fff;
-            text-decoration: underline;
-            margin-left: .5rem;
-        }
-        main {
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            text-align: center; /* Centraliza o conteúdo como na login */
-        }
-        h1 {
-            margin-top: 0;
-            font-size: 2rem;
-            color: #1f6feb;
-        }
-        .subtitle {
-            color: #777;
-            font-size: 1.1rem;
-            margin-bottom: 2rem;
+            gap: 16px;
+            align-items: flex-start;
+            margin-bottom: 18px;
         }
 
-        .dashboard-grid {
+        .hero h1 {
+            margin: 0;
+            color: var(--dash-accent);
+            font-size: clamp(2rem, 3vw, 2.5rem);
+            letter-spacing: -0.03em;
+        }
+
+        .hero p {
+            margin: 10px 0 0;
+            color: var(--dash-muted);
+            line-height: 1.55;
+            max-width: 68ch;
+        }
+
+        .status-pill {
+            background: #e9f2ff;
+            border: 1px solid #cfe0fb;
+            color: #1f6feb;
+            border-radius: 999px;
+            padding: 9px 14px;
+            font-weight: 700;
+            font-size: 0.86rem;
+            white-space: nowrap;
+        }
+
+        .quick-actions {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-            margin-top: 1.5rem;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 12px;
+            margin-bottom: 18px;
         }
 
-        .dashboard-card {
-            background: #fff;
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            text-align: left;
-        }
-
-        .link-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
-        }
-
-        .dashboard-card h3 {
-            font-size: 1.1rem;
-            margin: 0 0 0.8rem;
-            color: #555;
-        }
-
-        .big-number {
-            font-size: 2.2rem;
+        .quick-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 46px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            text-decoration: none;
             font-weight: 700;
-            color: #1f6feb;
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
         }
 
-        /* Adiciona separador horizontal como na login, para consistência */
-        .separator {
-            border: none;
-            border-top: 1px solid #ddd;
-            margin: 2rem 0;
+        .quick-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(31, 111, 235, 0.16);
         }
 
-        /* Responsividade melhorada */
-        @media (max-width: 768px) {
-            main {
-                padding: 1rem;
-            }
-            .dashboard-grid {
+        .quick-btn-primary {
+            background: var(--dash-accent);
+            color: #ffffff;
+        }
+
+        .quick-btn-soft {
+            background: #ffffff;
+            border-color: #cfe0fb;
+            color: #245baf;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .metric-card {
+            background: var(--dash-surface);
+            border: 1px solid var(--dash-border);
+            border-radius: var(--dash-radius);
+            box-shadow: var(--dash-shadow);
+            padding: 18px;
+        }
+
+        .metric-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .metric-label {
+            margin: 0;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--dash-muted);
+            font-weight: 800;
+        }
+
+        .metric-value {
+            margin: 0;
+            font-size: clamp(2rem, 2.8vw, 2.8rem);
+            line-height: 1;
+            font-weight: 800;
+            color: #163a68;
+            letter-spacing: -0.03em;
+        }
+
+        .metric-sub {
+            margin-top: 10px;
+            color: var(--dash-muted);
+            font-size: 0.92rem;
+            line-height: 1.45;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .trend-chip {
+            min-width: 66px;
+            text-align: center;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.8rem;
+            font-weight: 800;
+        }
+
+        .trend-up {
+            background: #e7f8ee;
+            color: #0d8e49;
+        }
+
+        .trend-down {
+            background: #fdeced;
+            color: #c4363c;
+        }
+
+        .trend-neutral {
+            background: #edf2f8;
+            color: #5f7390;
+        }
+
+        .metric-highlight {
+            border-color: #cfe0fb;
+            background: linear-gradient(180deg, #ffffff, #f8fbff);
+        }
+
+        .secondary-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 14px;
+        }
+
+        .panel {
+            background: var(--dash-surface);
+            border: 1px solid var(--dash-border);
+            border-radius: var(--dash-radius);
+            box-shadow: var(--dash-shadow);
+            padding: 18px;
+        }
+
+        .panel h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #1b3f6f;
+        }
+
+        .panel-copy {
+            margin: 8px 0 14px;
+            color: var(--dash-muted);
+            font-size: 0.94rem;
+        }
+
+        .activity-list {
+            display: grid;
+            gap: 10px;
+        }
+
+        .activity-item {
+            border: 1px solid #dfe8f5;
+            border-radius: 12px;
+            background: var(--dash-surface-soft);
+            padding: 12px 13px;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .activity-main {
+            color: #1d3f6d;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .activity-meta {
+            margin-top: 4px;
+            color: var(--dash-muted);
+            font-size: 0.84rem;
+        }
+
+        .activity-time {
+            color: #4f6786;
+            font-size: 0.82rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .empty-state {
+            border: 1px dashed #cfdced;
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+            color: #61758f;
+            background: #fbfdff;
+        }
+
+        .meta-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 4px;
+        }
+
+        .meta-row {
+            border: 1px solid #e0e9f7;
+            border-radius: 12px;
+            padding: 11px 12px;
+            background: #f8fbff;
+        }
+
+        .meta-row strong {
+            display: block;
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #5d7491;
+            margin-bottom: 4px;
+        }
+
+        .meta-row span {
+            color: #1c3f6d;
+            font-weight: 700;
+        }
+
+        @media (max-width: 980px) {
+            .metrics-grid,
+            .secondary-grid,
+            .quick-actions {
                 grid-template-columns: 1fr;
+            }
+
+            .hero {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .status-pill {
+                width: fit-content;
             }
         }
     </style>
@@ -120,43 +330,105 @@
 <body>
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 
-<main>
-    <h1>Dashboard</h1>
-    <p class="subtitle">
-        Bem-vindo, <?= htmlspecialchars($nome) ?>.
-        Aqui vais ter um resumo rápido das Ocorrências e tratamentos.
-    </p>
+<main class="dashboard-page">
+    <section class="hero">
+        <div>
+            <h1>Painel de Operações</h1>
+            <p>Bem-vindo, <?= htmlspecialchars($nome) ?>. Aqui tens uma leitura rápida do estado da enfermaria, com foco no que exige ação imediata.</p>
+        </div>
+        <div class="status-pill">Atualizado em <?= htmlspecialchars($currentDate) ?></div>
+    </section>
 
-    <hr class="separator"> <!-- Adicionado para consistência com a login -->
+    <section class="quick-actions">
+        <a class="quick-btn quick-btn-primary" href="<?= htmlspecialchars($newIncidentHref) ?>">Nova ocorrência</a>
+        <a class="quick-btn quick-btn-soft" href="<?= htmlspecialchars($newInternalHref) ?>">Novo registo interno</a>
+        <a class="quick-btn quick-btn-soft" href="<?= htmlspecialchars($newTreatmentHref) ?>">Novo tratamento</a>
+    </section>
 
-    <div class="dashboard-grid">
-
-        <!-- Acidentes de hoje -->
-        <?php
-            $AcidentesHref = $baseUrl . '?route=admin_incidents&from=' . $today . '&to=' . $today;
-        ?>
-        <a class="dashboard-card link-card" href="<?= htmlspecialchars($AcidentesHref) ?>">
-            <h3>Ocorrências de hoje</h3>
-            <div class="big-number"><?= (int)$AcidentesHoje ?></div>
+    <section class="metrics-grid">
+        <a class="metric-card metric-highlight" href="<?= htmlspecialchars($todayIncidentsHref) ?>">
+            <div class="metric-head">
+                <p class="metric-label">Ocorrências hoje</p>
+                <span class="trend-chip <?= htmlspecialchars($incidentTrendClass) ?>"><?= htmlspecialchars($incidentTrend['value'] ?? '0%') ?></span>
+            </div>
+            <p class="metric-value"><?= (int)$AcidentesHoje ?></p>
+            <div class="metric-sub">
+                <span><?= htmlspecialchars($incidentTrend['label'] ?? 'Sem variação') ?></span>
+                <span>Ver detalhe</span>
+            </div>
         </a>
 
-        <!-- Tratamentos em curso -->
-        <?php
-            $tratamentosHref = $baseUrl . '?route=admin_treatments&status=em_curso';
-        ?>
-        <a class="dashboard-card link-card" href="<?= htmlspecialchars($tratamentosHref) ?>">
-            <h3>Tratamentos em curso</h3>
-            <div class="big-number"><?= (int)$tratamentosEmCurso ?></div>
+        <a class="metric-card" href="<?= htmlspecialchars($inProgressTreatmentsHref) ?>">
+            <div class="metric-head">
+                <p class="metric-label">Tratamentos em curso</p>
+            </div>
+            <p class="metric-value"><?= (int)$tratamentosEmCurso ?></p>
+            <div class="metric-sub">
+                <span>Concluídos hoje: <?= (int)$completedTreatmentsToday ?></span>
+                <span>Ver lista</span>
+            </div>
         </a>
 
-        <!-- Último acesso (sem link) -->
-        <div class="dashboard-card">
-            <h3>Último acesso</h3>
-            <div class="big-number"><?= htmlspecialchars($lastLogin ?? 'N/A') ?></div>
+        <div class="metric-card">
+            <div class="metric-head">
+                <p class="metric-label">Último acesso</p>
+            </div>
+            <p class="metric-value" style="font-size: 1.65rem;"><?= htmlspecialchars($lastLogin) ?></p>
+            <div class="metric-sub">
+                <span>Pendências administrativas</span>
+                <span class="trend-chip trend-neutral"><?= (int)$pendingApprovals ?></span>
+            </div>
+        </div>
+    </section>
+
+    <section class="secondary-grid">
+        <div class="panel">
+            <h2>Atividade recente</h2>
+            <p class="panel-copy">Últimas ocorrências registadas para apoio rápido à supervisão.</p>
+
+            <?php if ($recentIncidents === []): ?>
+                <div class="empty-state">Sem ocorrências recentes para apresentar.</div>
+            <?php else: ?>
+                <div class="activity-list">
+                    <?php foreach ($recentIncidents as $incident): ?>
+                        <div class="activity-item">
+                            <div>
+                                <div class="activity-main">#<?= (int)$incident['id'] ?> · <?= htmlspecialchars($incident['incident_type_name'] ?? 'Tipo não definido') ?></div>
+                                <div class="activity-meta">
+                                    <?= htmlspecialchars($incident['location_name'] ?? 'Local não definido') ?> · <?= htmlspecialchars($incident['nurse_name'] ?? 'Sem enfermeiro') ?>
+                                </div>
+                            </div>
+                            <div class="activity-time"><?= htmlspecialchars(date('d/m H:i', strtotime((string)$incident['occurred_at']))) ?></div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </div>
 
-    </div>
-</main>
+        <aside class="panel">
+            <h2>Estado rápido</h2>
+            <p class="panel-copy">Resumo para orientação operacional durante o turno.</p>
 
+            <div class="meta-list">
+                <div class="meta-row">
+                    <strong>Perfil atual</strong>
+                    <span><?= htmlspecialchars($role !== '' ? $role : 'Sem perfil') ?></span>
+                </div>
+                <div class="meta-row">
+                    <strong>Dia em análise</strong>
+                    <span><?= htmlspecialchars($currentDate) ?></span>
+                </div>
+                <div class="meta-row">
+                    <strong>Tratamentos concluídos hoje</strong>
+                    <span><?= (int)$completedTreatmentsToday ?></span>
+                </div>
+                <div class="meta-row">
+                    <strong>Aprovações pendentes</strong>
+                    <span><?= (int)$pendingApprovals ?></span>
+                </div>
+            </div>
+        </aside>
+    </section>
+</main>
 </body>
 </html>
