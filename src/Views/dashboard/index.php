@@ -406,7 +406,7 @@ $statsHref = $baseUrl . '?route=admin_stats';
                     <?php foreach ($recentIncidents as $incident): ?>
                         <div class="activity-item">
                             <div>
-                                <div class="activity-main">#<?= (int)$incident['id'] ?> · <?= htmlspecialchars($incident['incident_type_name'] ?? 'Tipo não definido') ?></div>
+                                <div class="activity-main">#<?= (int)($incident['episode_number'] ?? $incident['id']) ?> · <?= htmlspecialchars($incident['incident_type_name'] ?? 'Tipo não definido') ?></div>
                                 <div class="activity-meta">
                                     <?= htmlspecialchars($incident['location_name'] ?? 'Local não definido') ?> · <?= htmlspecialchars($incident['nurse_name'] ?? 'Sem enfermeiro') ?>
                                 </div>

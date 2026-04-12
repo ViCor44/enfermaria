@@ -60,6 +60,7 @@ class DashboardController
         $sql = "
             SELECT
                 i.id,
+                (SELECT COUNT(*) FROM incidents i2 WHERE i2.id <= i.id) AS episode_number,
                 i.occurred_at,
                 it.name AS incident_type_name,
                 l.name AS location_name,
