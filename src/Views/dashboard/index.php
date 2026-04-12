@@ -14,6 +14,7 @@ $lastLogin = $lastLogin ?? 'Sem registo';
 $incidentTrend = $incidentTrend ?? ['label' => 'Sem variação face a ontem', 'value' => '0%', 'direction' => 'neutral'];
 $recentIncidents = $recentIncidents ?? [];
 $isNurse = ($role === 'Enfermeiro');
+$isAdmin = ($role === 'Administrador');
 
 $incidentTrendClass = 'trend-neutral';
 if (($incidentTrend['direction'] ?? '') === 'up') {
@@ -383,8 +384,12 @@ $statsHref = $baseUrl . '?route=admin_stats';
             </div>
             <p class="metric-value" style="font-size: 1.65rem;"><?= htmlspecialchars($lastLogin) ?></p>
             <div class="metric-sub">
-                <span>Pendências administrativas</span>
-                <span class="trend-chip trend-neutral"><?= (int)$pendingApprovals ?></span>
+                <?php if ($isAdmin): ?>
+                    <span>Pendências administrativas</span>
+                    <span class="trend-chip trend-neutral"><?= (int)$pendingApprovals ?></span>
+                <?php else: ?>
+                    <span>Aprovações de utilizadores: apenas administrador</span>
+                <?php endif; ?>
             </div>
         </div>
     </section>
@@ -430,10 +435,12 @@ $statsHref = $baseUrl . '?route=admin_stats';
                     <strong>Tratamentos concluídos hoje</strong>
                     <span><?= (int)$completedTreatmentsToday ?></span>
                 </div>
-                <div class="meta-row">
-                    <strong>Aprovações pendentes</strong>
-                    <span><?= (int)$pendingApprovals ?></span>
-                </div>
+                <?php if ($isAdmin): ?>
+                    <div class="meta-row">
+                        <strong>Aprovações pendentes</strong>
+                        <span><?= (int)$pendingApprovals ?></span>
+                    </div>
+                <?php endif; ?>
             </div>
         </aside>
     </section>

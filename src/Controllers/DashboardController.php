@@ -21,7 +21,8 @@ class DashboardController
         $incidentTrend = $this->buildTrend($AcidentesHoje, $incidentsYesterday);
 
         $completedTreatmentsToday = $this->countTreatmentsCompletedForDate($pdo, new DateTimeImmutable('today'));
-        $pendingApprovals = $this->countPendingApprovals($pdo);
+        $role = (string)($_SESSION['role'] ?? '');
+        $pendingApprovals = $role === 'Administrador' ? $this->countPendingApprovals($pdo) : 0;
         $recentIncidents = $this->fetchRecentIncidents($pdo, 6);
 
         $lastLoginRaw = $_SESSION['last_login'] ?? null;
