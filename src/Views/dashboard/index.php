@@ -346,7 +346,6 @@ $statsHref = $baseUrl . '?route=admin_stats';
         <?php if ($isNurse): ?>
             <a class="quick-btn quick-btn-primary" href="<?= htmlspecialchars($newIncidentHref) ?>">Nova ocorrência</a>
             <a class="quick-btn quick-btn-soft" href="<?= htmlspecialchars($newInternalHref) ?>">Novo registo interno</a>
-            <a class="quick-btn quick-btn-soft" href="<?= htmlspecialchars($newTreatmentHref) ?>">Novo tratamento</a>
         <?php else: ?>
             <a class="quick-btn quick-btn-primary" href="<?= htmlspecialchars($todayIncidentsHref) ?>">Ver ocorrências de hoje</a>
             <a class="quick-btn quick-btn-soft" href="<?= htmlspecialchars($inProgressTreatmentsHref) ?>">Ver tratamentos em curso</a>
