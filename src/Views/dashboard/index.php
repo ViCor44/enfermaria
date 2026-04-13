@@ -401,7 +401,7 @@ $statsHref = $baseUrl . '?route=admin_stats';
             <?php else: ?>
                 <div class="activity-list">
                     <?php foreach ($recentIncidents as $incident): ?>
-                        <div class="activity-item">
+                        <a class="activity-item" href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$incident['id'] ?>" style="text-decoration:none;color:inherit;">
                             <div>
                                 <div class="activity-main">#<?= (int)($incident['episode_number'] ?? $incident['id']) ?> · <?= htmlspecialchars($incident['incident_type_name'] ?? 'Tipo não definido') ?></div>
                                 <div class="activity-meta">
@@ -409,7 +409,7 @@ $statsHref = $baseUrl . '?route=admin_stats';
                                 </div>
                             </div>
                             <div class="activity-time"><?= htmlspecialchars(date('d/m H:i', strtotime((string)$incident['occurred_at']))) ?></div>
-                        </div>
+                        </a>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
