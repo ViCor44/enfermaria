@@ -395,11 +395,12 @@ foreach ($treatments as $t) {
     <div class="card">
         <div class="section-header">
             <h2>Tratamentos associados</h2>
-
-            <a class="btn-primary"
-            href="<?= $baseUrl ?>?route=treatments_new&incident_id=<?= (int)$incident['id'] ?>">
-                ➕ Adicionar tratamento
-            </a>
+            <?php if ($role === 'Enfermeiro'): ?>
+                <a class="btn-primary"
+                href="<?= $baseUrl ?>?route=treatments_new&incident_id=<?= (int)$incident['id'] ?>">
+                    ➕ Adicionar tratamento
+                </a>
+            <?php endif; ?>
         </div>
        <?php if (empty($treatments)): ?>
             <p class="subtitle">Não existem tratamentos registados para esta Ocorrência.</p>
