@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Core\Auth;
 use App\Models\User;
+use App\Models\RemoteAccessRequest;
 
 class AdminUserController
 {
@@ -74,6 +75,13 @@ class AdminUserController
         // obter lista de roles
         $r = $pdo->query("SELECT id, name FROM roles ORDER BY id");
         $roles = $r->fetchAll(\PDO::FETCH_ASSOC);
+
+        try {
+            RemoteAccessRequest::expireOldPending(20);
+            $pendingRemoteRequests = RemoteAccessRequest::listPending(30);
+        } catch (\Throwable $e) {
+            $pendingRemoteRequests = [];
+        }
 
         require __DIR__ . '/../Views/admin/users_list.php';
     }
@@ -249,6 +257,74 @@ class AdminUserController
         $_SESSION['success'] = 'Sessão de administrador restaurada.';
         header('Location: ' . $this->baseUrl . '?route=admin_users_list');
         exit;
+    }
+
+    public function approveRemoteAccess(): void
+    {
+        Auth::requireRole(['Administrador']);
+
+        $requestId = isset($_POST['request_id']) ? (int)$_POST['request_id'] : 0;
+        $adminId = (int)($_SESSION['user_id'] ?? 0);
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        if ($requestId <= 0) {
+            $_SESSION['error'] = 'Pedido remoto invalido.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
+
+        try {
+            $approved = RemoteAccessRequest::approve($requestId, $adminId);
+            if (!$approved) {
+                $_SESSION['error'] = 'Pedido nao encontrado ou ja tratado.';
+                header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+                exit;
+            }
+
+            \App\Helpers\Logger::login("REMOTE ACCESS APPROVED | admin_id='{$adminId}' | request_id='{$requestId}' | ip='{$ip}'");
+
+            $_SESSION['success'] = 'Acesso remoto aprovado. O enfermeiro recebera a sessao automaticamente.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        } catch (\Throwable $e) {
+            $_SESSION['error'] = 'Nao foi possivel aprovar o pedido remoto.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
+    }
+
+    public function rejectRemoteAccess(): void
+    {
+        Auth::requireRole(['Administrador']);
+
+        $requestId = isset($_POST['request_id']) ? (int)$_POST['request_id'] : 0;
+        $adminId = (int)($_SESSION['user_id'] ?? 0);
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        if ($requestId <= 0) {
+            $_SESSION['error'] = 'Pedido remoto invalido.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
+
+        try {
+            $ok = RemoteAccessRequest::reject($requestId, $adminId);
+            if (!$ok) {
+                $_SESSION['error'] = 'Pedido nao encontrado ou ja tratado.';
+                header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+                exit;
+            }
+
+            \App\Helpers\Logger::login("REMOTE ACCESS REJECTED | admin_id='{$adminId}' | request_id='{$requestId}' | ip='{$ip}'");
+
+            $_SESSION['success'] = 'Pedido remoto rejeitado.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        } catch (\Throwable $e) {
+            $_SESSION['error'] = 'Nao foi possivel rejeitar o pedido remoto.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
     }
 
 }

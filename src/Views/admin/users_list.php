@@ -184,6 +184,34 @@ $nome = $_SESSION['user_name'] ?? 'Administrador';
         border-top: 1px solid #ddd;
         margin: 2rem 0;
     }
+    .remote-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        padding: 1rem;
+        margin: 0 auto 1.2rem;
+        text-align: left;
+    }
+    .remote-card h2 {
+        margin: 0 0 .8rem;
+        color: #1f6feb;
+        font-size: 1.1rem;
+    }
+    .remote-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .remote-table th,
+    .remote-table td {
+        padding: .6rem .55rem;
+        border-bottom: 1px solid #eef1f6;
+        font-size: .9rem;
+    }
+    .inline-actions {
+        display: inline-flex;
+        gap: .45rem;
+        align-items: center;
+    }
 
     /* Responsividade */
     @media (max-width: 768px) {
@@ -217,6 +245,46 @@ $nome = $_SESSION['user_name'] ?? 'Administrador';
     <?php if (!empty($_SESSION['success'])): ?>
         <div class="flash flash-success"><?= htmlspecialchars($_SESSION['success']); unset($_SESSION['success']); ?></div>
     <?php endif; ?>
+
+    <section class="remote-card">
+        <h2>Pedidos de acesso remoto pendentes</h2>
+
+        <?php if (empty($pendingRemoteRequests)): ?>
+            <p class="no-data" style="margin:0;">Sem pedidos pendentes neste momento.</p>
+        <?php else: ?>
+            <table class="remote-table">
+                <thead>
+                    <tr>
+                        <th>Enfermeiro</th>
+                        <th>IP</th>
+                        <th>Hora do pedido</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($pendingRemoteRequests as $req): ?>
+                        <tr>
+                            <td><?= htmlspecialchars($req['nurse_full_name'] ?? $req['nurse_name']) ?></td>
+                            <td><?= htmlspecialchars($req['request_ip'] ?? 'unknown') ?></td>
+                            <td><?= htmlspecialchars($req['created_at'] ?? '') ?></td>
+                            <td>
+                                <div class="inline-actions">
+                                    <form method="post" action="<?= $baseUrl ?>?route=admin_remote_access_approve">
+                                        <input type="hidden" name="request_id" value="<?= (int)$req['id'] ?>">
+                                        <button class="btn btn-approve" type="submit">Aprovar</button>
+                                    </form>
+                                    <form method="post" action="<?= $baseUrl ?>?route=admin_remote_access_reject">
+                                        <input type="hidden" name="request_id" value="<?= (int)$req['id'] ?>">
+                                        <button class="btn btn-danger" type="submit">Rejeitar</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        <?php endif; ?>
+    </section>
 
     <table>
         <thead>

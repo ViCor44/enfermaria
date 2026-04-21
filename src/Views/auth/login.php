@@ -138,6 +138,74 @@ $baseUrl = '/enfermaria/public/index.php';
         font-weight: 600;
     }
 
+    .link-button {
+        background: transparent;
+        border: none;
+        color: #2575fc;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0;
+        font-size: .95rem;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 2000;
+    }
+
+    .modal-overlay.is-open {
+        display: flex;
+    }
+
+    .modal-card {
+        width: min(92vw, 430px);
+        background: #fff;
+        border-radius: 12px;
+        padding: 1rem 1rem 1.2rem;
+        box-shadow: 0 12px 30px rgba(0,0,0,.18);
+        color: #2b2b2b;
+    }
+
+    .modal-card h3 {
+        margin: .2rem 0 .4rem;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: .6rem;
+        justify-content: flex-end;
+        margin-top: 1rem;
+    }
+
+    .btn-secondary {
+        border: 1px solid #cfd9ea;
+        background: #fff;
+        color: #36516f;
+        border-radius: 8px;
+        padding: .6rem .9rem;
+        cursor: pointer;
+    }
+
+    .request-status {
+        margin-top: .8rem;
+        font-size: .92rem;
+        color: #184a96;
+        background: #edf4ff;
+        border: 1px solid #cfe0ff;
+        border-radius: 8px;
+        padding: .65rem .75rem;
+        display: none;
+    }
+
+    .request-status.is-visible {
+        display: block;
+    }
+
 </style>
 </head>
 <body>
@@ -210,11 +278,159 @@ $baseUrl = '/enfermaria/public/index.php';
                 <p style="text-align:center; margin-top:1rem;">
                     <a href="?route=forgot_password">Esqueci-me da password</a>
                 </p>
+                <p style="text-align:center; margin-top:.5rem;">
+                    <button type="button" class="link-button" id="openRemoteAccessModal">Pedir acesso remoto</button>
+                </p>
             </footer>            
         </div>
     </div>
 
 </div>
+
+<div class="modal-overlay" id="remoteAccessModal" aria-hidden="true">
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="remoteAccessTitle">
+        <h3 id="remoteAccessTitle">Pedido de acesso remoto</h3>
+        <p style="margin:.2rem 0 .8rem; color:#5f738f; font-size:.95rem;">
+            Indique o nome completo do enfermeiro para enviar um pedido ao administrador.
+        </p>
+
+        <label for="remoteNurseName">Nome do enfermeiro</label>
+        <input id="remoteNurseName" type="text" autocomplete="name" placeholder="Ex: Pedro Carlos Pinheiro Carlos Dias">
+
+        <div id="remoteAccessStatus" class="request-status"></div>
+
+        <div class="modal-actions">
+            <button type="button" class="btn-secondary" id="closeRemoteAccessModal">Cancelar</button>
+            <button type="button" id="submitRemoteAccess">Enviar pedido</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function () {
+    var modal = document.getElementById('remoteAccessModal');
+    var openBtn = document.getElementById('openRemoteAccessModal');
+    var closeBtn = document.getElementById('closeRemoteAccessModal');
+    var submitBtn = document.getElementById('submitRemoteAccess');
+    var nurseInput = document.getElementById('remoteNurseName');
+    var statusBox = document.getElementById('remoteAccessStatus');
+    var pollTimer = null;
+
+    function setStatus(message, isError) {
+        statusBox.textContent = message;
+        statusBox.classList.add('is-visible');
+        if (isError) {
+            statusBox.style.background = '#ffecec';
+            statusBox.style.borderColor = '#ffc8c8';
+            statusBox.style.color = '#9a1f1f';
+            return;
+        }
+
+        statusBox.style.background = '#edf4ff';
+        statusBox.style.borderColor = '#cfe0ff';
+        statusBox.style.color = '#184a96';
+    }
+
+    function stopPolling() {
+        if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
+        }
+    }
+
+    function openModal() {
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        nurseInput.focus();
+    }
+
+    function closeModal() {
+        stopPolling();
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+    }
+
+    function pollStatus(code) {
+        stopPolling();
+        pollTimer = setInterval(function () {
+            fetch('/enfermaria/public/index.php?route=remote_access_request_status&code=' + encodeURIComponent(code), {
+                method: 'GET',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                if (!data || data.ok !== true) {
+                    return;
+                }
+
+                if (data.status === 'approved' && data.redirect_url) {
+                    stopPolling();
+                    setStatus('Pedido aprovado. A abrir sessão...', false);
+                    window.location.href = data.redirect_url;
+                    return;
+                }
+
+                if (data.status === 'rejected') {
+                    stopPolling();
+                    setStatus('Pedido rejeitado pelo administrador.', true);
+                    return;
+                }
+
+                if (data.status === 'expired') {
+                    stopPolling();
+                    setStatus('Pedido expirou. Envie novamente.', true);
+                }
+            })
+            .catch(function () {
+                // ignora falhas transitórias e continua polling
+            });
+        }, 5000);
+    }
+
+    openBtn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', function (event) {
+        if (event.target === modal) {
+            closeModal();
+        }
+    });
+
+    submitBtn.addEventListener('click', function () {
+        var nurseName = (nurseInput.value || '').trim();
+        if (!nurseName) {
+            setStatus('Indique o nome completo do enfermeiro.', true);
+            return;
+        }
+
+        submitBtn.disabled = true;
+        setStatus('A enviar pedido ao administrador...', false);
+
+        fetch('/enfermaria/public/index.php?route=remote_access_request_create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: 'nurse_name=' + encodeURIComponent(nurseName)
+        })
+        .then(function (response) { return response.json(); })
+        .then(function (data) {
+            submitBtn.disabled = false;
+            if (!data || data.ok !== true || !data.request_code) {
+                setStatus((data && data.message) ? data.message : 'Falha ao criar pedido.', true);
+                return;
+            }
+
+            setStatus('Pedido enviado. Aguarde aprovacao do administrador.', false);
+            pollStatus(data.request_code);
+        })
+        .catch(function () {
+            submitBtn.disabled = false;
+            setStatus('Erro de comunicacao ao enviar pedido.', true);
+        });
+    });
+})();
+</script>
 
 </body>
 </html>

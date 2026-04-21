@@ -41,6 +41,15 @@ if ($route === 'login') {
 } elseif ($route === 'login_submit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new App\Controllers\AuthController();
     $controller->login();
+} elseif ($route === 'remote_access_request_create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new App\Controllers\AuthController();
+    $controller->createRemoteAccessRequest();
+} elseif ($route === 'remote_access_request_status') {
+    $controller = new App\Controllers\AuthController();
+    $controller->remoteAccessRequestStatus();
+} elseif ($route === 'remote_access_consume') {
+    $controller = new App\Controllers\AuthController();
+    $controller->consumeRemoteAccess();
 
 } elseif ($route === 'register') {
     $controller = new App\Controllers\AuthController();
@@ -82,6 +91,12 @@ if ($route === 'login') {
 } elseif ($route === 'admin_restore_session') {
     $controller = new App\Controllers\AdminUserController();
     $controller->restoreAdminSession();
+} elseif ($route === 'admin_remote_access_approve' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new App\Controllers\AdminUserController();
+    $controller->approveRemoteAccess();
+} elseif ($route === 'admin_remote_access_reject' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new App\Controllers\AdminUserController();
+    $controller->rejectRemoteAccess();
 
 } elseif ($route === 'incidents_new') {
     $controller = new App\Controllers\IncidentController();

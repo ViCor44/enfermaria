@@ -2,6 +2,7 @@
 namespace App\Controllers;
 
 use App\Models\User;
+use App\Models\RemoteAccessRequest;
 
 class AuthController
 {
@@ -391,6 +392,153 @@ class AuthController
 
         header('Location: ' . $this->baseUrl . '?route=dashboard');
         exit;
+    }
+
+    public function createRemoteAccessRequest(): void
+    {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['ok' => false, 'message' => 'Metodo nao permitido']);
+            return;
+        }
+
+        header('Content-Type: application/json; charset=utf-8');
+
+        $nurseName = trim((string)($_POST['nurse_name'] ?? ''));
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        if ($nurseName === '') {
+            echo json_encode(['ok' => false, 'message' => 'Indique o nome do enfermeiro.']);
+            return;
+        }
+
+        try {
+            $pdo = \App\Core\Database::getConnection();
+            $stmt = $pdo->prepare(
+                "SELECT u.id, u.full_name
+                 FROM users u
+                 JOIN roles r ON r.id = u.role_id
+                 WHERE u.deleted_at IS NULL
+                   AND u.approved = 1
+                   AND r.name = 'Enfermeiro'
+                   AND LOWER(TRIM(u.full_name)) = LOWER(TRIM(?))
+                 LIMIT 2"
+            );
+            $stmt->execute([$nurseName]);
+            $matches = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+            if (count($matches) === 0) {
+                echo json_encode(['ok' => false, 'message' => 'Enfermeiro nao encontrado ou nao aprovado.']);
+                return;
+            }
+
+            if (count($matches) > 1) {
+                echo json_encode(['ok' => false, 'message' => 'Existe mais de um enfermeiro com esse nome. Use o nome completo.']);
+                return;
+            }
+
+            $nurse = $matches[0];
+            $requestCode = RemoteAccessRequest::createPending((int)$nurse['id'], (string)$nurse['full_name'], $ip);
+
+            \App\Helpers\Logger::login("REMOTE ACCESS REQUEST CREATED | nurse_id='{$nurse['id']}' | nurse_name='{$nurse['full_name']}' | ip='{$ip}'");
+
+            echo json_encode([
+                'ok' => true,
+                'request_code' => $requestCode,
+                'message' => 'Pedido enviado. Aguarde aprovacao do administrador.',
+            ]);
+            return;
+        } catch (\Throwable $e) {
+            echo json_encode(['ok' => false, 'message' => 'Funcionalidade de acesso remoto indisponivel.']);
+            return;
+        }
+    }
+
+    public function remoteAccessRequestStatus(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        $requestCode = trim((string)($_GET['code'] ?? ''));
+        if ($requestCode === '') {
+            echo json_encode(['ok' => false, 'message' => 'Codigo de pedido em falta.']);
+            return;
+        }
+
+        try {
+            RemoteAccessRequest::expireOldPending(20);
+            $request = RemoteAccessRequest::findByCode($requestCode);
+
+            if (!$request) {
+                echo json_encode(['ok' => false, 'message' => 'Pedido nao encontrado.']);
+                return;
+            }
+
+            $status = (string)($request['status'] ?? 'pending');
+
+            if ($status === 'approved' && !empty($request['grant_token'])) {
+                echo json_encode([
+                    'ok' => true,
+                    'status' => 'approved',
+                    'redirect_url' => $this->baseUrl . '?route=remote_access_consume&token=' . urlencode((string)$request['grant_token']),
+                ]);
+                return;
+            }
+
+            echo json_encode([
+                'ok' => true,
+                'status' => $status,
+            ]);
+            return;
+        } catch (\Throwable $e) {
+            echo json_encode(['ok' => false, 'message' => 'Nao foi possivel consultar o pedido.']);
+            return;
+        }
+    }
+
+    public function consumeRemoteAccess(): void
+    {
+        $token = trim((string)($_GET['token'] ?? ''));
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        if ($token === '') {
+            $_SESSION['error'] = 'Token de acesso remoto em falta.';
+            header('Location: ' . $this->baseUrl . '?route=login');
+            exit;
+        }
+
+        try {
+            $request = RemoteAccessRequest::findApprovedByGrantToken($token);
+            if (!$request) {
+                $_SESSION['error'] = 'Pedido remoto invalido ou expirado.';
+                header('Location: ' . $this->baseUrl . '?route=login');
+                exit;
+            }
+
+            if ((int)($request['approved'] ?? 0) !== 1 || !empty($request['deleted_at']) || ($request['role_name'] ?? '') !== 'Enfermeiro') {
+                $_SESSION['error'] = 'Conta alvo indisponivel para acesso remoto.';
+                header('Location: ' . $this->baseUrl . '?route=login');
+                exit;
+            }
+
+            session_regenerate_id(true);
+
+            $_SESSION['last_login'] = null;
+            $_SESSION['user_id'] = (int)$request['nurse_user_id'];
+            $_SESSION['role'] = (string)$request['role_name'];
+            $_SESSION['user_name'] = (string)$request['nurse_full_name'];
+
+            User::updateLastLogin((int)$request['nurse_user_id']);
+            RemoteAccessRequest::markConsumed((int)$request['id']);
+
+            \App\Helpers\Logger::login("REMOTE ACCESS CONSUMED | request_id='{$request['id']}' | nurse_id='{$request['nurse_user_id']}' | ip='{$ip}'");
+
+            header('Location: ' . $this->baseUrl . '?route=dashboard');
+            exit;
+        } catch (\Throwable $e) {
+            $_SESSION['error'] = 'Nao foi possivel abrir a sessao remota.';
+            header('Location: ' . $this->baseUrl . '?route=login');
+            exit;
+        }
     }
 
 }
