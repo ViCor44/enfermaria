@@ -76,6 +76,12 @@ if ($route === 'login') {
 } elseif ($route === 'admin_user_delete' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new App\Controllers\AdminUserController();
     $controller->deleteUser();
+} elseif ($route === 'admin_open_nurse_session' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    $controller = new App\Controllers\AdminUserController();
+    $controller->openNurseSession();
+} elseif ($route === 'admin_restore_session') {
+    $controller = new App\Controllers\AdminUserController();
+    $controller->restoreAdminSession();
 
 } elseif ($route === 'incidents_new') {
     $controller = new App\Controllers\IncidentController();

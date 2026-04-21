@@ -128,6 +128,20 @@ if (!isset($pendingApprovalsCount)) {
         color: #0f5bdb;
         transform: translateY(-2px);
     }
+    .btn-restore-session {
+        background: #fff6d6;
+        color: #7b5c00;
+        border: 1px solid #ecd27b;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.82rem;
+        white-space: nowrap;
+    }
+    .btn-restore-session:hover {
+        background: #fff1bf;
+    }
 
     .nav-dropdown {
         position: relative;
@@ -356,6 +370,11 @@ if (!isset($pendingApprovalsCount)) {
 
         <!-- Área do utilizador -->
         <div class="user-area">
+            <?php if (!empty($_SESSION['delegated_by_admin'])): ?>
+                <a href="<?= $baseUrl ?>?route=admin_restore_session" class="btn-restore-session">
+                    Voltar para sessão admin
+                </a>
+            <?php endif; ?>
             <div class="user-pill">
                 <?= htmlspecialchars($nome) ?><br>
                 <span class="user-role"><?= htmlspecialchars($roleLabel) ?></span>

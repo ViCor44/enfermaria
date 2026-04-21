@@ -166,6 +166,19 @@ $nome = $_SESSION['user_name'] ?? 'Administrador';
         border-color: #1f6feb;
         outline: none;
     }
+    .session-open-form {
+        display: inline-flex;
+        align-items: center;
+        gap: .4rem;
+        margin-left: .5rem;
+    }
+    .session-open-form input[type="password"] {
+        width: 150px;
+        padding: .45rem .55rem;
+        border: 1px solid #d6deea;
+        border-radius: 6px;
+        font-size: .85rem;
+    }
     .separator {
         border: none;
         border-top: 1px solid #ddd;
@@ -234,7 +247,7 @@ $nome = $_SESSION['user_name'] ?? 'Administrador';
                     </td>
                     <td><?= $u['approved'] ? 'Sim' : 'Não' ?></td>
                     <td>
-                        
+
                         <form method="post" action="<?= $baseUrl ?>?route=admin_user_delete" style="display:inline-block;margin-left:8px;">
                             <input type="hidden" name="id" value="<?= (int)$u['id'] ?>">
                             <?php if ($isDeleted): ?>
@@ -250,6 +263,19 @@ $nome = $_SESSION['user_name'] ?? 'Administrador';
                                 <?php endif; ?>
                             <?php endif; ?>
                         </form>
+
+                        <?php
+                            $isApproved = (int)($u['approved'] ?? 0) === 1;
+                            $isNurse = ($u['role_name'] ?? '') === 'Enfermeiro';
+                            $isSelf = (int)($_SESSION['user_id'] ?? 0) === (int)$u['id'];
+                        ?>
+                        <?php if (!$isDeleted && $isApproved && $isNurse && !$isSelf): ?>
+                            <form method="post" action="<?= $baseUrl ?>?route=admin_open_nurse_session" class="session-open-form">
+                                <input type="hidden" name="user_id" value="<?= (int)$u['id'] ?>">
+                                <input type="password" name="admin_password" placeholder="Password admin" required>
+                                <button class="btn btn-outline" type="submit" onclick="return confirm('Abrir sessão deste enfermeiro?')">Abrir sessão</button>
+                            </form>
+                        <?php endif; ?>
                     </td>
                 </tr>
             <?php endforeach; ?>

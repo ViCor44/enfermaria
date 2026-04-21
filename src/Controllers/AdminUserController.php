@@ -137,4 +137,118 @@ class AdminUserController
         exit;
     }
 
+    public function openNurseSession(): void
+    {
+        Auth::requireRole(['Administrador']);
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo 'Método não permitido';
+            exit;
+        }
+
+        $targetUserId = isset($_POST['user_id']) ? (int)$_POST['user_id'] : 0;
+        $adminPassword = $_POST['admin_password'] ?? '';
+        $adminId = (int)($_SESSION['user_id'] ?? 0);
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        if ($targetUserId <= 0 || $adminPassword === '') {
+            $_SESSION['error'] = 'Indique o utilizador e a password do administrador.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
+
+        if ($targetUserId === $adminId) {
+            $_SESSION['error'] = 'Não pode abrir uma sessão delegada para a sua própria conta.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
+
+        $admin = User::findByIdWithPassword($adminId);
+        if (!$admin || ($admin['role_name'] ?? '') !== 'Administrador') {
+            $_SESSION['error'] = 'Sessão inválida para delegação.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
+
+        if (!password_verify($adminPassword, $admin['password_hash'] ?? '')) {
+            \App\Helpers\Logger::login("ADMIN OPEN SESSION FAIL (wrong admin password) | admin_id='{$adminId}' | target_user_id='{$targetUserId}' | ip='{$ip}'");
+            $_SESSION['error'] = 'Password de administrador inválida.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
+
+        $target = User::findByIdWithPassword($targetUserId);
+        if (!$target || !empty($target['deleted_at'])) {
+            $_SESSION['error'] = 'Utilizador alvo não está disponível.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
+
+        if ((int)($target['approved'] ?? 0) !== 1) {
+            $_SESSION['error'] = 'Só é possível abrir sessão de utilizadores aprovados.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
+
+        if (($target['role_name'] ?? '') !== 'Enfermeiro') {
+            $_SESSION['error'] = 'Esta ação está disponível apenas para contas de enfermeiro.';
+            header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+            exit;
+        }
+
+        $_SESSION['delegated_admin_context'] = [
+            'user_id' => $admin['id'],
+            'user_name' => $admin['full_name'],
+            'role' => $admin['role_name'],
+            'last_login' => $admin['last_login'] ?? null,
+        ];
+
+        session_regenerate_id(true);
+
+        $_SESSION['last_login'] = $target['last_login'] ?? null;
+        $_SESSION['user_id'] = $target['id'];
+        $_SESSION['role'] = $target['role_name'];
+        $_SESSION['user_name'] = $target['full_name'];
+        $_SESSION['delegated_by_admin'] = true;
+        $_SESSION['delegated_admin_name'] = $admin['full_name'];
+        $_SESSION['delegated_admin_id'] = (int)$admin['id'];
+
+        User::updateLastLogin((int)$target['id']);
+
+        \App\Helpers\Logger::login("ADMIN OPEN SESSION SUCCESS | admin_id='{$adminId}' | nurse_id='{$target['id']}' | ip='{$ip}'");
+
+        $_SESSION['success'] = 'Sessão do enfermeiro aberta com sucesso.';
+        header('Location: ' . $this->baseUrl . '?route=dashboard');
+        exit;
+    }
+
+    public function restoreAdminSession(): void
+    {
+        $ctx = $_SESSION['delegated_admin_context'] ?? null;
+        if (!$ctx || empty($_SESSION['delegated_by_admin'])) {
+            $_SESSION['error'] = 'Não existe sessão delegada ativa para restaurar.';
+            header('Location: ' . $this->baseUrl . '?route=login');
+            exit;
+        }
+
+        $delegatedUserId = (int)($_SESSION['user_id'] ?? 0);
+        $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+
+        session_regenerate_id(true);
+
+        $_SESSION['user_id'] = (int)$ctx['user_id'];
+        $_SESSION['user_name'] = (string)$ctx['user_name'];
+        $_SESSION['role'] = (string)$ctx['role'];
+        $_SESSION['last_login'] = $ctx['last_login'] ?? null;
+
+        unset($_SESSION['delegated_by_admin'], $_SESSION['delegated_admin_name'], $_SESSION['delegated_admin_id'], $_SESSION['delegated_admin_context']);
+
+        \App\Helpers\Logger::login("ADMIN SESSION RESTORED | admin_id='{$_SESSION['user_id']}' | delegated_user_id='{$delegatedUserId}' | ip='{$ip}'");
+
+        $_SESSION['success'] = 'Sessão de administrador restaurada.';
+        header('Location: ' . $this->baseUrl . '?route=admin_users_list');
+        exit;
+    }
+
 }

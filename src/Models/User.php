@@ -47,6 +47,18 @@ class User
         return $stmt->fetch() ?: null;
     }
 
+    public static function findByIdWithPassword(int $id): ?array
+    {
+        $pdo = Database::getConnection();
+
+        $stmt = $pdo->prepare("\n            SELECT u.*, r.name AS role_name\n            FROM users u\n            JOIN roles r ON r.id = u.role_id\n            WHERE u.id = ?\n            LIMIT 1\n        ");
+        $stmt->execute([$id]);
+
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $user ?: null;
+    }
+
 
     public static function updateLastLogin(int $userId): void
     {
