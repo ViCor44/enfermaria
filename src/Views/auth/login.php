@@ -148,6 +148,12 @@ $baseUrl = '/enfermaria/public/index.php';
         font-size: .95rem;
     }
 
+    .link-button:hover {
+        background: transparent;
+        color: #1258d4;
+        text-decoration: underline;
+    }
+
     .modal-overlay {
         position: fixed;
         inset: 0;
