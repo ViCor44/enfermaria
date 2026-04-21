@@ -353,13 +353,17 @@ $baseUrl = '/enfermaria/public/index.php';
     function pollStatus(code) {
         stopPolling();
         pollTimer = setInterval(function () {
-            fetch('/enfermaria/public/index.php?route=remote_access_request_status&code=' + encodeURIComponent(code), {
+            fetch('/enfermaria/public/index.php?route=remote_access_request_status&code=' + encodeURIComponent(code) + '&t=' + Date.now(), {
                 method: 'GET',
+                cache: 'no-store',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
             .then(function (response) { return response.json(); })
             .then(function (data) {
                 if (!data || data.ok !== true) {
+                    if (data && data.message) {
+                        setStatus(data.message, true);
+                    }
                     return;
                 }
 

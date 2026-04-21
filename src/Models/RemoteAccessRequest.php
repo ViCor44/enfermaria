@@ -40,13 +40,15 @@ class RemoteAccessRequest
     public static function expireOldPending(int $minutes = 20): void
     {
         $pdo = Database::getConnection();
+        $minutes = max(1, $minutes);
+        $cutoff = date('Y-m-d H:i:s', time() - ($minutes * 60));
         $stmt = $pdo->prepare(
             "UPDATE remote_access_requests
              SET status = 'expired'
              WHERE status = 'pending'
-               AND created_at < (NOW() - INTERVAL ? MINUTE)"
+               AND created_at < ?"
         );
-        $stmt->execute([$minutes]);
+        $stmt->execute([$cutoff]);
     }
 
     public static function listPending(int $limit = 25): array
