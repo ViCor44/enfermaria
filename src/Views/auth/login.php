@@ -171,21 +171,48 @@ $baseUrl = '/enfermaria/public/index.php';
     .modal-card {
         width: min(92vw, 430px);
         background: #fff;
-        border-radius: 12px;
-        padding: 1rem 1rem 1.2rem;
-        box-shadow: 0 12px 30px rgba(0,0,0,.18);
+        border-radius: 14px;
+        padding: 1.15rem 1.1rem 1.2rem;
+        box-shadow: 0 18px 44px rgba(17, 35, 72, .28);
         color: #2b2b2b;
+        border: 1px solid #e8edf7;
     }
 
     .modal-card h3 {
-        margin: .2rem 0 .4rem;
+        margin: .15rem 0 .35rem;
+        font-size: 1.22rem;
+        color: #1e2c46;
+    }
+
+    .modal-hint {
+        margin: .1rem 0 .85rem;
+        color: #5f738f;
+        font-size: .93rem;
+        line-height: 1.45;
+    }
+
+    .modal-content {
+        display: grid;
+        gap: .55rem;
+    }
+
+    .modal-card input {
+        border: 1px solid #b7c9e6;
+        border-radius: 9px;
+        transition: border-color .2s, box-shadow .2s;
+    }
+
+    .modal-card input:focus {
+        outline: none;
+        border-color: #3f7de8;
+        box-shadow: 0 0 0 3px rgba(63, 125, 232, .18);
     }
 
     .modal-actions {
         display: flex;
         gap: .6rem;
         justify-content: flex-end;
-        margin-top: 1rem;
+        margin-top: .9rem;
     }
 
     .btn-secondary {
@@ -199,17 +226,30 @@ $baseUrl = '/enfermaria/public/index.php';
 
     .request-status {
         margin-top: .8rem;
-        font-size: .92rem;
+        font-size: .93rem;
         color: #184a96;
-        background: #edf4ff;
+        background: linear-gradient(180deg, #f4f8ff 0%, #edf4ff 100%);
         border: 1px solid #cfe0ff;
-        border-radius: 8px;
-        padding: .65rem .75rem;
+        border-radius: 10px;
+        padding: .7rem .8rem;
         display: none;
+        line-height: 1.35;
     }
 
     .request-status.is-visible {
         display: block;
+    }
+
+    .modal-card.is-pending .modal-content {
+        display: none;
+    }
+
+    .modal-card.is-pending .modal-actions {
+        margin-top: .75rem;
+    }
+
+    .modal-card.is-pending .btn-secondary {
+        width: 100%;
     }
 
 </style>
@@ -296,12 +336,14 @@ $baseUrl = '/enfermaria/public/index.php';
 <div class="modal-overlay" id="remoteAccessModal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="remoteAccessTitle">
         <h3 id="remoteAccessTitle">Pedido de acesso remoto</h3>
-        <p style="margin:.2rem 0 .8rem; color:#5f738f; font-size:.95rem;">
+        <p class="modal-hint" id="remoteAccessHint">
             Indique o nome completo do enfermeiro para enviar um pedido ao administrador.
         </p>
 
-        <label for="remoteNurseName">Nome do enfermeiro</label>
-        <input id="remoteNurseName" type="text" autocomplete="name" placeholder="Ex: Pedro Carlos Pinheiro Carlos Dias">
+        <div class="modal-content" id="remoteAccessContent">
+            <label for="remoteNurseName">Nome do enfermeiro</label>
+            <input id="remoteNurseName" type="text" autocomplete="name" placeholder="Ex: Pedro Carlos Pinheiro Carlos Dias">
+        </div>
 
         <div id="remoteAccessStatus" class="request-status"></div>
 
@@ -320,7 +362,53 @@ $baseUrl = '/enfermaria/public/index.php';
     var submitBtn = document.getElementById('submitRemoteAccess');
     var nurseInput = document.getElementById('remoteNurseName');
     var statusBox = document.getElementById('remoteAccessStatus');
+    var modalCard = modal.querySelector('.modal-card');
+    var hintText = document.getElementById('remoteAccessHint');
+    var storageKey = 'remoteAccessPendingRequest';
     var pollTimer = null;
+    var pendingRequestCode = '';
+
+    function setPendingMode(isPending) {
+        if (isPending) {
+            modalCard.classList.add('is-pending');
+            hintText.textContent = 'Pedido enviado com sucesso.';
+            closeBtn.textContent = 'Fechar';
+            submitBtn.style.display = 'none';
+            return;
+        }
+
+        modalCard.classList.remove('is-pending');
+        hintText.textContent = 'Indique o nome completo do enfermeiro para enviar um pedido ao administrador.';
+        closeBtn.textContent = 'Cancelar';
+        submitBtn.style.display = '';
+    }
+
+    function savePendingRequest(code) {
+        pendingRequestCode = code;
+        try {
+            window.localStorage.setItem(storageKey, code);
+        } catch (error) {
+            // ignora falhas de armazenamento no browser
+        }
+    }
+
+    function clearPendingRequest() {
+        pendingRequestCode = '';
+        try {
+            window.localStorage.removeItem(storageKey);
+        } catch (error) {
+            // ignora falhas de armazenamento no browser
+        }
+    }
+
+    function loadPendingRequest() {
+        try {
+            var savedCode = (window.localStorage.getItem(storageKey) || '').trim();
+            return savedCode;
+        } catch (error) {
+            return '';
+        }
+    }
 
     function setStatus(message, isError) {
         statusBox.textContent = message;
@@ -347,11 +435,15 @@ $baseUrl = '/enfermaria/public/index.php';
     function openModal() {
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
-        nurseInput.focus();
+        if (!pendingRequestCode) {
+            nurseInput.focus();
+        }
     }
 
     function closeModal() {
-        stopPolling();
+        if (!pendingRequestCode) {
+            stopPolling();
+        }
         modal.classList.remove('is-open');
         modal.setAttribute('aria-hidden', 'true');
     }
@@ -375,6 +467,8 @@ $baseUrl = '/enfermaria/public/index.php';
 
                 if (data.status === 'approved' && data.redirect_url) {
                     stopPolling();
+                    clearPendingRequest();
+                    setPendingMode(false);
                     setStatus('Pedido aprovado. A abrir sessão...', false);
                     window.location.href = data.redirect_url;
                     return;
@@ -382,12 +476,16 @@ $baseUrl = '/enfermaria/public/index.php';
 
                 if (data.status === 'rejected') {
                     stopPolling();
+                    clearPendingRequest();
+                    setPendingMode(false);
                     setStatus('Pedido rejeitado pelo administrador.', true);
                     return;
                 }
 
                 if (data.status === 'expired') {
                     stopPolling();
+                    clearPendingRequest();
+                    setPendingMode(false);
                     setStatus('Pedido expirou. Envie novamente.', true);
                 }
             })
@@ -406,6 +504,10 @@ $baseUrl = '/enfermaria/public/index.php';
     });
 
     submitBtn.addEventListener('click', function () {
+        if (pendingRequestCode) {
+            return;
+        }
+
         var nurseName = (nurseInput.value || '').trim();
         if (!nurseName) {
             setStatus('Indique o nome completo do enfermeiro.', true);
@@ -431,6 +533,8 @@ $baseUrl = '/enfermaria/public/index.php';
                 return;
             }
 
+            savePendingRequest(data.request_code);
+            setPendingMode(true);
             setStatus('Pedido enviado. Aguarde aprovacao do administrador.', false);
             pollStatus(data.request_code);
         })
@@ -439,6 +543,16 @@ $baseUrl = '/enfermaria/public/index.php';
             setStatus('Erro de comunicacao ao enviar pedido.', true);
         });
     });
+
+    var existingRequestCode = loadPendingRequest();
+    if (existingRequestCode) {
+        savePendingRequest(existingRequestCode);
+        setPendingMode(true);
+        setStatus('Pedido enviado. Aguarde aprovacao do administrador.', false);
+        pollStatus(existingRequestCode);
+    } else {
+        setPendingMode(false);
+    }
 })();
 </script>
 
