@@ -197,6 +197,7 @@ $baseUrl = '/enfermaria/public/index.php';
     }
 
     .modal-card input {
+        box-sizing: border-box;
         border: 1px solid #b7c9e6;
         border-radius: 9px;
         transition: border-color .2s, box-shadow .2s;
