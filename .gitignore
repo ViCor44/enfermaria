@@ -3,3 +3,16 @@ storage/*
 !storage/.gitkeep
 public/pdfs/*
 !public/pdfs/.gitkeep
+
+# Dependencias e binarios locais de analise
+vendor/bin/phpstan
+vendor/bin/phpstan.bat
+vendor/bin/phpstan.phar
+vendor/bin/phpstan.phar.bat
+vendor/phpstan/
+
+# Metadados gerados do composer em vendor
+vendor/composer/autoload_files.php
+vendor/composer/autoload_static.php
+vendor/composer/installed.json
+vendor/composer/installed.php
