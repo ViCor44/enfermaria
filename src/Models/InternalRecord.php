@@ -188,4 +188,24 @@ class InternalRecord
         $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public static function statsByTreatment(array $filters = []): array
+    {
+        $pdo = Database::getConnection();
+        $params = [];
+        $filterSql = self::buildDateFilterSql($filters, $params);
+
+        $sql = "SELECT NULLIF(TRIM(ir.treatment), '') AS tipo, COUNT(*) AS total
+                FROM internal_records ir
+                {$filterSql}
+                GROUP BY tipo
+                ORDER BY total DESC, tipo ASC";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return array_values(array_filter(
+            $stmt->fetchAll(PDO::FETCH_ASSOC),
+            static fn(array $row): bool => (int)($row['total'] ?? 0) > 0
+        ));
+    }
 }

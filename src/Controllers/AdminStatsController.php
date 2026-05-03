@@ -409,6 +409,7 @@ class AdminStatsController
         $genderStats      = $this->formatGenderStats(\App\Models\InternalRecord::statsByGender($filters));
         $ageStats         = \App\Models\InternalRecord::statsByAge($filters);
         $employeeStats    = \App\Models\InternalRecord::statsByEmployeeType($filters);
+        $treatmentStats   = $this->formatCategoryStats(\App\Models\InternalRecord::statsByTreatment($filters), 'tipo', 'Tratamento não definido');
         $totalRecords     = \App\Models\InternalRecord::countByFilters($filters);
         $topLocation      = \App\Models\InternalRecord::topLocation($filters);
 
@@ -435,12 +436,13 @@ class AdminStatsController
 
         $filters = $this->resolveFilters();
 
-        $locationStats = $this->formatCategoryStats(\App\Models\InternalRecord::statsByLocation($filters), 'local', 'Local não definido');
-        $genderStats   = $this->formatGenderStats(\App\Models\InternalRecord::statsByGender($filters));
-        $ageStats      = \App\Models\InternalRecord::statsByAge($filters);
-        $employeeStats = \App\Models\InternalRecord::statsByEmployeeType($filters);
-        $totalRecords  = \App\Models\InternalRecord::countByFilters($filters);
-        $topLocation   = \App\Models\InternalRecord::topLocation($filters);
+        $locationStats  = $this->formatCategoryStats(\App\Models\InternalRecord::statsByLocation($filters), 'local', 'Local não definido');
+        $genderStats    = $this->formatGenderStats(\App\Models\InternalRecord::statsByGender($filters));
+        $ageStats       = \App\Models\InternalRecord::statsByAge($filters);
+        $employeeStats  = \App\Models\InternalRecord::statsByEmployeeType($filters);
+        $treatmentStats = $this->formatCategoryStats(\App\Models\InternalRecord::statsByTreatment($filters), 'tipo', 'Tratamento não definido');
+        $totalRecords   = \App\Models\InternalRecord::countByFilters($filters);
+        $topLocation    = \App\Models\InternalRecord::topLocation($filters);
 
         header('Content-Type: text/csv; charset=UTF-8');
         header('Content-Disposition: attachment; filename="registos-internos-' . date('Ymd-His') . '.csv"');
@@ -461,10 +463,11 @@ class AdminStatsController
         fputcsv($output, ['Registos', $totalRecords], ';');
         fputcsv($output, ['Local mais frequente', $this->exportTopValue($topLocation, 'local')], ';');
 
-        $this->writeCsvSection($output, 'Registos por Local',        'Local',             $locationStats, 'local');
-        $this->writeCsvSection($output, 'Registos por Género',       'Género',            $genderStats,   'genero');
-        $this->writeCsvSection($output, 'Registos por Faixa Etária', 'Faixa',             $ageStats,      'faixa');
-        $this->writeCsvSection($output, 'Colaborador / Utente',      'Tipo de utente',    $employeeStats, 'tipo');
+        $this->writeCsvSection($output, 'Registos por Local',        'Local',          $locationStats,  'local');
+        $this->writeCsvSection($output, 'Registos por Género',       'Género',         $genderStats,    'genero');
+        $this->writeCsvSection($output, 'Registos por Faixa Etária', 'Faixa',          $ageStats,       'faixa');
+        $this->writeCsvSection($output, 'Colaborador / Utente',      'Tipo de utente', $employeeStats,  'tipo');
+        $this->writeCsvSection($output, 'Tratamentos',               'Tratamento',     $treatmentStats, 'tipo');
 
         fclose($output);
         exit;

@@ -38,6 +38,16 @@ $chartCards = [
         'empty'       => 'Sem registos no período selecionado.',
         'tone'        => 'rose',
     ],
+    [
+        'id'          => 'chartTreatment',
+        'title'       => 'Tipo de Tratamento',
+        'description' => 'Tratamentos mais aplicados nos registos internos.',
+        'labels'      => array_column($treatmentStats, 'tipo'),
+        'data'        => array_map('intval', array_column($treatmentStats, 'total')),
+        'empty'       => 'Sem tratamentos associados ao período selecionado.',
+        'tone'        => 'purple',
+        'wide'        => true,
+    ],
 ];
 
 $comparisonRecords      = $comparison['recordsDelta']['value'] ?? '—';
@@ -394,6 +404,8 @@ $comparisonRecordsClass = $comparison['recordsDelta']['direction'] ?? 'neutral';
 
     .chart-card { padding: 22px; }
 
+    .chart-card--wide { grid-column: 1 / -1; }
+
     .chart-card[data-tone="blue"]   { border-top: 4px solid #4b8ef7; }
     .chart-card[data-tone="green"]  { border-top: 4px solid #1f9a68; }
     .chart-card[data-tone="gold"]   { border-top: 4px solid #d79b21; }
@@ -592,7 +604,7 @@ $comparisonRecordsClass = $comparison['recordsDelta']['direction'] ?? 'neutral';
         <div class="stats-grid">
             <?php foreach ($chartCards as $chart): ?>
                 <?php $total = array_sum($chart['data']); ?>
-                <article class="chart-card" data-tone="<?= htmlspecialchars($chart['tone']) ?>">
+                <article class="chart-card <?= !empty($chart['wide']) ? 'chart-card--wide' : '' ?>" data-tone="<?= htmlspecialchars($chart['tone']) ?>">
                     <div class="chart-header">
                         <div>
                             <h3><?= htmlspecialchars($chart['title']) ?></h3>
