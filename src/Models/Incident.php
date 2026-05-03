@@ -376,11 +376,11 @@ class Incident
         $db = Database::getConnection();
         $params = [];
         $filterSql = self::buildDateFilterSql($filters, $params, 'i');
-        $sql = "SELECT l.name AS local, COUNT(*) AS total
+        $sql = "SELECT l.id AS location_id, l.name AS local, COUNT(*) AS total
                 FROM incidents i
                 JOIN locations l ON i.location_id = l.id
                 {$filterSql}
-            GROUP BY l.name
+            GROUP BY l.id, l.name
             ORDER BY total DESC, l.name ASC";
 
         $stmt = $db->prepare($sql);

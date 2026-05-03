@@ -1,51 +1,61 @@
 <?php
 $baseUrl = '/enfermaria/public/index.php';
 
+$listBase = $baseUrl . '?route=admin_incidents'
+    . ($filters['fromDate'] ? '&from=' . urlencode($filters['fromDate']) : '')
+    . ($filters['toDate']   ? '&to='   . urlencode($filters['toDate'])   : '');
+
 $chartCards = [
     [
-        'id' => 'chartType',
-        'title' => 'Tipo de Ocorrência',
+        'id'          => 'chartType',
+        'title'       => 'Tipo de Ocorrência',
         'description' => 'Prioriza a leitura das causas mais frequentes no período.',
-        'labels' => array_column($typeStats, 'tipo'),
-        'data' => array_map('intval', array_column($typeStats, 'total')),
-        'empty' => 'Sem ocorrências registadas para o período selecionado.',
-        'tone' => 'rose',
+        'labels'      => array_column($typeStats, 'tipo'),
+        'data'        => array_map('intval', array_column($typeStats, 'total')),
+        'empty'       => 'Sem ocorrências registadas para o período selecionado.',
+        'tone'        => 'rose',
+        'clickUrl'    => $listBase,
     ],
     [
-        'id' => 'chartLocation',
-        'title' => 'Ocorrências por Local',
+        'id'          => 'chartLocation',
+        'title'       => 'Ocorrências por Local',
         'description' => 'Mostra onde se concentram mais episódios.',
-        'labels' => array_column($locationStats, 'local'),
-        'data' => array_map('intval', array_column($locationStats, 'total')),
-        'empty' => 'Sem locais com ocorrências no período selecionado.',
-        'tone' => 'gold',
+        'labels'      => array_column($locationStats, 'local'),
+        'data'        => array_map('intval', array_column($locationStats, 'total')),
+        'empty'       => 'Sem locais com ocorrências no período selecionado.',
+        'tone'        => 'gold',
+        'clickUrl'    => $listBase,
+        'locationIds' => array_column($locationStats, 'location_id'),
     ],
     [
-        'id' => 'chartAge',
-        'title' => 'Ocorrências por Faixa Etária',
+        'id'          => 'chartAge',
+        'title'       => 'Ocorrências por Faixa Etária',
         'description' => 'Ajuda a identificar padrões por grupo etário.',
-        'labels' => array_column($ageStats, 'faixa'),
-        'data' => array_map('intval', array_column($ageStats, 'total')),
-        'empty' => 'Sem idades suficientes para gerar distribuição.',
-        'tone' => 'blue',
+        'labels'      => array_column($ageStats, 'faixa'),
+        'data'        => array_map('intval', array_column($ageStats, 'total')),
+        'empty'       => 'Sem idades suficientes para gerar distribuição.',
+        'tone'        => 'blue',
+        'clickUrl'    => $listBase,
     ],
     [
-        'id' => 'chartGender',
-        'title' => 'Ocorrências por Género',
+        'id'          => 'chartGender',
+        'title'       => 'Ocorrências por Género',
         'description' => 'Valores já apresentados com etiquetas legíveis.',
-        'labels' => array_column($genderStats, 'genero'),
-        'data' => array_map('intval', array_column($genderStats, 'total')),
-        'empty' => 'Sem informação de género no período selecionado.',
-        'tone' => 'green',
+        'labels'      => array_column($genderStats, 'genero'),
+        'data'        => array_map('intval', array_column($genderStats, 'total')),
+        'empty'       => 'Sem informação de género no período selecionado.',
+        'tone'        => 'green',
+        'clickUrl'    => $listBase,
     ],
     [
-        'id' => 'chartTreatment',
-        'title' => 'Tipo de Tratamento',
+        'id'          => 'chartTreatment',
+        'title'       => 'Tipo de Tratamento',
         'description' => 'Destaca os tratamentos mais aplicados.',
-        'labels' => array_column($treatmentStats, 'tipo'),
-        'data' => array_map('intval', array_column($treatmentStats, 'total')),
-        'empty' => 'Sem tratamentos associados ao período selecionado.',
-        'tone' => 'purple',
+        'labels'      => array_column($treatmentStats, 'tipo'),
+        'data'        => array_map('intval', array_column($treatmentStats, 'total')),
+        'empty'       => 'Sem tratamentos associados ao período selecionado.',
+        'tone'        => 'purple',
+        'clickUrl'    => $listBase,
     ],
 ];
 
@@ -846,6 +856,11 @@ const buildChart = (chart) => {
     }
 
     const palette = paletteMap[chart.tone] || paletteMap.blue;
+    const hasClick = !!chart.clickUrl;
+
+    if (hasClick) {
+        target.style.cursor = 'pointer';
+    }
 
     new Chart(target, {
         type: 'bar',
@@ -868,6 +883,15 @@ const buildChart = (chart) => {
                 duration: 650,
                 easing: 'easeOutQuart'
             },
+            onClick: hasClick ? (evt, elements) => {
+                if (!elements.length) return;
+                const idx = elements[0].index;
+                let url = chart.clickUrl;
+                if (chart.locationIds && chart.locationIds[idx]) {
+                    url += '&location_id=' + encodeURIComponent(chart.locationIds[idx]);
+                }
+                window.location.href = url;
+            } : undefined,
             plugins: {
                 legend: {
                     display: false
@@ -877,7 +901,7 @@ const buildChart = (chart) => {
                     padding: 12,
                     displayColors: false,
                     callbacks: {
-                        label: (context) => `Total: ${context.parsed.y}`
+                        label: (context) => `Total: ${context.parsed.y}` + (hasClick ? ' — clique para ver lista' : '')
                     }
                 }
             },

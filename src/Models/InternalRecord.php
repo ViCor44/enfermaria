@@ -86,11 +86,11 @@ class InternalRecord
         $params = [];
         $filterSql = self::buildDateFilterSql($filters, $params);
 
-        $sql = "SELECT l.name AS local, COUNT(*) AS total
+        $sql = "SELECT l.id AS location_id, l.name AS local, COUNT(*) AS total
                 FROM internal_records ir
                 JOIN locations l ON l.id = ir.location_id
                 {$filterSql}
-                GROUP BY l.name
+                GROUP BY l.id, l.name
                 ORDER BY total DESC, l.name ASC";
 
         $stmt = $pdo->prepare($sql);
