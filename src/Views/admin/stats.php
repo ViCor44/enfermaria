@@ -15,6 +15,8 @@ $chartCards = [
         'empty'       => 'Sem ocorrências registadas para o período selecionado.',
         'tone'        => 'rose',
         'clickUrl'    => $listBase,
+        'filterParam' => 'type_id',
+        'filterValues'=> array_column($typeStats, 'type_id'),
     ],
     [
         'id'          => 'chartLocation',
@@ -23,9 +25,10 @@ $chartCards = [
         'labels'      => array_column($locationStats, 'local'),
         'data'        => array_map('intval', array_column($locationStats, 'total')),
         'empty'       => 'Sem locais com ocorrências no período selecionado.',
-        'tone'        => 'gold',
-        'clickUrl'    => $listBase,
-        'locationIds' => array_column($locationStats, 'location_id'),
+        'tone'         => 'gold',
+        'clickUrl'     => $listBase,
+        'filterParam'  => 'location_id',
+        'filterValues' => array_column($locationStats, 'location_id'),
     ],
     [
         'id'          => 'chartAge',
@@ -887,8 +890,8 @@ const buildChart = (chart) => {
                 if (!elements.length) return;
                 const idx = elements[0].index;
                 let url = chart.clickUrl;
-                if (chart.locationIds && chart.locationIds[idx]) {
-                    url += '&location_id=' + encodeURIComponent(chart.locationIds[idx]);
+                if (chart.filterParam && Array.isArray(chart.filterValues) && chart.filterValues[idx] != null) {
+                    url += '&' + encodeURIComponent(chart.filterParam) + '=' + encodeURIComponent(chart.filterValues[idx]);
                 }
                 window.location.href = url;
             } : undefined,

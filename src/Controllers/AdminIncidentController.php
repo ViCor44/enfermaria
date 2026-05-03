@@ -38,6 +38,7 @@ class AdminIncidentController
         $toDate     = $_GET['to'] ?? '';
         $locationId = isset($_GET['location_id']) ? (int)$_GET['location_id'] : 0;
         $episode    = isset($_GET['episode']) ? trim($_GET['episode']) : '';
+        $typeId     = isset($_GET['type_id']) ? (int)$_GET['type_id'] : 0;
 
         $locations  = \App\Models\Location::allActive();
 
@@ -46,6 +47,7 @@ class AdminIncidentController
             'toDate'     => $toDate !== '' ? $toDate : null,
             'locationId' => $locationId > 0 ? $locationId : null,
             'episode'    => $episode !== '' ? $episode : null,
+            'typeId'     => $typeId > 0 ? $typeId : null,
         ]);
 
         require __DIR__ . '/../Views/admin/incidents_list.php';

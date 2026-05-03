@@ -118,6 +118,7 @@ class Incident
         $locationId = $opts['locationId'] ?? null;
         $userId     = isset($opts['userId']) ? (int)$opts['userId'] : null;
         $episode    = isset($opts['episode']) && $opts['episode'] !== '' ? (int)$opts['episode'] : null;
+        $typeId     = isset($opts['typeId']) && (int)$opts['typeId'] > 0 ? (int)$opts['typeId'] : null;
 
         $pdo = Database::getConnection();
 
@@ -158,6 +159,11 @@ class Incident
         if ($locationId) {
             $sql .= " AND i.location_id = :locationId";
             $params[':locationId'] = $locationId;
+        }
+
+        if ($typeId) {
+            $sql .= " AND i.incident_type_id = :typeId";
+            $params[':typeId'] = $typeId;
         }
 
         if ($userId) {
@@ -393,11 +399,11 @@ class Incident
         $db = Database::getConnection();
         $params = [];
         $filterSql = self::buildDateFilterSql($filters, $params, 'i');
-        $sql = "SELECT t.name AS tipo, COUNT(*) AS total
+        $sql = "SELECT t.id AS type_id, t.name AS tipo, COUNT(*) AS total
                 FROM incidents i
                 JOIN incident_types t ON i.incident_type_id = t.id
                 {$filterSql}
-            GROUP BY t.name
+            GROUP BY t.id, t.name
             ORDER BY total DESC, t.name ASC";
 
         $stmt = $db->prepare($sql);
