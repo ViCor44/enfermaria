@@ -3,56 +3,45 @@ $baseUrl = '/enfermaria/public/index.php';
 
 $chartCards = [
     [
-        'id' => 'chartType',
-        'title' => 'Tipo de Ocorrência',
-        'description' => 'Prioriza a leitura das causas mais frequentes no período.',
-        'labels' => array_column($typeStats, 'tipo'),
-        'data' => array_map('intval', array_column($typeStats, 'total')),
-        'empty' => 'Sem ocorrências registadas para o período selecionado.',
-        'tone' => 'rose',
+        'id'          => 'chartLocation',
+        'title'       => 'Registos por Local',
+        'description' => 'Mostra onde se concentram mais registos internos.',
+        'labels'      => array_column($locationStats, 'local'),
+        'data'        => array_map('intval', array_column($locationStats, 'total')),
+        'empty'       => 'Sem locais com registos no período selecionado.',
+        'tone'        => 'gold',
     ],
     [
-        'id' => 'chartLocation',
-        'title' => 'Ocorrências por Local',
-        'description' => 'Mostra onde se concentram mais episódios.',
-        'labels' => array_column($locationStats, 'local'),
-        'data' => array_map('intval', array_column($locationStats, 'total')),
-        'empty' => 'Sem locais com ocorrências no período selecionado.',
-        'tone' => 'gold',
+        'id'          => 'chartGender',
+        'title'       => 'Registos por Género',
+        'description' => 'Distribuição por género dos utentes registados.',
+        'labels'      => array_column($genderStats, 'genero'),
+        'data'        => array_map('intval', array_column($genderStats, 'total')),
+        'empty'       => 'Sem informação de género no período selecionado.',
+        'tone'        => 'green',
     ],
     [
-        'id' => 'chartAge',
-        'title' => 'Ocorrências por Faixa Etária',
+        'id'          => 'chartAge',
+        'title'       => 'Registos por Faixa Etária',
         'description' => 'Ajuda a identificar padrões por grupo etário.',
-        'labels' => array_column($ageStats, 'faixa'),
-        'data' => array_map('intval', array_column($ageStats, 'total')),
-        'empty' => 'Sem idades suficientes para gerar distribuição.',
-        'tone' => 'blue',
+        'labels'      => array_column($ageStats, 'faixa'),
+        'data'        => array_map('intval', array_column($ageStats, 'total')),
+        'empty'       => 'Sem idades suficientes para gerar distribuição.',
+        'tone'        => 'blue',
     ],
     [
-        'id' => 'chartGender',
-        'title' => 'Ocorrências por Género',
-        'description' => 'Valores já apresentados com etiquetas legíveis.',
-        'labels' => array_column($genderStats, 'genero'),
-        'data' => array_map('intval', array_column($genderStats, 'total')),
-        'empty' => 'Sem informação de género no período selecionado.',
-        'tone' => 'green',
-    ],
-    [
-        'id' => 'chartTreatment',
-        'title' => 'Tipo de Tratamento',
-        'description' => 'Destaca os tratamentos mais aplicados.',
-        'labels' => array_column($treatmentStats, 'tipo'),
-        'data' => array_map('intval', array_column($treatmentStats, 'total')),
-        'empty' => 'Sem tratamentos associados ao período selecionado.',
-        'tone' => 'purple',
+        'id'          => 'chartEmployee',
+        'title'       => 'Colaborador vs Utente externo',
+        'description' => 'Proporção entre colaboradores e utentes externos.',
+        'labels'      => array_column($employeeStats, 'tipo'),
+        'data'        => array_map('intval', array_column($employeeStats, 'total')),
+        'empty'       => 'Sem registos no período selecionado.',
+        'tone'        => 'rose',
     ],
 ];
 
-$comparisonIncidents = $comparison['incidentsDelta']['value'] ?? '—';
-$comparisonTreatments = $comparison['treatmentsDelta']['value'] ?? '—';
-$comparisonIncidentsClass = $comparison['incidentsDelta']['direction'] ?? 'neutral';
-$comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neutral';
+$comparisonRecords      = $comparison['recordsDelta']['value'] ?? '—';
+$comparisonRecordsClass = $comparison['recordsDelta']['direction'] ?? 'neutral';
 ?>
 <link rel="stylesheet" href="/enfermaria/public/assets/css/layout.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -93,9 +82,7 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         margin-bottom: 24px;
     }
 
-    .stats-hero-copy {
-        max-width: 720px;
-    }
+    .stats-hero-copy { max-width: 720px; }
 
     .stats-title {
         margin: 0;
@@ -149,6 +136,45 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         background: #ffffff;
         color: var(--stats-accent);
         border-color: #cfe0fb;
+    }
+
+    /* Tab toggle */
+    .stats-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 24px;
+        border-bottom: 2px solid var(--stats-border);
+        padding-bottom: 0;
+    }
+
+    .stats-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 20px;
+        border-radius: 10px 10px 0 0;
+        border: 1px solid transparent;
+        border-bottom: none;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--stats-muted);
+        background: transparent;
+        transition: background 0.18s, color 0.18s;
+        position: relative;
+        bottom: -2px;
+    }
+
+    .stats-tab:hover {
+        background: var(--stats-accent-soft);
+        color: var(--stats-accent);
+    }
+
+    .stats-tab.active {
+        background: var(--stats-surface);
+        color: var(--stats-accent);
+        border-color: var(--stats-border);
+        border-bottom-color: var(--stats-surface);
     }
 
     .stats-filter-panel,
@@ -230,7 +256,7 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
 
     .stats-summary-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
         gap: 16px;
         margin-bottom: 22px;
     }
@@ -257,16 +283,8 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         color: var(--stats-muted);
     }
 
-    .comparison-banner span {
-        color: var(--stats-text);
-        font-weight: 700;
-    }
-
-    .comparison-note {
-        color: var(--stats-muted);
-        font-size: 0.9rem;
-        line-height: 1.5;
-    }
+    .comparison-banner span { color: var(--stats-text); font-weight: 700; }
+    .comparison-note { color: var(--stats-muted); font-size: 0.9rem; line-height: 1.5; }
 
     .comparison-banner-intro {
         display: flex;
@@ -281,14 +299,8 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         border-radius: 12px;
     }
 
-    .comparison-period-box.current {
-        border-color: #c9dcfb;
-        background: #f7fbff;
-    }
-
-    .comparison-period-box.base {
-        background: #fbfcfe;
-    }
+    .comparison-period-box.current { border-color: #c9dcfb; background: #f7fbff; }
+    .comparison-period-box.base    { background: #fbfcfe; }
 
     .comparison-period-box .label {
         display: block;
@@ -362,54 +374,9 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         font-size: 0.84rem;
     }
 
-    .trend-pill.up {
-        background: #e6f7ee;
-        color: #0c8c46;
-    }
-
-    .trend-pill.down {
-        background: #fdecec;
-        color: #bf2f2f;
-    }
-
-    .trend-pill.neutral {
-        background: #eef3f9;
-        color: #53657e;
-    }
-
-    .insights-card {
-        padding: 22px;
-        margin-bottom: 22px;
-    }
-
-    .insights-grid {
-        display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
-        margin-top: 16px;
-    }
-
-    .insight-chip {
-        border-radius: 14px;
-        padding: 14px 16px;
-        background: var(--stats-surface-alt);
-        border: 1px solid #e0ebf8;
-    }
-
-    .insight-chip strong {
-        display: block;
-        margin-bottom: 6px;
-        font-size: 0.82rem;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        color: var(--stats-muted);
-    }
-
-    .insight-chip span {
-        color: var(--stats-text);
-        font-weight: 700;
-        line-height: 1.4;
-    }
+    .trend-pill.up      { background: #e6f7ee; color: #0c8c46; }
+    .trend-pill.down    { background: #fdecec; color: #bf2f2f; }
+    .trend-pill.neutral { background: #eef3f9; color: #53657e; }
 
     .section-header {
         display: flex;
@@ -425,14 +392,12 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         gap: 18px;
     }
 
-    .chart-card {
-        padding: 22px;
-    }
+    .chart-card { padding: 22px; }
 
-    .chart-card[data-tone="blue"] { border-top: 4px solid #4b8ef7; }
-    .chart-card[data-tone="green"] { border-top: 4px solid #1f9a68; }
-    .chart-card[data-tone="gold"] { border-top: 4px solid #d79b21; }
-    .chart-card[data-tone="rose"] { border-top: 4px solid #d15f67; }
+    .chart-card[data-tone="blue"]   { border-top: 4px solid #4b8ef7; }
+    .chart-card[data-tone="green"]  { border-top: 4px solid #1f9a68; }
+    .chart-card[data-tone="gold"]   { border-top: 4px solid #d79b21; }
+    .chart-card[data-tone="rose"]   { border-top: 4px solid #d15f67; }
     .chart-card[data-tone="purple"] { border-top: 4px solid #7761d8; }
 
     .chart-header {
@@ -443,19 +408,8 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         margin-bottom: 14px;
     }
 
-    .chart-header h3 {
-        margin: 0;
-        font-size: 1.08rem;
-        font-weight: 800;
-        color: var(--stats-text);
-    }
-
-    .chart-header p {
-        margin: 6px 0 0;
-        color: var(--stats-muted);
-        line-height: 1.5;
-        font-size: 0.92rem;
-    }
+    .chart-header h3 { margin: 0; font-size: 1.08rem; font-weight: 800; color: var(--stats-text); }
+    .chart-header p  { margin: 6px 0 0; color: var(--stats-muted); line-height: 1.5; font-size: 0.92rem; }
 
     .chart-total {
         min-width: 60px;
@@ -468,10 +422,7 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         font-size: 0.86rem;
     }
 
-    .chart-shell {
-        position: relative;
-        height: 280px;
-    }
+    .chart-shell { position: relative; height: 280px; }
 
     .empty-state {
         display: flex;
@@ -487,129 +438,30 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         line-height: 1.6;
     }
 
-    .chart-card--wide {
-        grid-column: 1 / -1;
-    }
-
-    /* Tab toggle */
-    .stats-tabs {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 24px;
-        border-bottom: 2px solid var(--stats-border);
-        padding-bottom: 0;
-    }
-
-    .stats-tab {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        padding: 10px 20px;
-        border-radius: 10px 10px 0 0;
-        border: 1px solid transparent;
-        border-bottom: none;
-        text-decoration: none;
-        font-weight: 700;
-        font-size: 0.95rem;
-        color: var(--stats-muted);
-        background: transparent;
-        transition: background 0.18s, color 0.18s;
-        position: relative;
-        bottom: -2px;
-    }
-
-    .stats-tab:hover {
-        background: var(--stats-accent-soft);
-        color: var(--stats-accent);
-    }
-
-    .stats-tab.active {
-        background: var(--stats-surface);
-        color: var(--stats-accent);
-        border-color: var(--stats-border);
-        border-bottom-color: var(--stats-surface);
-    }
-
     @media (max-width: 1080px) {
         .stats-summary-grid,
-        .insights-grid,
-        .stats-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
-
-        .stats-filter-form {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-        }
+        .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .stats-filter-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
 
     @media (max-width: 760px) {
-        .stats-page {
-            padding: 20px 14px 36px;
-        }
-
+        .stats-page { padding: 20px 14px 36px; }
         .stats-hero,
         .stats-filter-head,
         .comparison-banner,
         .section-header,
         .summary-meta,
-        .chart-header {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
+        .chart-header { flex-direction: column; align-items: stretch; }
         .stats-actions,
-        .filter-actions {
-            justify-content: stretch;
-        }
-
+        .filter-actions { justify-content: stretch; }
         .stats-button,
-        .stats-button:visited {
-            width: 100%;
-        }
-
+        .stats-button:visited { width: 100%; }
         .stats-summary-grid,
-            .comparison-period-box {
-                padding: 14px 16px;
-                background: #ffffff;
-                border: 1px solid #dbe7f6;
-                border-radius: 12px;
-            }
-    
-            .comparison-period-box.current {
-                border-color: #c9dcfb;
-                background: #f7fbff;
-            }
-    
-            .comparison-period-box.base {
-                background: #fbfcfe;
-            }
-    
-            .comparison-period-box .label {
-                display: block;
-                margin-bottom: 6px;
-                font-size: 0.76rem;
-                font-weight: 800;
-                letter-spacing: 0.05em;
-                text-transform: uppercase;
-                color: var(--stats-muted);
-            }
-    
-            .comparison-period-box .value {
-                color: var(--stats-text);
-                font-weight: 800;
-                line-height: 1.4;
-            }
         .stats-grid,
         .comparison-banner,
-        .stats-filter-form {
-            grid-template-columns: 1fr;
-        }
-
+        .stats-filter-form { grid-template-columns: 1fr; }
         .chart-shell,
-        .empty-state {
-            min-height: 240px;
-            height: 240px;
-        }
+        .empty-state { min-height: 240px; height: 240px; }
     }
 </style>
 <?php require __DIR__ . '/../layouts/header.php'; ?>
@@ -618,24 +470,22 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         <div class="stats-hero-copy">
             <h1 class="stats-title">Estatísticas</h1>
             <p class="stats-subtitle">
-                Vista analítica das ocorrências e tratamentos com filtros temporais, comparação com o período anterior
-                e leitura rápida dos indicadores mais relevantes.
+                Vista analítica dos registos internos com filtros temporais e comparação com o período anterior.
             </p>
         </div>
 
         <div class="stats-actions">
-            <a class="stats-button stats-button-secondary" href="<?= htmlspecialchars($exportPdfUrl) ?>" target="_blank" rel="noopener">Exportar PDF</a>
             <a class="stats-button stats-button-secondary" href="<?= htmlspecialchars($exportUrl) ?>">Exportar CSV</a>
-            <a class="stats-button stats-button-primary" href="<?= htmlspecialchars($baseUrl . '?route=admin_stats&period=30d') ?>">Ver últimos 30 dias</a>
+            <a class="stats-button stats-button-primary" href="<?= htmlspecialchars($baseUrl . '?route=admin_stats_internal&period=30d') ?>">Ver últimos 30 dias</a>
         </div>
     </section>
 
     <!-- Tab toggle -->
     <nav class="stats-tabs" aria-label="Tipo de estatísticas">
-        <a class="stats-tab active" href="<?= htmlspecialchars($baseUrl . '?route=admin_stats&period=' . htmlspecialchars($filters['period'])) ?>" aria-current="page">
+        <a class="stats-tab" href="<?= htmlspecialchars($baseUrl . '?route=admin_stats&period=' . htmlspecialchars($filters['period'])) ?>">
             Ocorrências
         </a>
-        <a class="stats-tab" href="<?= htmlspecialchars($baseUrl . '?route=admin_stats_internal&period=' . htmlspecialchars($filters['period'])) ?>">
+        <a class="stats-tab active" href="<?= htmlspecialchars($baseUrl . '?route=admin_stats_internal&period=' . htmlspecialchars($filters['period'])) ?>" aria-current="page">
             Registos Internos
         </a>
     </nav>
@@ -644,23 +494,23 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
         <div class="stats-filter-head">
             <div>
                 <h2>Filtros</h2>
-                <p>Seleciona o intervalo temporal para atualizar todos os gráficos, os resumos e a exportação.</p>
+                <p>Seleciona o intervalo temporal para atualizar todos os gráficos e os resumos.</p>
             </div>
             <div class="chart-total"><?= htmlspecialchars($filters['rangeLabel']) ?></div>
         </div>
 
         <form class="stats-filter-form" method="get" action="<?= htmlspecialchars($baseUrl) ?>">
-            <input type="hidden" name="route" value="admin_stats">
+            <input type="hidden" name="route" value="admin_stats_internal">
 
             <div class="filter-field">
                 <label for="period">Período</label>
                 <select id="period" name="period">
-                    <option value="today" <?= $filters['period'] === 'today' ? 'selected' : '' ?>>Hoje</option>
-                    <option value="7d" <?= $filters['period'] === '7d' ? 'selected' : '' ?>>Últimos 7 dias</option>
-                    <option value="30d" <?= $filters['period'] === '30d' ? 'selected' : '' ?>>Últimos 30 dias</option>
-                    <option value="month" <?= $filters['period'] === 'month' ? 'selected' : '' ?>>Mês atual</option>
-                    <option value="year" <?= $filters['period'] === 'year' ? 'selected' : '' ?>>Ano atual</option>
-                    <option value="all" <?= $filters['period'] === 'all' ? 'selected' : '' ?>>Todo o histórico</option>
+                    <option value="today"  <?= $filters['period'] === 'today'  ? 'selected' : '' ?>>Hoje</option>
+                    <option value="7d"     <?= $filters['period'] === '7d'     ? 'selected' : '' ?>>Últimos 7 dias</option>
+                    <option value="30d"    <?= $filters['period'] === '30d'    ? 'selected' : '' ?>>Últimos 30 dias</option>
+                    <option value="month"  <?= $filters['period'] === 'month'  ? 'selected' : '' ?>>Mês atual</option>
+                    <option value="year"   <?= $filters['period'] === 'year'   ? 'selected' : '' ?>>Ano atual</option>
+                    <option value="all"    <?= $filters['period'] === 'all'    ? 'selected' : '' ?>>Todo o histórico</option>
                     <option value="custom" <?= $filters['period'] === 'custom' ? 'selected' : '' ?>>Personalizado</option>
                 </select>
             </div>
@@ -677,42 +527,33 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
 
             <div class="filter-actions">
                 <button class="stats-button stats-button-primary" type="submit">Aplicar filtros</button>
-                <a class="stats-button stats-button-secondary" href="<?= htmlspecialchars($baseUrl . '?route=admin_stats&period=all') ?>">Limpar</a>
+                <a class="stats-button stats-button-secondary" href="<?= htmlspecialchars($baseUrl . '?route=admin_stats_internal&period=all') ?>">Limpar</a>
             </div>
         </form>
     </section>
 
     <section class="comparison-banner">
-            <div class="comparison-banner-intro">
+        <div class="comparison-banner-intro">
             <strong>Base de comparação</strong>
-                <span class="comparison-note">As variações dos cards seguintes são calculadas comparando o período analisado com a base apresentada ao lado.</span>
+            <span class="comparison-note">As variações são calculadas comparando o período analisado com a base apresentada ao lado.</span>
         </div>
-            <div class="comparison-period-box current">
-                <span class="label">Período analisado</span>
-                <span class="value"><?= htmlspecialchars($filters['rangeLabel']) ?></span>
-            </div>
-            <div class="comparison-period-box base">
-                <span class="label">Base de comparação</span>
-                <span class="value"><?= htmlspecialchars($comparison['previousLabel']) ?></span>
-            </div>
+        <div class="comparison-period-box current">
+            <span class="label">Período analisado</span>
+            <span class="value"><?= htmlspecialchars($filters['rangeLabel']) ?></span>
+        </div>
+        <div class="comparison-period-box base">
+            <span class="label">Base de comparação</span>
+            <span class="value"><?= htmlspecialchars($comparison['previousLabel']) ?></span>
+        </div>
     </section>
 
     <section class="stats-summary-grid">
         <article class="summary-card">
-            <div class="summary-label">Ocorrências</div>
-            <div class="summary-value"><?= (int)$summary['incidents'] ?></div>
+            <div class="summary-label">Registos Internos</div>
+            <div class="summary-value"><?= (int)$summary['records'] ?></div>
             <div class="summary-meta">
                 <span>Variação vs base</span>
-                <span class="trend-pill <?= htmlspecialchars($comparisonIncidentsClass) ?>"><?= htmlspecialchars($comparisonIncidents) ?></span>
-            </div>
-        </article>
-
-        <article class="summary-card">
-            <div class="summary-label">Tratamentos</div>
-            <div class="summary-value"><?= (int)$summary['treatments'] ?></div>
-            <div class="summary-meta">
-                <span>Variação vs base</span>
-                <span class="trend-pill <?= htmlspecialchars($comparisonTreatmentsClass) ?>"><?= htmlspecialchars($comparisonTreatments) ?></span>
+                <span class="trend-pill <?= htmlspecialchars($comparisonRecordsClass) ?>"><?= htmlspecialchars($comparisonRecords) ?></span>
             </div>
         </article>
 
@@ -720,57 +561,38 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
             <div class="summary-label">Local mais frequente</div>
             <div class="summary-value"><?= htmlspecialchars($summary['topLocation']['local'] ?? 'Sem dados') ?></div>
             <div class="summary-meta">
-                <span>Ocorrências concentradas</span>
+                <span>Registos concentrados</span>
                 <span class="trend-pill neutral"><?= (int)($summary['topLocation']['total'] ?? 0) ?></span>
             </div>
         </article>
 
         <article class="summary-card">
-            <div class="summary-label">Tipo principal</div>
-            <div class="summary-value"><?= htmlspecialchars($summary['topIncidentType']['tipo'] ?? 'Sem dados') ?></div>
+            <div class="summary-label">Colaboradores vs Utentes ext.</div>
+            <?php
+                $empTotal = array_sum(array_column($employeeStats, 'total'));
+                $empRow   = array_values(array_filter($employeeStats, fn($r) => $r['tipo'] === 'Colaborador'))[0] ?? null;
+                $empPct   = $empTotal > 0 && $empRow ? (int)round(((int)$empRow['total'] / $empTotal) * 100) : 0;
+            ?>
+            <div class="summary-value"><?= $empPct ?>%</div>
             <div class="summary-meta">
-                <span>Maior incidência no período</span>
-                <span class="trend-pill neutral"><?= (int)($summary['topIncidentType']['total'] ?? 0) ?></span>
+                <span>Percentagem de colaboradores</span>
+                <span class="trend-pill neutral"><?= (int)($empRow['total'] ?? 0) ?> col.</span>
             </div>
         </article>
-    </section>
-
-    <section class="insights-card">
-        <h2 class="section-title">Leitura rápida</h2>
-        <p class="section-copy">Resumo executivo com os principais destaques do período filtrado.</p>
-
-        <div class="insights-grid">
-            <div class="insight-chip">
-                <strong>Período analisado</strong>
-                <span><?= htmlspecialchars($filters['rangeLabel']) ?></span>
-            </div>
-            <div class="insight-chip">
-                <strong>Género predominante</strong>
-                <span><?= htmlspecialchars($insights['dominantGender'] ?? 'Sem dados suficientes') ?></span>
-            </div>
-            <div class="insight-chip">
-                <strong>Tratamento dominante</strong>
-                <span><?= htmlspecialchars($insights['topTreatmentType']) ?></span>
-            </div>
-            <div class="insight-chip">
-                <strong>Tipo dominante</strong>
-                <span><?= htmlspecialchars($insights['topIncidentType']) ?></span>
-            </div>
-        </div>
     </section>
 
     <section>
         <div class="section-header">
             <div>
                 <h2 class="section-title">Distribuição</h2>
-                <p class="section-copy">Gráficos com eixos normalizados, valores por barra e estado vazio quando não existem dados.</p>
+                <p class="section-copy">Gráficos com os registos internos distribuídos por local, género, faixa etária e tipo de utente.</p>
             </div>
         </div>
 
         <div class="stats-grid">
-            <?php foreach ($chartCards as $index => $chart): ?>
+            <?php foreach ($chartCards as $chart): ?>
                 <?php $total = array_sum($chart['data']); ?>
-                <article class="chart-card <?= $index === 4 ? 'chart-card--wide' : '' ?>" data-tone="<?= htmlspecialchars($chart['tone']) ?>">
+                <article class="chart-card" data-tone="<?= htmlspecialchars($chart['tone']) ?>">
                     <div class="chart-header">
                         <div>
                             <h3><?= htmlspecialchars($chart['title']) ?></h3>
@@ -797,24 +619,24 @@ $comparisonTreatmentsClass = $comparison['treatmentsDelta']['direction'] ?? 'neu
 const charts = <?= json_encode($chartCards, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?>;
 
 const periodField = document.getElementById('period');
-const fromField = document.getElementById('from');
-const toField = document.getElementById('to');
+const fromField   = document.getElementById('from');
+const toField     = document.getElementById('to');
 
 const syncCustomFields = () => {
     const isCustom = periodField.value === 'custom';
     fromField.disabled = !isCustom;
-    toField.disabled = !isCustom;
+    toField.disabled   = !isCustom;
 };
 
 periodField.addEventListener('change', syncCustomFields);
 syncCustomFields();
 
 const paletteMap = {
-    blue: { fill: 'rgba(31, 111, 235, 0.58)', stroke: 'rgba(31, 111, 235, 0.95)' },
-    green: { fill: 'rgba(17, 136, 94, 0.58)', stroke: 'rgba(17, 136, 94, 0.95)' },
-    gold: { fill: 'rgba(212, 143, 22, 0.58)', stroke: 'rgba(212, 143, 22, 0.95)' },
-    rose: { fill: 'rgba(207, 87, 93, 0.58)', stroke: 'rgba(207, 87, 93, 0.95)' },
-    purple: { fill: 'rgba(110, 90, 197, 0.58)', stroke: 'rgba(110, 90, 197, 0.95)' },
+    blue:   { fill: 'rgba(31, 111, 235, 0.58)',  stroke: 'rgba(31, 111, 235, 0.95)'  },
+    green:  { fill: 'rgba(17, 136, 94, 0.58)',   stroke: 'rgba(17, 136, 94, 0.95)'   },
+    gold:   { fill: 'rgba(212, 143, 22, 0.58)',  stroke: 'rgba(212, 143, 22, 0.95)'  },
+    rose:   { fill: 'rgba(207, 87, 93, 0.58)',   stroke: 'rgba(207, 87, 93, 0.95)'   },
+    purple: { fill: 'rgba(110, 90, 197, 0.58)',  stroke: 'rgba(110, 90, 197, 0.95)'  },
 };
 
 const valueLabelPlugin = {
@@ -827,12 +649,10 @@ const valueLabelPlugin = {
         ctx.font = '700 12px Segoe UI';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'bottom';
-
         meta.data.forEach((bar, index) => {
             const value = chart.data.datasets[0].data[index];
             ctx.fillText(String(value), bar.x, bar.y - 6);
         });
-
         ctx.restore();
     }
 };
@@ -841,9 +661,7 @@ Chart.register(valueLabelPlugin);
 
 const buildChart = (chart) => {
     const target = document.getElementById(chart.id);
-    if (!target) {
-        return;
-    }
+    if (!target) return;
 
     const palette = paletteMap[chart.tone] || paletteMap.blue;
 
@@ -864,47 +682,25 @@ const buildChart = (chart) => {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            animation: {
-                duration: 650,
-                easing: 'easeOutQuart'
-            },
+            animation: { duration: 650, easing: 'easeOutQuart' },
             plugins: {
-                legend: {
-                    display: false
-                },
+                legend: { display: false },
                 tooltip: {
                     backgroundColor: 'rgba(24, 49, 83, 0.94)',
                     padding: 12,
                     displayColors: false,
-                    callbacks: {
-                        label: (context) => `Total: ${context.parsed.y}`
-                    }
+                    callbacks: { label: (context) => `Total: ${context.parsed.y}` }
                 }
             },
             scales: {
                 x: {
-                    grid: {
-                        display: false
-                    },
-                    ticks: {
-                        color: '#5f7492',
-                        maxRotation: 18,
-                        minRotation: 0,
-                        autoSkip: false,
-                        font: {
-                            size: 11
-                        }
-                    }
+                    grid: { display: false },
+                    ticks: { color: '#5f7492', maxRotation: 18, minRotation: 0, autoSkip: false, font: { size: 11 } }
                 },
                 y: {
                     beginAtZero: true,
-                    ticks: {
-                        precision: 0,
-                        color: '#5f7492'
-                    },
-                    grid: {
-                        color: 'rgba(95, 116, 146, 0.14)'
-                    }
+                    ticks: { precision: 0, color: '#5f7492' },
+                    grid: { color: 'rgba(95, 116, 146, 0.14)' }
                 }
             }
         }

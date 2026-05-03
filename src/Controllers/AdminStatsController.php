@@ -396,4 +396,107 @@ class AdminStatsController
             fputcsv($output, [$row[$key] ?? '', $row['total'] ?? 0], ';');
         }
     }
+
+    // ─── Registos Internos ───────────────────────────────────────────────────
+
+    public function indexInternal(): void
+    {
+        Auth::requireAdmin();
+
+        $filters = $this->resolveFilters();
+
+        $locationStats    = $this->formatCategoryStats(\App\Models\InternalRecord::statsByLocation($filters), 'local', 'Local não definido');
+        $genderStats      = $this->formatGenderStats(\App\Models\InternalRecord::statsByGender($filters));
+        $ageStats         = \App\Models\InternalRecord::statsByAge($filters);
+        $employeeStats    = \App\Models\InternalRecord::statsByEmployeeType($filters);
+        $totalRecords     = \App\Models\InternalRecord::countByFilters($filters);
+        $topLocation      = \App\Models\InternalRecord::topLocation($filters);
+
+        $summary = [
+            'records'     => $totalRecords,
+            'topLocation' => $topLocation,
+        ];
+
+        $comparison = $this->buildInternalComparison($filters, $summary);
+
+        $exportUrl = '/enfermaria/public/index.php?' . http_build_query([
+            'route'  => 'admin_stats_internal_export',
+            'period' => $filters['period'],
+            'from'   => $filters['fromDate'],
+            'to'     => $filters['toDate'],
+        ]);
+
+        require __DIR__ . '/../Views/admin/stats_internal.php';
+    }
+
+    public function exportCsvInternal(): void
+    {
+        Auth::requireAdmin();
+
+        $filters = $this->resolveFilters();
+
+        $locationStats = $this->formatCategoryStats(\App\Models\InternalRecord::statsByLocation($filters), 'local', 'Local não definido');
+        $genderStats   = $this->formatGenderStats(\App\Models\InternalRecord::statsByGender($filters));
+        $ageStats      = \App\Models\InternalRecord::statsByAge($filters);
+        $employeeStats = \App\Models\InternalRecord::statsByEmployeeType($filters);
+        $totalRecords  = \App\Models\InternalRecord::countByFilters($filters);
+        $topLocation   = \App\Models\InternalRecord::topLocation($filters);
+
+        header('Content-Type: text/csv; charset=UTF-8');
+        header('Content-Disposition: attachment; filename="registos-internos-' . date('Ymd-His') . '.csv"');
+
+        $output = fopen('php://output', 'w');
+        if ($output === false) {
+            http_response_code(500);
+            exit;
+        }
+
+        fwrite($output, "\xEF\xBB\xBF");
+
+        fputcsv($output, ['Estatísticas — Registos Internos', $filters['label']], ';');
+        fputcsv($output, ['Período', $filters['rangeLabel']], ';');
+        fputcsv($output, [], ';');
+
+        fputcsv($output, ['Resumo', 'Valor'], ';');
+        fputcsv($output, ['Registos', $totalRecords], ';');
+        fputcsv($output, ['Local mais frequente', $this->exportTopValue($topLocation, 'local')], ';');
+
+        $this->writeCsvSection($output, 'Registos por Local',        'Local',             $locationStats, 'local');
+        $this->writeCsvSection($output, 'Registos por Género',       'Género',            $genderStats,   'genero');
+        $this->writeCsvSection($output, 'Registos por Faixa Etária', 'Faixa',             $ageStats,      'faixa');
+        $this->writeCsvSection($output, 'Colaborador / Utente',      'Tipo de utente',    $employeeStats, 'tipo');
+
+        fclose($output);
+        exit;
+    }
+
+    private function buildInternalComparison(array $filters, array $summary): array
+    {
+        if (empty($filters['fromDate']) || empty($filters['toDate'])) {
+            return [
+                'available'       => false,
+                'recordsDelta'    => null,
+                'previousLabel'   => 'Comparação indisponível para o período completo',
+            ];
+        }
+
+        $from = new DateTimeImmutable($filters['fromDate']);
+        $to   = new DateTimeImmutable($filters['toDate']);
+        $days = (int)$from->diff($to)->days + 1;
+        $previousTo   = $from->sub(new DateInterval('P1D'));
+        $previousFrom = $previousTo->sub(new DateInterval('P' . max($days - 1, 0) . 'D'));
+
+        $previousFilters = [
+            'fromDate' => $previousFrom->format('Y-m-d'),
+            'toDate'   => $previousTo->format('Y-m-d'),
+        ];
+
+        $previousRecords = \App\Models\InternalRecord::countByFilters($previousFilters);
+
+        return [
+            'available'     => true,
+            'previousLabel' => $this->formatRangeLabel($previousFilters['fromDate'], $previousFilters['toDate'], 'Período anterior'),
+            'recordsDelta'  => $this->calculateDelta($summary['records'], $previousRecords),
+        ];
+    }
 }

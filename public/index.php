@@ -172,6 +172,12 @@ if ($route === 'login') {
 } elseif ($route === 'admin_stats_export_pdf') {
     $controller = new App\Controllers\AdminStatsController();
     $controller->exportPdf();
+} elseif ($route === 'admin_stats_internal') {
+    $controller = new App\Controllers\AdminStatsController();
+    $controller->indexInternal();
+} elseif ($route === 'admin_stats_internal_export') {
+    $controller = new App\Controllers\AdminStatsController();
+    $controller->exportCsvInternal();
 } elseif ($route === 'forgot_password') {
     // Mostrar formulário para pedir recuperação
     $controller = new App\Controllers\AuthController();
