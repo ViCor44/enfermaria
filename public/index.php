@@ -6,7 +6,17 @@ require __DIR__ . '/../vendor/autoload.php';
 
 use Dotenv\Dotenv;
 
+// Diretório exclusivo desta aplicação — isolado de outros projetos no XAMPP partilhado
+$sessionSavePath = __DIR__ . '/../storage/sessions';
+if (!is_dir($sessionSavePath)) {
+    mkdir($sessionSavePath, 0700, true);
+}
+session_save_path($sessionSavePath);
+
 session_name('SAESESSID');
+// Manter sessão ativa durante 8 horas (28800 segundos)
+ini_set('session.gc_maxlifetime', '28800');
+session_set_cookie_params(28800);
 session_start();
 
 // Carregar .env
