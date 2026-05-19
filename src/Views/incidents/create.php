@@ -305,7 +305,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
             </div>
 
             <div style="margin-right: 24px;">
-                <label class="required">Data de nascimento do utente</label>
+                <label class="required">Data de nascimento</label>
                 <input type="date" name="patient_dob" required autocomplete="bday">
             </div>
 
