@@ -88,20 +88,46 @@ class Patient
     ): int {
 
         $name = self::normalizePersonName($name);
+        $age  = self::calculateAgeFromDob($dob);
 
         $pdo = Database::getConnection();
 
-        $stmt = $pdo->prepare("\n            INSERT INTO patients\n            (incident_id, full_name, dob, gender, is_employee)\n            VALUES\n            (:incident_id, :name, :dob, :gender, :is_employee)\n        ");
+        $stmt = $pdo->prepare("\n            INSERT INTO patients\n            (incident_id, full_name, dob, age, gender, is_employee)\n            VALUES\n            (:incident_id, :name, :dob, :age, :gender, :is_employee)\n        ");
 
         $stmt->execute([
             ':incident_id' => $incidentId,
             ':name' => $name,
             ':dob' => $dob,
+            ':age' => $age,
             ':gender' => $gender,
             ':is_employee' => $isEmployee ? 1 : 0,
         ]);
 
         return (int)$pdo->lastInsertId();
+    }
+
+    /**
+     * Calcula a idade (em anos completos) a partir de uma data de nascimento
+     * no formato 'YYYY-MM-DD'. Retorna null se a data for inválida.
+     */
+    public static function calculateAgeFromDob(?string $dob): ?int
+    {
+        if ($dob === null || trim($dob) === '') {
+            return null;
+        }
+
+        try {
+            $birth = new \DateTimeImmutable($dob);
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        $today = new \DateTimeImmutable('today');
+        if ($birth > $today) {
+            return null;
+        }
+
+        return (int)$birth->diff($today)->y;
     }
 
     public static function updateHospitalData(
@@ -151,6 +177,12 @@ class Patient
     public static function updateFromIncidentForm(int $patientId, array $data): void
     {
         $data['full_name'] = self::normalizePersonName((string)($data['full_name'] ?? ''));
+
+        // Sempre que existir data de nascimento, recalcula a idade
+        // para manter os dois campos consistentes.
+        if (!empty($data['dob'])) {
+            $data['age'] = self::calculateAgeFromDob($data['dob']);
+        }
 
         $pdo = Database::getConnection();
 
