@@ -267,7 +267,7 @@ tr.hospital-refused:hover {
                     <th>Local</th>
                     <th>Tipo de Ocorrência</th>
                     <th>Utente</th>
-                    <th>Idade</th>
+                    <th>Data de nascimento</th>
                     <th>Género</th>
                     <th>Colaborador</th>
                     <th>Enfermeiro</th>
@@ -309,7 +309,7 @@ tr.hospital-refused:hover {
                         }
                         ?>
                         </td>
-                    <td><?= $i['patient_age'] !== null ? (int)$i['patient_age'] : '—' ?></td>
+                    <td><?= !empty($i['patient_dob']) ? htmlspecialchars($i['patient_dob']) : '—' ?></td>
                     <td><?= $i['patient_gender'] ?: '—' ?></td>
                     <td><?= !empty($i['patient_is_employee']) ? 'Sim' : 'Não' ?></td>
                     <td><?= htmlspecialchars($i['nurse_name'] ?? '') ?></td>

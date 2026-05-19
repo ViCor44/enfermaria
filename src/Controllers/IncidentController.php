@@ -43,7 +43,7 @@ public function store(): void
     $time = trim($_POST['time'] ?? '');
 
     $patientName   = trim($_POST['patient_name'] ?? '');
-    $patientAge    = ($_POST['patient_age'] ?? '') !== '' ? (int)$_POST['patient_age'] : null;
+    $patientDob    = trim($_POST['patient_dob'] ?? '');
     $patientGender = trim($_POST['patient_gender'] ?? '') ?: null;
     $patientIsEmployee = isset($_POST['patient_is_employee']) ? 1 : 0;
 
@@ -73,7 +73,6 @@ public function store(): void
     $patientPostalCode  = trim($_POST['patient_postal_code'] ?? '') ?: null;
     $patientCity        = trim($_POST['patient_city'] ?? '') ?: null;
     $patientPhone       = trim($_POST['patient_phone'] ?? '') ?: null;
-    $patientDob         = trim($_POST['patient_dob'] ?? '') ?: null;
     $patientIdType      = trim($_POST['patient_id_type'] ?? '') ?: null;
     $patientIdNumber    = trim($_POST['patient_id_number'] ?? '') ?: null;
     $patientRefusedHospital = isset($_POST['patient_refused_hospital']) ? 1 : 0;
@@ -92,6 +91,12 @@ public function store(): void
 
     if ($date === '' || $time === '') {
         $_SESSION['error'] = 'Data e hora obrigatórias.';
+        header('Location: '.$this->baseUrl.'?route=incidents_new');
+        exit;
+    }
+
+    if ($patientName === '' || $patientDob === '') {
+        $_SESSION['error'] = 'Nome e data de nascimento do utente são obrigatórios.';
         header('Location: '.$this->baseUrl.'?route=incidents_new');
         exit;
     }
@@ -174,7 +179,7 @@ public function store(): void
         $patientId = Patient::createBasic(
             $incidentId,
             $patientName,
-            $patientAge,
+            $patientDob,
             $patientGender,
             $patientIsEmployee
         );

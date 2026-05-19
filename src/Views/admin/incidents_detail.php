@@ -325,10 +325,8 @@ foreach ($treatments as $t) {
                         <div class="value"><?= htmlspecialchars($incident['patient_name']) ?></div>
                     </div>
                     <div>
-                        <div class="label">Idade</div>
-                        <div class="value">
-                            <?= $incident['patient_age'] !== null ? (int)$incident['patient_age'] . ' anos' : '—' ?>
-                        </div>
+                        <div class="label">Data de nascimento</div>
+                        <div class="value"><?= !empty($incident['patient_dob']) ? htmlspecialchars($incident['patient_dob']) : '—' ?></div>
                     </div>
 
                     <div>

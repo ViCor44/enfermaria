@@ -131,7 +131,7 @@ class Incident
                 u.full_name AS nurse_name,
 
                 p.full_name AS patient_name,
-                p.age AS patient_age,
+                p.dob AS patient_dob,
                 p.gender AS patient_gender,
                 p.is_employee AS patient_is_employee,
                 p.refused_hospital
@@ -198,7 +198,7 @@ class Incident
                 u.full_name AS nurse_name,
 
                 p.full_name AS patient_name,
-                p.age AS patient_age,
+                p.dob AS patient_dob,
                 p.gender AS patient_gender,
                 p.is_employee AS patient_is_employee,
                 p.nationality AS patient_nationality,

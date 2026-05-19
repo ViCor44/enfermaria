@@ -74,7 +74,7 @@ body { font-family: Arial, Helvetica, sans-serif; color:#222; margin:20px; backg
   <div class="cols clearfix">
     <div class="col">
       <div class="row-item"><div class="label">Data / Hora</div><div class="value"><?= htmlspecialchars($incident['occurred_at']) ?></div></div>
-      <div class="row-item"><div class="label">Idade (utente)</div><div class="value"><?= $incident['patient_age'] !== null ? (int)$incident['patient_age'] : '—' ?></div></div>
+      <div class="row-item"><div class="label">Data de nascimento (utente)</div><div class="value"><?= !empty($incident['patient_dob']) ? htmlspecialchars($incident['patient_dob']) : '—' ?></div></div>
       <div class="row-item"><div class="label">Género (utente)</div><div class="value"><?= $incident['patient_gender'] ?: '—' ?></div></div>
     </div>
 

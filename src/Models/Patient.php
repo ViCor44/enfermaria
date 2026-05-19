@@ -82,7 +82,7 @@ class Patient
     public static function createBasic(
         int $incidentId,
         string $name,
-        ?int $age,
+        ?string $dob,
         ?string $gender,
         int $isEmployee = 0
     ): int {
@@ -91,17 +91,12 @@ class Patient
 
         $pdo = Database::getConnection();
 
-        $stmt = $pdo->prepare("
-            INSERT INTO patients
-            (incident_id, full_name, age, gender, is_employee)
-            VALUES
-            (:incident_id, :name, :age, :gender, :is_employee)
-        ");
+        $stmt = $pdo->prepare("\n            INSERT INTO patients\n            (incident_id, full_name, dob, gender, is_employee)\n            VALUES\n            (:incident_id, :name, :dob, :gender, :is_employee)\n        ");
 
         $stmt->execute([
             ':incident_id' => $incidentId,
             ':name' => $name,
-            ':age' => $age,
+            ':dob' => $dob,
             ':gender' => $gender,
             ':is_employee' => $isEmployee ? 1 : 0,
         ]);

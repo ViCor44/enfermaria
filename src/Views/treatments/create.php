@@ -242,8 +242,8 @@ $patientHospitalData = $patientHospitalData ?? [];
         <?= htmlspecialchars($incident['incident_type_name']) ?>
         em <span class="badge"><?= htmlspecialchars($incident['location_name']) ?></span><br>
         <strong>Data/hora:</strong> <?= htmlspecialchars($incident['occurred_at']) ?><br>
-        <?php if ($incident['patient_age'] !== null): ?>
-            <strong>Idade:</strong> <?= (int)$incident['patient_age'] ?> ·
+        <?php if (!empty($incident['patient_dob'])): ?>
+            <strong>Data de nascimento:</strong> <?= htmlspecialchars($incident['patient_dob']) ?> ·
         <?php endif; ?>
         <?php if (!empty($incident['patient_gender'])): ?>
             <strong>Género:</strong> <?= htmlspecialchars($incident['patient_gender']) ?>

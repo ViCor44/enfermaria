@@ -297,16 +297,16 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
             </div>
         </div>
 
-        <!-- LINHA NOME / IDADE / GÉNERO -->
+        <!-- LINHA NOME / DATA DE NASCIMENTO / GÉNERO -->
         <div class="row patient-row">
             <div style="margin-right: 24px;">
-                <label>Nome do utente</label>
-                <input type="text" name="patient_name">
+                <label class="required">Nome do utente</label>
+                <input type="text" name="patient_name" required autocomplete="name">
             </div>
 
             <div style="margin-right: 24px;">
-                <label>Idade do utente</label>
-                <input type="number" name="patient_age" min="0" max="120">
+                <label class="required">Data de nascimento do utente</label>
+                <input type="date" name="patient_dob" required autocomplete="bday">
             </div>
 
             <div style="margin-right: 24px;">
