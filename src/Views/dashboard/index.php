@@ -444,7 +444,20 @@ $statsHref = $baseUrl . '?route=admin_stats';
                             <?php if ($onlineNurses === []): ?>
                                 Nenhum
                             <?php else: ?>
-                                <?= htmlspecialchars(implode(', ', array_map(static fn($n) => $n['name'], $onlineNurses))) ?>
+                                <?php
+                                $nurseLabels = array_map(static function (array $n): string {
+                                    $name = (string)($n['name'] ?? '');
+                                    $time = '';
+                                    if (!empty($n['last_login'])) {
+                                        $ts = strtotime((string)$n['last_login']);
+                                        if ($ts !== false) {
+                                            $time = ' (' . date('H:i', $ts) . ')';
+                                        }
+                                    }
+                                    return htmlspecialchars($name . $time);
+                                }, $onlineNurses);
+                                ?>
+                                <?= implode(', ', $nurseLabels) ?>
                             <?php endif; ?>
                         </span>
                     </div>
