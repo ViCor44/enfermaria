@@ -154,6 +154,44 @@ $baseUrl = '/enfermaria/public/index.php';
         text-decoration: underline;
     }
 
+    .remote-access-callout {
+        margin-top: 1.25rem;
+        padding: 14px 16px;
+        border-radius: 10px;
+        background: #fff4e0;
+        border: 1px solid #f1b95a;
+        color: #6a4300;
+        text-align: left;
+    }
+
+    .remote-access-callout strong {
+        display: block;
+        font-size: 1rem;
+        margin-bottom: 4px;
+        color: #5a3700;
+    }
+
+    .remote-access-callout p {
+        margin: 0 0 10px;
+        font-size: .9rem;
+        line-height: 1.4;
+    }
+
+    .remote-access-callout .remote-access-btn {
+        display: inline-block;
+        background: #f39c12;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 14px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: .95rem;
+    }
+
+    .remote-access-callout .remote-access-btn:hover {
+        background: #d97e0a;
+    }
     .modal-overlay {
         position: fixed;
         inset: 0;
@@ -325,9 +363,12 @@ $baseUrl = '/enfermaria/public/index.php';
                 <p style="text-align:center; margin-top:1rem;">
                     <a href="?route=forgot_password">Esqueci-me da password</a>
                 </p>
-                <p style="text-align:center; margin-top:.5rem;">
-                    <button type="button" class="link-button" id="openRemoteAccessModal">Pedir acesso remoto</button>
-                </p>
+
+                <div class="remote-access-callout">
+                    <strong>Esqueceu-se do cartão?</strong>
+                    <p>Avise um administrador e peça aqui acesso remoto para entrar no sistema.</p>
+                    <button type="button" class="remote-access-btn" id="openRemoteAccessModal">Pedir acesso remoto</button>
+                </div>
             </footer>            
         </div>
     </div>
