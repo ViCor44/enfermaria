@@ -23,6 +23,7 @@ class DashboardController
         $completedTreatmentsToday = $this->countTreatmentsCompletedForDate($pdo, new DateTimeImmutable('today'));
         $role = (string)($_SESSION['role'] ?? '');
         $pendingApprovals = $role === 'Administrador' ? $this->countPendingApprovals($pdo) : 0;
+        $onlineNurses = $role === 'Administrador' ? $this->fetchOnlineNurses($pdo) : [];
         $recentIncidents = $this->fetchRecentIncidents($pdo, 6);
 
         $lastLoginRaw = $_SESSION['last_login'] ?? null;
@@ -53,6 +54,87 @@ class DashboardController
     {
         $stmt = $pdo->query("SELECT COUNT(*) FROM users WHERE approved = 0 AND deleted_at IS NULL");
         return (int)$stmt->fetchColumn();
+    }
+
+    /**
+     * Lista enfermeiros com sessão ativa (ficheiros de sessão recentes).
+     * @return array<int, array{id:int, name:string}>
+     */
+    private function fetchOnlineNurses(PDO $pdo): array
+    {
+        $sessionPath = session_save_path();
+        if ($sessionPath === '' || !is_dir($sessionPath)) {
+            return [];
+        }
+
+        $lifetime = (int)ini_get('session.gc_maxlifetime');
+        if ($lifetime <= 0) {
+            $lifetime = 28800;
+        }
+        $threshold = time() - $lifetime;
+
+        $files = glob($sessionPath . DIRECTORY_SEPARATOR . 'sess_*');
+        if (!is_array($files) || $files === []) {
+            return [];
+        }
+
+        $currentId = session_id();
+        $savedSession = $_SESSION ?? [];
+        $userIds = [];
+
+        foreach ($files as $file) {
+            if (!is_file($file)) {
+                continue;
+            }
+            $mtime = @filemtime($file);
+            if ($mtime === false || $mtime < $threshold) {
+                continue;
+            }
+            // ignorar a sessão do próprio pedido (já desserializada)
+            if ($currentId !== '' && substr(basename($file), 5) === $currentId) {
+                if (($_SESSION['role'] ?? '') === 'Enfermeiro' && !empty($_SESSION['user_id'])) {
+                    $userIds[(int)$_SESSION['user_id']] = true;
+                }
+                continue;
+            }
+
+            $raw = @file_get_contents($file);
+            if ($raw === false || $raw === '') {
+                continue;
+            }
+
+            $_SESSION = [];
+            if (@session_decode($raw) === false) {
+                continue;
+            }
+
+            if (($_SESSION['role'] ?? '') === 'Enfermeiro' && !empty($_SESSION['user_id'])) {
+                $userIds[(int)$_SESSION['user_id']] = true;
+            }
+        }
+
+        // restaurar a sessão original
+        $_SESSION = $savedSession;
+
+        if ($userIds === []) {
+            return [];
+        }
+
+        $ids = array_keys($userIds);
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $sql = "SELECT id, full_name FROM users WHERE id IN ($placeholders) AND deleted_at IS NULL ORDER BY full_name ASC";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($ids);
+
+        $result = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $result[] = [
+                'id' => (int)$row['id'],
+                'name' => (string)$row['full_name'],
+            ];
+        }
+
+        return $result;
     }
 
     private function fetchRecentIncidents(PDO $pdo, int $limit = 6): array

@@ -8,6 +8,7 @@ $AcidentesHoje = $AcidentesHoje ?? 0;
 $tratamentosEmCurso = $tratamentosEmCurso ?? 0;
 $completedTreatmentsToday = $completedTreatmentsToday ?? 0;
 $pendingApprovals = $pendingApprovals ?? 0;
+$onlineNurses = $onlineNurses ?? [];
 $currentDate = $currentDate ?? date('d/m/Y');
 $lastLogin = $lastLogin ?? 'Sem registo';
 
@@ -436,6 +437,16 @@ $statsHref = $baseUrl . '?route=admin_stats';
                     <div class="meta-row">
                         <strong>Aprovações pendentes</strong>
                         <span><?= (int)$pendingApprovals ?></span>
+                    </div>
+                    <div class="meta-row">
+                        <strong>Enfermeiros de serviço</strong>
+                        <span>
+                            <?php if ($onlineNurses === []): ?>
+                                Nenhum
+                            <?php else: ?>
+                                <?= htmlspecialchars(implode(', ', array_map(static fn($n) => $n['name'], $onlineNurses))) ?>
+                            <?php endif; ?>
+                        </span>
                     </div>
                 <?php endif; ?>
             </div>
