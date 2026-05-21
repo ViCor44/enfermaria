@@ -9,8 +9,8 @@ define('SSO_MAP_PATH', $_SERVER['DOCUMENT_ROOT'] . '/super_login/systems_map.php
 
 // ── 0. Carregar configuração do mapa central ──────────────────
 if (!file_exists(SSO_MAP_PATH)) {
-    http_response_code(500);
     error_log('[SSO] systems_map.php não encontrado em: ' . SSO_MAP_PATH);
+    http_response_code(500);
     exit('Erro de configuração SSO.');
 }
 
@@ -19,13 +19,22 @@ $cfg    = $map['_config']      ?? null;
 $system = $map[SSO_SYSTEM_KEY] ?? null;
 
 if (!$cfg || !$system) {
+    error_log('[SSO] Configuração inválida. Chave "' . SSO_SYSTEM_KEY . '" ou "_config" não existe.');
     http_response_code(500);
-    error_log('[SSO] Chave "' . SSO_SYSTEM_KEY . '" ou "_config" não existe em systems_map.php.');
     exit('Erro de configuração SSO.');
 }
 
 $redirectError = 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/super_login/login.php';
 
+// ── Configurar sessão igual ao index.php ──────────────────────
+$sessionSavePath = __DIR__ . '/storage/sessions';
+if (!is_dir($sessionSavePath)) {
+    mkdir($sessionSavePath, 0700, true);
+}
+session_save_path($sessionSavePath);
+session_name('SAESESSID');
+ini_set('session.gc_maxlifetime', '28800');
+session_set_cookie_params(28800);
 session_start();
 
 // ── 1. Validação básica do token ──────────────────────────────
