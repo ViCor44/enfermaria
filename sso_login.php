@@ -19,7 +19,7 @@
  */
 
 // Chave deste sistema tal como está definida em systems_map.php
-define('SSO_SYSTEM_KEY', 'sae');
+define('SSO_SYSTEM_KEY', 'crewgest');
 
 // Caminho absoluto para o ficheiro systems_map.php do Super Login.
 // Normalmente basta mudar 'super_login' se a pasta tiver outro nome.
