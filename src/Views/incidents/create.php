@@ -1,6 +1,31 @@
 <?php
 $baseUrl = '/enfermaria/public/index.php';
 $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
+$old = $_SESSION['old_incident_form'] ?? [];
+unset($_SESSION['old_incident_form']);
+
+$oldValue = static function (string $key, string $default = '') use ($old): string {
+    $value = $old[$key] ?? $default;
+    if (is_array($value)) {
+        return $default;
+    }
+
+    return (string)$value;
+};
+
+$oldChecked = static function (string $key) use ($old): bool {
+    return isset($old[$key]);
+};
+
+$oldTreatmentInputs = [];
+if (isset($old['treatment_type_input']) && is_array($old['treatment_type_input'])) {
+    $oldTreatmentInputs = $old['treatment_type_input'];
+}
+
+$oldTreatmentIds = [];
+if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
+    $oldTreatmentIds = $old['treatment_type_id'];
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -206,7 +231,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
     }
 
     .patient-row {
-        grid-template-columns: 2.5fr 1fr 1.2fr; /* Nome, Idade, Género */
+        grid-template-columns: 2.5fr 1fr 1.2fr; /* Nome, Data de nascimento, Género */
     }
 
     .small-field {
@@ -253,13 +278,14 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                     placeholder="Escreva ou escolha..."
                     required
                     autocomplete="off"
+                    value="<?= htmlspecialchars($oldValue('incident_type_input')) ?>"
                 >
                 <datalist id="incident-types-list">
                     <?php foreach ($types as $t): ?>
                         <option value="<?= htmlspecialchars($t['name']) ?>" data-id="<?= (int)$t['id'] ?>"></option>
                     <?php endforeach; ?>
                 </datalist>
-                <input type="hidden" name="incident_type_id" id="incident_type_id" value="">
+                <input type="hidden" name="incident_type_id" id="incident_type_id" value="<?= htmlspecialchars($oldValue('incident_type_id')) ?>">
                 <div class="small">Pode escrever novo tipo de ocorrência ou escolher da lista — se não existir será criado.</div>
             </div>
             
@@ -272,13 +298,14 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                     placeholder="Escreva ou escolha..."
                     required
                     autocomplete="off"
+                    value="<?= htmlspecialchars($oldValue('location_input')) ?>"
                 >
                 <datalist id="locations-list">
                     <?php foreach ($locations as $loc): ?>
                         <option value="<?= htmlspecialchars($loc['name']) ?>" data-id="<?= (int)$loc['id'] ?>"></option>
                     <?php endforeach; ?>
                 </datalist>
-                <input type="hidden" name="location_id" id="location_id" value="">
+                <input type="hidden" name="location_id" id="location_id" value="<?= htmlspecialchars($oldValue('location_id')) ?>">
                 <div class="small">Pode escrever o nome do local ou escolher da lista — se não existir será criado.</div>
             </div>
 
@@ -289,11 +316,11 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         <div class="row">
             <div style="margin-right: 24px;">
                 <label class="required">Data</label>
-                <input type="date" name="date" required value="<?= date('Y-m-d') ?>">
+                <input type="date" name="date" required value="<?= htmlspecialchars($oldValue('date', date('Y-m-d'))) ?>">
             </div>
             <div style="margin-right: 24px;">
                 <label class="required">Hora</label>
-                <input type="time" name="time" required value="<?= date('H:i') ?>">
+                <input type="time" name="time" required value="<?= htmlspecialchars($oldValue('time', date('H:i'))) ?>">
             </div>
         </div>
 
@@ -301,27 +328,27 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         <div class="row patient-row">
             <div style="margin-right: 24px;">
                 <label class="required">Nome do utente</label>
-                <input type="text" name="patient_name" required autocomplete="name">
+                <input type="text" name="patient_name" required autocomplete="name" value="<?= htmlspecialchars($oldValue('patient_name')) ?>">
             </div>
 
             <div style="margin-right: 24px;">
                 <label class="required">Data de nascimento</label>
-                <input type="date" name="patient_dob" required autocomplete="bday">
+                <input type="date" name="patient_dob" required autocomplete="bday" value="<?= htmlspecialchars($oldValue('patient_dob')) ?>">
             </div>
 
             <div style="margin-right: 24px;">
                 <label>Género</label>
                 <select name="patient_gender">
-                    <option value="">-- Não especificar --</option>
-                    <option value="M">Masculino</option>
-                    <option value="F">Feminino</option>
-                    <option value="Outro">Outro</option>
+                    <option value="" <?= $oldValue('patient_gender') === '' ? 'selected' : '' ?>>-- Não especificar --</option>
+                    <option value="M" <?= $oldValue('patient_gender') === 'M' ? 'selected' : '' ?>>Masculino</option>
+                    <option value="F" <?= $oldValue('patient_gender') === 'F' ? 'selected' : '' ?>>Feminino</option>
+                    <option value="Outro" <?= $oldValue('patient_gender') === 'Outro' ? 'selected' : '' ?>>Outro</option>
                 </select>
             </div>
         </div>
 
         <div class="form-check" style="margin: 0 24px 16px 0;">
-            <input type="checkbox" id="patient_is_employee" name="patient_is_employee" value="1">
+            <input type="checkbox" id="patient_is_employee" name="patient_is_employee" value="1" <?= $oldChecked('patient_is_employee') ? 'checked' : '' ?>>
             <label for="patient_is_employee" style="cursor:pointer;">
                 O utente é colaborador
             </label>
@@ -329,12 +356,12 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 
         <div style="margin-right: 24px;">
         <label>Descrição / Observações</label>
-        <textarea style="margin-right: 24px;" name="description" placeholder="Descrição sucinta da Ocorrência, sem dados de identificação desnecessários."></textarea>
+        <textarea style="margin-right: 24px;" name="description" placeholder="Descrição sucinta da Ocorrência, sem dados de identificação desnecessários."><?= htmlspecialchars($oldValue('description')) ?></textarea>
         </div>
 
         <div class="section-title">
             <div class="form-check">
-                <input type="checkbox" id="toggle-treatment" name="add_treatment">
+                <input type="checkbox" id="toggle-treatment" name="add_treatment" <?= $oldChecked('add_treatment') ? 'checked' : '' ?>>
                 <label for="toggle-treatment" style="cursor:pointer;">
                     Adicionar tratamento agora
                 </label>
@@ -353,8 +380,9 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                             id="treatment_type_input_0"
                             placeholder="Escreva ou escolha..."
                             autocomplete="off"
+                            value="<?= htmlspecialchars((string)($oldTreatmentInputs[0] ?? '')) ?>"
                         >
-                        <input type="hidden" name="treatment_type_id[]" value="">
+                        <input type="hidden" name="treatment_type_id[]" value="<?= htmlspecialchars((string)($oldTreatmentIds[0] ?? '')) ?>">
                     </div>
                     <button type="button" class="remove-treatment" data-remove-treatment style="display:none;">Remover</button>
                 </div>
@@ -374,14 +402,14 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                 <div style="margin-right: 24px;">
                     <label>Estado</label>
                     <select name="treatment_status">
-                        <option value="concluido">Concluído</option>
-                        <option value="em_curso">Em curso</option>
+                        <option value="concluido" <?= $oldValue('treatment_status') === 'concluido' ? 'selected' : '' ?>>Concluído</option>
+                        <option value="em_curso" <?= $oldValue('treatment_status', 'em_curso') === 'em_curso' ? 'selected' : '' ?>>Em curso</option>
                     </select>
                 </div>
             </div>
 
             <label>Notas do tratamento (opcional)</label>
-            <textarea name="treatment_notes" placeholder="Descreva o tratamento efetuado. Evite dados pessoais desnecessários. Se incluir 'Enviado para hospital', este texto poderá aparecer no termo de seguro."></textarea>
+            <textarea name="treatment_notes" placeholder="Descreva o tratamento efetuado. Evite dados pessoais desnecessários. Se incluir 'Enviado para hospital', este texto poderá aparecer no termo de seguro."><?= htmlspecialchars($oldValue('treatment_notes')) ?></textarea>
 
             <!-- Campos extra se for 'Enviado para hospital' -->
             <div id="patient-block" style="display:none;">
@@ -390,43 +418,43 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                 <div class="row">
                     <div style="margin-right: 24px; max-width: 400px;">
                         <label>Nacionalidade</label>
-                        <input type="text" name="patient_nationality">
+                        <input type="text" name="patient_nationality" value="<?= htmlspecialchars($oldValue('patient_nationality')) ?>">
                     </div>
                 </div>
 
                 <div class="row address-row">
                     <div style="margin-right: 24px;">
                         <label class="required">Morada</label>
-                        <input type="text" name="patient_address" id="patient_address">
+                        <input type="text" name="patient_address" id="patient_address" value="<?= htmlspecialchars($oldValue('patient_address')) ?>">
                     </div>
              
                     <div style="margin-right: 24px;">
                         <label class="required">Código Postal</label>
-                        <input type="text" name="patient_postal_code" id="patient_postal_code">
+                        <input type="text" name="patient_postal_code" id="patient_postal_code" value="<?= htmlspecialchars($oldValue('patient_postal_code')) ?>">
                     </div>
                     
                     <div style="margin-right: 24px;">
                         <label class="required">Cidade</label>
-                        <input type="text" name="patient_city" id="patient_city">
+                        <input type="text" name="patient_city" id="patient_city" value="<?= htmlspecialchars($oldValue('patient_city')) ?>">
                     </div>
 
                     <div style="margin-right: 24px;">
                         <label class="required">Telefone</label>
-                        <input type="text" name="patient_phone" id="patient_phone" placeholder="+351 912 345 678">
+                        <input type="text" name="patient_phone" id="patient_phone" placeholder="+351 912 345 678" value="<?= htmlspecialchars($oldValue('patient_phone')) ?>">
                     </div>
                 </div>
 
                 <div class="row">
                     <div style="margin-right: 24px;">
                         <label>Data de Nascimento</label>
-                        <input type="date" name="patient_dob" id="patient_dob">
+                        <input type="date" name="patient_hospital_dob" id="patient_hospital_dob" value="<?= htmlspecialchars($oldValue('patient_hospital_dob', $oldValue('patient_dob'))) ?>">
                     </div>
                     <div style="margin-right: 24px;">
                         <label>Tipo de Identificação</label>
                         <select name="patient_id_type" id="patient_id_type">
-                            <option value="">-- Selecionar --</option>
-                            <option value="CC">Cartão de Cidadão (CC)</option>
-                            <option value="Passaporte">Passaporte</option>
+                            <option value="" <?= $oldValue('patient_id_type') === '' ? 'selected' : '' ?>>-- Selecionar --</option>
+                            <option value="CC" <?= $oldValue('patient_id_type') === 'CC' ? 'selected' : '' ?>>Cartão de Cidadão (CC)</option>
+                            <option value="Passaporte" <?= $oldValue('patient_id_type') === 'Passaporte' ? 'selected' : '' ?>>Passaporte</option>
                         </select>
                     </div>
                 </div>
@@ -434,7 +462,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                 <div class="row small-field">
                     <div style="margin-right: 24px;">
                         <label>Número de Identificação</label>
-                        <input type="text" name="patient_id_number" id="patient_id_number" placeholder="Número do CC ou do Passaporte">
+                        <input type="text" name="patient_id_number" id="patient_id_number" placeholder="Número do CC ou do Passaporte" value="<?= htmlspecialchars($oldValue('patient_id_number')) ?>">
                     </div>
                 </div>
 
@@ -444,6 +472,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                         id="patient_refused_hospital"
                         name="patient_refused_hospital"
                         value="1"
+                        <?= $oldChecked('patient_refused_hospital') ? 'checked' : '' ?>
                     >
                     <label for="patient_refused_hospital" style="cursor:pointer;">
                         O utente recusou deslocação ao hospital

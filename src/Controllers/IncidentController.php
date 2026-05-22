@@ -12,6 +12,14 @@ class IncidentController
 {
     private string $baseUrl = '/enfermaria/public/index.php';
 
+    private function redirectWithFormError(string $message): void
+    {
+        $_SESSION['error'] = $message;
+        $_SESSION['old_incident_form'] = $_POST;
+        header('Location: ' . $this->baseUrl . '?route=incidents_new');
+        exit;
+    }
+
     public function create(): void
     {
         Auth::requireRole(['Enfermeiro']);
@@ -44,6 +52,10 @@ public function store(): void
 
     $patientName   = trim($_POST['patient_name'] ?? '');
     $patientDob    = trim($_POST['patient_dob'] ?? '');
+    $patientHospitalDob = trim($_POST['patient_hospital_dob'] ?? '');
+    if ($patientDob === '' && $patientHospitalDob !== '') {
+        $patientDob = $patientHospitalDob;
+    }
     $patientGender = trim($_POST['patient_gender'] ?? '') ?: null;
     $patientIsEmployee = isset($_POST['patient_is_employee']) ? 1 : 0;
 
@@ -78,27 +90,19 @@ public function store(): void
     $patientRefusedHospital = isset($_POST['patient_refused_hospital']) ? 1 : 0;
 
     if ($incidentTypeId <= 0 && $incidentTypeInput === '') {
-        $_SESSION['error'] = 'Tipo de acidente obrigatório.';
-        header('Location: '.$this->baseUrl.'?route=incidents_new');
-        exit;
+        $this->redirectWithFormError('Tipo de acidente obrigatório.');
     }
 
     if ($locationId <= 0 && $locationInput === '') {
-        $_SESSION['error'] = 'Local obrigatório.';
-        header('Location: '.$this->baseUrl.'?route=incidents_new');
-        exit;
+        $this->redirectWithFormError('Local obrigatório.');
     }
 
     if ($date === '' || $time === '') {
-        $_SESSION['error'] = 'Data e hora obrigatórias.';
-        header('Location: '.$this->baseUrl.'?route=incidents_new');
-        exit;
+        $this->redirectWithFormError('Data e hora obrigatórias.');
     }
 
     if ($patientName === '' || $patientDob === '') {
-        $_SESSION['error'] = 'Nome e data de nascimento do utente são obrigatórios.';
-        header('Location: '.$this->baseUrl.'?route=incidents_new');
-        exit;
+        $this->redirectWithFormError('Nome e data de nascimento do utente são obrigatórios.');
     }
 
     if ($incidentTypeId <= 0) {
@@ -132,9 +136,7 @@ public function store(): void
         $treatmentTypeIds = array_values(array_unique($treatmentTypeIds));
 
         if ($treatmentTypeIds === []) {
-            $_SESSION['error'] = 'Selecione pelo menos um tratamento.';
-            header('Location: '.$this->baseUrl.'?route=incidents_new');
-            exit;
+            $this->redirectWithFormError('Selecione pelo menos um tratamento.');
         }
     }
 
@@ -222,13 +224,15 @@ public function store(): void
 
         $pdo->commit();
 
+        unset($_SESSION['old_incident_form']);
+
         $_SESSION['success'] = 'Acidente registado com sucesso.';
         header('Location: '.$this->baseUrl.'?route=admin_incidents');
         exit;
 
     } catch (\Throwable $e) {
         $pdo->rollBack();
-        die($e->getMessage());
+        $this->redirectWithFormError('Erro ao guardar ocorrência.');
     }
 }
     public function insuranceTerm()
