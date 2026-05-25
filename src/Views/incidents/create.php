@@ -504,6 +504,7 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
         const selectionError = document.getElementById('treatment-selection-error');
         const patientBlock = document.getElementById('patient-block');
         const hospitalTypeId = <?= isset($hospitalTreatmentTypeId) && $hospitalTreatmentTypeId ? (int)$hospitalTreatmentTypeId : 'null' ?>;
+        const birthDateValidators = [];
 
         function wireDatalist(inputId, datalistId, hiddenId) {
             const input = document.getElementById(inputId);
@@ -541,7 +542,7 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
         function wireBirthDateField(inputId) {
             const input = document.getElementById(inputId);
             if (!input) {
-                return;
+                return null;
             }
 
             const minValue = input.getAttribute('min') || '';
@@ -589,10 +590,22 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
                     input.reportValidity();
                 }
             });
+
+            return {
+                input,
+                validate,
+                isWithinBounds,
+            };
         }
 
-        wireBirthDateField('patient_dob');
-        wireBirthDateField('patient_hospital_dob');
+        const patientDobValidator = wireBirthDateField('patient_dob');
+        const patientHospitalDobValidator = wireBirthDateField('patient_hospital_dob');
+        if (patientDobValidator) {
+            birthDateValidators.push(patientDobValidator);
+        }
+        if (patientHospitalDobValidator) {
+            birthDateValidators.push(patientHospitalDobValidator);
+        }
 
         function getMasterTreatmentOptions() {
             return Array.from(treatmentDatalist.querySelectorAll('option'))
@@ -784,6 +797,17 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
         });
 
         form.addEventListener('submit', (event) => {
+            for (const validator of birthDateValidators) {
+                validator.validate();
+
+                if (validator.input.value !== '' && !validator.isWithinBounds(validator.input.value)) {
+                    event.preventDefault();
+                    validator.input.reportValidity();
+                    validator.input.focus();
+                    return;
+                }
+            }
+
             updateSelectionValidity();
 
             if (toggleTreatment.checked && !hasSelectedTreatments()) {
