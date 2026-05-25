@@ -168,7 +168,7 @@ $baseUrl = '/enfermaria/public/index.php';
 
                 <div>
                     <label for="dob">Data de Nascimento</label>
-                    <input id="dob" name="dob" type="date" value="<?= htmlspecialchars((string)($patient['dob'] ?? '')) ?>">
+                    <input id="dob" name="dob" type="date" min="1920-01-01" max="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars((string)($patient['dob'] ?? '')) ?>">
                 </div>
 
                 <div>

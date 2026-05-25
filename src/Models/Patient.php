@@ -127,6 +127,11 @@ class Patient
             return null;
         }
 
+        $minimumAllowedBirth = new \DateTimeImmutable('1920-01-01');
+        if ($birth < $minimumAllowedBirth) {
+            return null;
+        }
+
         return (int)$birth->diff($today)->y;
     }
 

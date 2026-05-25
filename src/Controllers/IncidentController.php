@@ -105,6 +105,17 @@ public function store(): void
         $this->redirectWithFormError('Nome e data de nascimento do utente são obrigatórios.');
     }
 
+    $patientDobDate = \DateTimeImmutable::createFromFormat('Y-m-d', $patientDob);
+    $dobErrors = \DateTimeImmutable::getLastErrors();
+    $dobIsValid = $patientDobDate instanceof \DateTimeImmutable
+        && $dobErrors['warning_count'] === 0
+        && $dobErrors['error_count'] === 0
+        && $patientDobDate->format('Y-m-d') === $patientDob;
+
+    if (!$dobIsValid || $patientDobDate > new \DateTimeImmutable('today') || $patientDobDate < new \DateTimeImmutable('1920-01-01')) {
+        $this->redirectWithFormError('A data de nascimento é inválida.');
+    }
+
     if ($incidentTypeId <= 0) {
         $incidentTypeId = Incident::createTypeIfNotExists($incidentTypeInput);
     }

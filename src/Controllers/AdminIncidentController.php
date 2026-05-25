@@ -184,6 +184,22 @@ class AdminIncidentController
             exit;
         }
 
+        if ($dob !== '') {
+            $dobDate = \DateTimeImmutable::createFromFormat('Y-m-d', $dob);
+            $dobErrors = \DateTimeImmutable::getLastErrors();
+
+            $dobIsValid = $dobDate instanceof \DateTimeImmutable
+                && ($dobErrors['warning_count'] ?? 0) === 0
+                && ($dobErrors['error_count'] ?? 0) === 0
+                && $dobDate->format('Y-m-d') === $dob;
+
+            if (!$dobIsValid || $dobDate > new \DateTimeImmutable('today') || $dobDate < new \DateTimeImmutable('1920-01-01')) {
+                $_SESSION['error'] = 'Data de nascimento inválida.';
+                header('Location: ' . $this->baseUrl . '?route=incident_patient_edit&incident_id=' . $incidentId);
+                exit;
+            }
+        }
+
         try {
             Patient::updateFromIncidentForm($patientId, [
                 'full_name' => $fullName,
