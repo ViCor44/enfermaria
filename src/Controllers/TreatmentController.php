@@ -126,6 +126,22 @@ public function store(): void
 
             $patientRefusedHospital = isset($_POST['patient_refused_hospital']) ? 1 : 0;
 
+            if ($patientDob !== '') {
+                $dobDate = \DateTimeImmutable::createFromFormat('Y-m-d', $patientDob);
+                $dobErrors = \DateTimeImmutable::getLastErrors();
+
+                $dobIsValid = $dobDate instanceof \DateTimeImmutable
+                    && ($dobErrors['warning_count'] ?? 0) === 0
+                    && ($dobErrors['error_count'] ?? 0) === 0
+                    && $dobDate->format('Y-m-d') === $patientDob;
+
+                if (!$dobIsValid || $dobDate > new \DateTimeImmutable('today') || $dobDate < new \DateTimeImmutable('1920-01-01')) {
+                    $_SESSION['error'] = 'Data de nascimento inválida.';
+                    header('Location: ' . $this->baseUrl . '?route=treatments_new&incident_id=' . $incidentId);
+                    exit;
+                }
+            }
+
             /* obter paciente associado ao incidente */
 
             $incident = Incident::find($incidentId);

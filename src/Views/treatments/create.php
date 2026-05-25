@@ -333,7 +333,7 @@ $patientHospitalData = $patientHospitalData ?? [];
                 <div class="row">
                     <div style="margin-right: 24px;">
                         <label>Data de Nascimento</label>
-                        <input type="date" name="patient_dob" id="patient_dob" value="<?= htmlspecialchars((string)($patientHospitalData['dob'] ?? '')) ?>">
+                        <input type="date" name="patient_dob" id="patient_dob" min="1920-01-01" max="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars((string)($patientHospitalData['dob'] ?? '')) ?>">
                     </div>
                     <div style="margin-right: 24px;">
                         <label>Tipo de Identificação</label>
@@ -387,6 +387,61 @@ $patientHospitalData = $patientHospitalData ?? [];
     const selectionError = document.getElementById('treatment-selection-error');
     const patientBlock = document.getElementById('patient-block');
     const hospitalTreatmentTypeId = <?= $hospitalTreatmentTypeId ?>;
+
+    function wireBirthDateField(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) {
+            return;
+        }
+
+        const minValue = input.getAttribute('min') || '';
+        const maxValue = input.getAttribute('max') || '';
+        const errorMessage = 'A data de nascimento deve estar entre 1920-01-01 e a data de hoje.';
+
+        const isWithinBounds = (value) => {
+            if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+                return false;
+            }
+
+            if (minValue !== '' && value < minValue) {
+                return false;
+            }
+
+            if (maxValue !== '' && value > maxValue) {
+                return false;
+            }
+
+            return true;
+        };
+
+        const validate = () => {
+            if (input.value === '') {
+                input.setCustomValidity('');
+                return;
+            }
+
+            if (!isWithinBounds(input.value)) {
+                input.setCustomValidity(errorMessage);
+                return;
+            }
+
+            input.setCustomValidity('');
+        };
+
+        input.addEventListener('input', validate);
+        input.addEventListener('change', validate);
+        input.addEventListener('blur', () => {
+            validate();
+
+            if (input.value !== '' && !isWithinBounds(input.value)) {
+                input.value = '';
+                input.setCustomValidity(errorMessage);
+                input.reportValidity();
+            }
+        });
+    }
+
+    wireBirthDateField('patient_dob');
 
     function getMasterTreatmentOptions() {
         return Array.from(treatmentDatalist.querySelectorAll('option'))
