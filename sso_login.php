@@ -88,15 +88,10 @@ try {
     ]);
 
     $idField = $system['id_field'] ?? 'id';
-    $tbl     = $system['users_table'];
 
-    $stmt = $pdoLocal->prepare("
-        SELECT u.*, r.name AS role_name
-          FROM {$tbl} u
-          JOIN roles r ON r.id = u.role_id
-         WHERE u.{$idField} = ?
-         LIMIT 1
-    ");
+    $stmt = $pdoLocal->prepare(
+        "SELECT * FROM {$system['users_table']} WHERE {$idField} = ? LIMIT 1"
+    );
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
 
