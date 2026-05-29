@@ -337,7 +337,7 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
 
             <div style="margin-right: 24px;">
                 <label class="required">Data de nascimento</label>
-                <input type="date" name="patient_dob" required autocomplete="bday" min="1920-01-01" max="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars($oldValue('patient_dob')) ?>">
+                <input type="date" name="patient_dob" required autocomplete="bday" min="01/01/1920" max="<?= date('d/m/Y') ?>" value="<?= htmlspecialchars($oldValue('patient_dob')) ?>">
             </div>
 
             <div style="margin-right: 24px;">
