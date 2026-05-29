@@ -281,9 +281,11 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
                     value="<?= htmlspecialchars($oldValue('incident_type_input')) ?>"
                 >
                 <datalist id="incident-types-list">
-                    <?php foreach ($types as $t): ?>
-                        <option value="<?= htmlspecialchars($t['name']) ?>" data-id="<?= (int)$t['id'] ?>"></option>
-                    <?php endforeach; ?>
+                    <?php if (isset($types) && is_iterable($types)): ?>
+                        <?php foreach ($types as $t): ?>
+                            <option value="<?= htmlspecialchars($t['name']) ?>" data-id="<?= (int)$t['id'] ?>"></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </datalist>
                 <input type="hidden" name="incident_type_id" id="incident_type_id" value="<?= htmlspecialchars($oldValue('incident_type_id')) ?>">
                 <div class="small">Pode escrever novo tipo de ocorrência ou escolher da lista — se não existir será criado.</div>
@@ -301,9 +303,11 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
                     value="<?= htmlspecialchars($oldValue('location_input')) ?>"
                 >
                 <datalist id="locations-list">
-                    <?php foreach ($locations as $loc): ?>
-                        <option value="<?= htmlspecialchars($loc['name']) ?>" data-id="<?= (int)$loc['id'] ?>"></option>
-                    <?php endforeach; ?>
+                    <?php if (isset($locations) && is_iterable($locations)): ?>
+                        <?php foreach ($locations as $loc): ?>
+                            <option value="<?= htmlspecialchars($loc['name']) ?>" data-id="<?= (int)$loc['id'] ?>"></option>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </datalist>
                 <input type="hidden" name="location_id" id="location_id" value="<?= htmlspecialchars($oldValue('location_id')) ?>">
                 <div class="small">Pode escrever o nome do local ou escolher da lista — se não existir será criado.</div>
@@ -388,9 +392,11 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
                 </div>
             </div>
             <datalist id="treatment-types-list">
-                <?php foreach ($treatmentTypes as $tt): ?>
-                    <option value="<?= htmlspecialchars($tt['name']) ?>" data-id="<?= (int)$tt['id'] ?>"></option>
-                <?php endforeach; ?>
+                <?php if (isset($treatmentTypes) && is_array($treatmentTypes)): ?>
+                    <?php foreach ($treatmentTypes as $tt): ?>
+                        <option value="<?= htmlspecialchars($tt['name']) ?>" data-id="<?= (int)$tt['id'] ?>"></option>
+                    <?php endforeach; ?>
+                <?php endif; ?>
             </datalist>
             <div class="small">Pode escolher um tratamento existente ou escrever um novo nome.</div>
             <div class="small error" id="treatment-selection-error" style="display:none;">Selecione pelo menos um tratamento.</div>
