@@ -105,12 +105,17 @@ public function store(): void
         $this->redirectWithFormError('Nome e data de nascimento do utente são obrigatórios.');
     }
 
-    $patientDobDate = \DateTimeImmutable::createFromFormat('d/m/Y', $patientDob);
+    // Corrigir formato DD-MM-YYYY para YYYY-MM-DD se necessário
+    if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $patientDob)) {
+        [$d, $m, $y] = explode('-', $patientDob);
+        $patientDob = "$y-$m-$d";
+    }
+    $patientDobDate = \DateTimeImmutable::createFromFormat('Y-m-d', $patientDob);
     $dobErrors = \DateTimeImmutable::getLastErrors();
     $dobIsValid = $patientDobDate instanceof \DateTimeImmutable
         && $dobErrors['warning_count'] === 0
         && $dobErrors['error_count'] === 0
-        && $patientDobDate->format('d/m/Y') === $patientDob;
+        && $patientDobDate->format('Y-m-d') === $patientDob;
 
     if (!$dobIsValid || $patientDobDate > new \DateTimeImmutable('today') || $patientDobDate < new \DateTimeImmutable('1920-01-01')) {
         $this->redirectWithFormError('A data de nascimento é inválida.');
