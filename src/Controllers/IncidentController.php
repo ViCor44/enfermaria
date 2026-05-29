@@ -105,10 +105,13 @@ public function store(): void
         $this->redirectWithFormError('Nome e data de nascimento do utente são obrigatórios.');
     }
 
+    // DEBUG: Log do valor recebido para patientDob
+    file_put_contents(__DIR__ . '/../../storage/logs/dob_debug.log', date('Y-m-d H:i:s') . " | patientDob recebido: $patientDob\n", FILE_APPEND);
     // Corrigir formato DD-MM-YYYY para YYYY-MM-DD se necessário
     if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $patientDob)) {
         [$d, $m, $y] = explode('-', $patientDob);
         $patientDob = "$y-$m-$d";
+        file_put_contents(__DIR__ . '/../../storage/logs/dob_debug.log', date('Y-m-d H:i:s') . " | patientDob convertido: $patientDob\n", FILE_APPEND);
     }
     $patientDobDate = \DateTimeImmutable::createFromFormat('Y-m-d', $patientDob);
     $dobErrors = \DateTimeImmutable::getLastErrors();
