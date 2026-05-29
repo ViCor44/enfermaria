@@ -110,7 +110,7 @@ public function store(): void
     $dobIsValid = $patientDobDate instanceof \DateTimeImmutable
         && $dobErrors['warning_count'] === 0
         && $dobErrors['error_count'] === 0
-        && $patientDobDate->format('Y-m-d') === $patientDob;
+        && $patientDobDate->format('d/m/Y') === $patientDob;
 
     if (!$dobIsValid || $patientDobDate > new \DateTimeImmutable('today') || $patientDobDate < new \DateTimeImmutable('1920-01-01')) {
         $this->redirectWithFormError('A data de nascimento é inválida.');
