@@ -90,7 +90,11 @@ try {
     $idField = $system['id_field'] ?? 'id';
 
     $stmt = $pdoLocal->prepare(
-        "SELECT * FROM {$system['users_table']} WHERE {$idField} = ? LIMIT 1"
+        "SELECT u.*, r.name AS role_name
+           FROM {$system['users_table']} u
+           LEFT JOIN roles r ON r.id = u.role_id
+          WHERE u.{$idField} = ?
+          LIMIT 1"
     );
     $stmt->execute([$userId]);
     $user = $stmt->fetch();
