@@ -105,29 +105,19 @@ public function store(): void
         $this->redirectWithFormError('Nome e data de nascimento do utente são obrigatórios.');
     }
 
-    // DEBUG: Log do valor recebido para patientDob
-    file_put_contents(__DIR__ . '/../../storage/logs/dob_debug.log', date('Y-m-d H:i:s') . " | patientDob recebido: $patientDob\n", FILE_APPEND);
     // Corrigir formato DD-MM-YYYY para YYYY-MM-DD se necessário
     if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $patientDob)) {
         [$d, $m, $y] = explode('-', $patientDob);
         $patientDob = "$y-$m-$d";
-        file_put_contents(__DIR__ . '/../../storage/logs/dob_debug.log', date('Y-m-d H:i:s') . " | patientDob convertido: $patientDob\n", FILE_APPEND);
     }
     $patientDobDate = \DateTimeImmutable::createFromFormat('Y-m-d', $patientDob);
-    $dobErrors = \DateTimeImmutable::getLastErrors();
-    $isInstance = $patientDobDate instanceof \DateTimeImmutable;
-    $noWarnings = $dobErrors['warning_count'] === 0;
-    $noErrors = $dobErrors['error_count'] === 0;
-    $formatMatch = $isInstance ? ($patientDobDate->format('Y-m-d') === $patientDob) : false;
-    $after1920 = $isInstance ? ($patientDobDate >= new \DateTimeImmutable('1920-01-01')) : false;
-    $beforeToday = $isInstance ? ($patientDobDate <= new \DateTimeImmutable('today')) : false;
-    file_put_contents(__DIR__ . '/../../storage/logs/dob_debug.log',
-        date('Y-m-d H:i:s') . " | isInstance: $isInstance | noWarnings: $noWarnings | noErrors: $noErrors | formatMatch: $formatMatch | after1920: $after1920 | beforeToday: $beforeToday | dob: $patientDob\n",
-        FILE_APPEND
-    );
-    $dobIsValid = $isInstance && $noWarnings && $noErrors && $formatMatch;
+    $dobIsValid = $patientDobDate instanceof \DateTimeImmutable
+        && $patientDobDate->format('Y-m-d') === $patientDob;
 
-    if (!$dobIsValid || !$beforeToday || !$after1920) {
+    if (!$dobIsValid
+        || $patientDobDate > new \DateTimeImmutable('today')
+        || $patientDobDate < new \DateTimeImmutable('1920-01-01')
+    ) {
         $this->redirectWithFormError('A data de nascimento é inválida.');
     }
 
