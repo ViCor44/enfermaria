@@ -115,12 +115,19 @@ public function store(): void
     }
     $patientDobDate = \DateTimeImmutable::createFromFormat('Y-m-d', $patientDob);
     $dobErrors = \DateTimeImmutable::getLastErrors();
-    $dobIsValid = $patientDobDate instanceof \DateTimeImmutable
-        && $dobErrors['warning_count'] === 0
-        && $dobErrors['error_count'] === 0
-        && $patientDobDate->format('Y-m-d') === $patientDob;
+    $isInstance = $patientDobDate instanceof \DateTimeImmutable;
+    $noWarnings = $dobErrors['warning_count'] === 0;
+    $noErrors = $dobErrors['error_count'] === 0;
+    $formatMatch = $isInstance ? ($patientDobDate->format('Y-m-d') === $patientDob) : false;
+    $after1920 = $isInstance ? ($patientDobDate >= new \DateTimeImmutable('1920-01-01')) : false;
+    $beforeToday = $isInstance ? ($patientDobDate <= new \DateTimeImmutable('today')) : false;
+    file_put_contents(__DIR__ . '/../../storage/logs/dob_debug.log',
+        date('Y-m-d H:i:s') . " | isInstance: $isInstance | noWarnings: $noWarnings | noErrors: $noErrors | formatMatch: $formatMatch | after1920: $after1920 | beforeToday: $beforeToday | dob: $patientDob\n",
+        FILE_APPEND
+    );
+    $dobIsValid = $isInstance && $noWarnings && $noErrors && $formatMatch;
 
-    if (!$dobIsValid || $patientDobDate > new \DateTimeImmutable('today') || $patientDobDate < new \DateTimeImmutable('1920-01-01')) {
+    if (!$dobIsValid || !$beforeToday || !$after1920) {
         $this->redirectWithFormError('A data de nascimento é inválida.');
     }
 
