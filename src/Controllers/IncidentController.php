@@ -105,7 +105,7 @@ public function store(): void
         $this->redirectWithFormError('Nome e data de nascimento do utente são obrigatórios.');
     }
 
-    $patientDobDate = \DateTimeImmutable::createFromFormat('Y-m-d', $patientDob);
+    $patientDobDate = \DateTimeImmutable::createFromFormat('d/m/Y', $patientDob);
     $dobErrors = \DateTimeImmutable::getLastErrors();
     $dobIsValid = $patientDobDate instanceof \DateTimeImmutable
         && $dobErrors['warning_count'] === 0
