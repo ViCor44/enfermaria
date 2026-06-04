@@ -481,10 +481,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: 'treatment_id=' + encodeURIComponent(currentTreatmentId) + '&notes=' + encodeURIComponent(notesEdit.value)
             })
             .then(function(response) {
-                if (!response.ok) {
-                    throw new Error('HTTP ' + response.status);
-                }
-                return response.json();
+                return response.json().catch(function() {
+                    return {};
+                }).then(function(payload) {
+                    if (!response.ok) {
+                        var apiError = payload && payload.error ? String(payload.error) : 'http_error';
+                        throw new Error(apiError + ' (HTTP ' + response.status + ')');
+                    }
+                    return payload;
+                });
             })
             .then(function(data) {
                 if (!data.success) {

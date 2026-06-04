@@ -9,6 +9,7 @@ use App\Models\Location;
 class AdminTreatmentController
 {
     private string $baseUrl = '/enfermaria/public/index.php';
+    private static array $columnExistsCache = [];
 
     public function index(): void
     {
@@ -36,7 +37,6 @@ class AdminTreatmentController
 
     public function updateNotes(): void
     {
-        ob_start();
         header('Content-Type: application/json');
 
         try {
@@ -48,29 +48,50 @@ class AdminTreatmentController
             $userName    = (string)($_SESSION['user_name'] ?? 'Utilizador');
 
             if ($treatmentId <= 0) {
+                http_response_code(400);
                 echo json_encode(['success' => false, 'error' => 'invalid_treatment']);
                 return;
             }
 
             if ($notes === '') {
+                http_response_code(400);
                 echo json_encode(['success' => false, 'error' => 'empty_notes']);
                 return;
             }
 
             $pdo = \App\Core\Database::getConnection();
-            $stmt = $pdo->prepare(
-                "UPDATE treatments
-                 SET notes = :notes, notes_edited_by = :user_id, notes_edited_at = NOW()
-                 WHERE id = :id"
-            );
+            $checkStmt = $pdo->prepare('SELECT id FROM treatments WHERE id = :id LIMIT 1');
+            $checkStmt->execute([':id' => $treatmentId]);
+            if (!$checkStmt->fetch()) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'error' => 'treatment_not_found']);
+                return;
+            }
 
-            $ok = $stmt->execute([
-                ':notes'   => $notes,
-                ':user_id' => $userId,
-                ':id'      => $treatmentId,
-            ]);
+            $setParts = ['notes = :notes'];
+            $params = [
+                ':notes' => $notes,
+                ':id'    => $treatmentId,
+            ];
+
+            $hasEditedBy = self::columnExists($pdo, 'treatments', 'notes_edited_by');
+            $hasEditedAt = self::columnExists($pdo, 'treatments', 'notes_edited_at');
+
+            if ($hasEditedBy) {
+                $setParts[] = 'notes_edited_by = :user_id';
+                $params[':user_id'] = $userId > 0 ? $userId : null;
+            }
+
+            if ($hasEditedAt) {
+                $setParts[] = 'notes_edited_at = NOW()';
+            }
+
+            $sql = 'UPDATE treatments SET ' . implode(', ', $setParts) . ' WHERE id = :id';
+            $stmt = $pdo->prepare($sql);
+            $ok = $stmt->execute($params);
 
             if (!$ok) {
+                http_response_code(500);
                 echo json_encode(['success' => false, 'error' => 'update_failed']);
                 return;
             }
@@ -84,15 +105,24 @@ class AdminTreatmentController
                 'treatmentId' => $treatmentId,
             ]);
         } catch (\Throwable $e) {
-            if (ob_get_length() !== false && ob_get_length() > 0) {
-                ob_clean();
-            }
+            error_log('[AdminTreatmentController::updateNotes] ' . $e->getMessage());
             http_response_code(500);
             echo json_encode(['success' => false, 'error' => 'server_error']);
-        } finally {
-            if (ob_get_level() > 0) {
-                ob_end_flush();
-            }
         }
+    }
+
+    private static function columnExists(\PDO $pdo, string $table, string $column): bool
+    {
+        $cacheKey = $table . '.' . $column;
+        if (array_key_exists($cacheKey, self::$columnExistsCache)) {
+            return self::$columnExistsCache[$cacheKey];
+        }
+
+        $stmt = $pdo->prepare("SHOW COLUMNS FROM {$table} LIKE :column");
+        $stmt->execute([':column' => $column]);
+        $exists = (bool)$stmt->fetch();
+        self::$columnExistsCache[$cacheKey] = $exists;
+
+        return $exists;
     }
 }
