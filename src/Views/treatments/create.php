@@ -263,25 +263,23 @@ $patientHospitalData = $patientHospitalData ?? [];
         <div class="treatment-list" id="treatment-list">
             <div class="treatment-entry" data-treatment-entry>
                 <div class="treatment-entry-field">
-                    <label for="treatment_type_input_0">Tratamento 1</label>
-                    <input
-                        list="treatment-types-list"
-                        name="treatment_type_input[]"
-                        id="treatment_type_input_0"
-                        placeholder="Escreva ou escolha..."
-                        autocomplete="off"
+                    <label for="treatment_type_id_0">Tratamento 1</label>
+                    <select
+                        name="treatment_type_id[]"
+                        id="treatment_type_id_0"
+                        data-treatment-select
+                        required
                     >
-                    <input type="hidden" name="treatment_type_id[]" value="">
+                        <option value="">-- Selecionar --</option>
+                        <?php foreach ($types as $t): ?>
+                            <option value="<?= (int)$t['id'] ?>"><?= htmlspecialchars($t['name']) ?></option>
+                        <?php endforeach; ?>
+                    </select>
                 </div>
                 <button type="button" class="remove-treatment" data-remove-treatment style="display:none;">Remover</button>
             </div>
         </div>
-        <datalist id="treatment-types-list">
-            <?php foreach ($types as $t): ?>
-                <option value="<?= htmlspecialchars($t['name']) ?>" data-id="<?= (int)$t['id'] ?>"></option>
-            <?php endforeach; ?>
-        </datalist>
-        <div class="small">Pode escolher um tratamento existente ou escrever um novo nome.</div>
+        <div class="small">Escolha um tratamento existente.</div>
         <div class="small error" id="treatment-selection-error" style="display:none;">Selecione pelo menos um tratamento.</div>
         <div class="treatment-actions">
             <button type="button" class="secondary-button" id="add-treatment">Adicionar outro tratamento</button>
@@ -383,7 +381,6 @@ $patientHospitalData = $patientHospitalData ?? [];
     const form = document.getElementById('treatments-form');
     const treatmentList = document.getElementById('treatment-list');
     const addTreatmentButton = document.getElementById('add-treatment');
-    const treatmentDatalist = document.getElementById('treatment-types-list');
     const selectionError = document.getElementById('treatment-selection-error');
     const patientBlock = document.getElementById('patient-block');
     const hospitalTreatmentTypeId = <?= $hospitalTreatmentTypeId ?>;
@@ -443,32 +440,6 @@ $patientHospitalData = $patientHospitalData ?? [];
 
     wireBirthDateField('patient_dob');
 
-    function getMasterTreatmentOptions() {
-        return Array.from(treatmentDatalist.querySelectorAll('option'))
-            .map((option) => {
-                const value = option.value ? option.value.trim() : '';
-                const id = Number(option.getAttribute('data-id') || 0);
-
-                if (value === '' || id <= 0) {
-                    return null;
-                }
-
-                return { value, id };
-            })
-            .filter((option) => option !== null);
-    }
-
-    function buildTreatmentMap(options) {
-        const map = new Map();
-        options.forEach((option) => {
-            map.set(option.value, String(option.id));
-        });
-        return map;
-    }
-
-    let masterTreatmentOptions = getMasterTreatmentOptions();
-    let treatmentMap = buildTreatmentMap(masterTreatmentOptions);
-
     function getTreatmentEntries() {
         return Array.from(treatmentList.querySelectorAll('[data-treatment-entry]'));
     }
@@ -481,8 +452,8 @@ $patientHospitalData = $patientHospitalData ?? [];
                 return;
             }
 
-            const hidden = entry.querySelector('input[name="treatment_type_id[]"]');
-            const selectedId = Number(hidden.value);
+            const select = entry.querySelector('select[data-treatment-select]');
+            const selectedId = Number(select.value);
             if (selectedId > 0) {
                 selectedIds.add(selectedId);
             }
@@ -492,31 +463,17 @@ $patientHospitalData = $patientHospitalData ?? [];
     }
 
     function refreshTreatmentChoices() {
-        getTreatmentEntries().forEach((entry, index) => {
-            const input = entry.querySelector('input[name="treatment_type_input[]"]');
-            let datalist = entry.querySelector('datalist[data-entry-datalist]');
+        getTreatmentEntries().forEach((entry) => {
+            const select = entry.querySelector('select[data-treatment-select]');
+            const currentValue = select.value;
+            const selectedElsewhere = getSelectedTreatmentIds(entry);
 
-            if (!datalist) {
-                datalist = document.createElement('datalist');
-                datalist.setAttribute('data-entry-datalist', '');
-                entry.appendChild(datalist);
-            }
-
-            datalist.id = 'treatment-types-list-' + index;
-            input.setAttribute('list', datalist.id);
-
-            const selectedIds = getSelectedTreatmentIds(entry);
-            datalist.innerHTML = '';
-
-            masterTreatmentOptions.forEach((option) => {
-                if (selectedIds.has(option.id)) {
+            Array.from(select.options).forEach((option) => {
+                if (option.value === '') {
                     return;
                 }
-
-                const optionElement = document.createElement('option');
-                optionElement.value = option.value;
-                optionElement.setAttribute('data-id', String(option.id));
-                datalist.appendChild(optionElement);
+                const id = Number(option.value);
+                option.disabled = selectedElsewhere.has(id) && option.value !== currentValue;
             });
         });
     }
@@ -524,31 +481,25 @@ $patientHospitalData = $patientHospitalData ?? [];
     function syncTreatmentLabels() {
         getTreatmentEntries().forEach((entry, index) => {
             const label = entry.querySelector('label');
-            const input = entry.querySelector('input[name="treatment_type_input[]"]');
+            const select = entry.querySelector('select[data-treatment-select]');
             const removeButton = entry.querySelector('[data-remove-treatment]');
 
             label.textContent = 'Tratamento ' + (index + 1);
-            label.setAttribute('for', 'treatment_type_input_' + index);
-            input.id = 'treatment_type_input_' + index;
+            label.setAttribute('for', 'treatment_type_id_' + index);
+            select.id = 'treatment_type_id_' + index;
             removeButton.style.display = index === 0 && getTreatmentEntries().length === 1 ? 'none' : 'inline-flex';
         });
     }
 
     function wireTreatmentEntry(entry) {
-        const input = entry.querySelector('input[name="treatment_type_input[]"]');
-        const hidden = entry.querySelector('input[name="treatment_type_id[]"]');
+        const select = entry.querySelector('select[data-treatment-select]');
         const removeButton = entry.querySelector('[data-remove-treatment]');
 
-        const syncHiddenValue = () => {
-            const value = input.value.trim();
-            hidden.value = treatmentMap.has(value) ? treatmentMap.get(value) : '';
+        select.addEventListener('change', () => {
             refreshTreatmentChoices();
             updateSelectionValidity();
             togglePatientBlock();
-        };
-
-        input.addEventListener('input', syncHiddenValue);
-        input.addEventListener('change', syncHiddenValue);
+        });
 
         removeButton.addEventListener('click', () => {
             entry.remove();
@@ -559,6 +510,20 @@ $patientHospitalData = $patientHospitalData ?? [];
         });
     }
 
+    function buildTreatmentOptionsHtml() {
+        const source = treatmentList.querySelector('select[data-treatment-select]');
+        if (!source) {
+            return '';
+        }
+        return Array.from(source.options)
+            .map((option) => {
+                const value = option.value === '' ? '' : String(Number(option.value));
+                const label = option.textContent;
+                return '<option value="' + value.replace(/"/g, '&quot;') + '">' + label + '</option>';
+            })
+            .join('');
+    }
+
     function createTreatmentEntry() {
         const entry = document.createElement('div');
         entry.className = 'treatment-entry';
@@ -566,13 +531,9 @@ $patientHospitalData = $patientHospitalData ?? [];
         entry.innerHTML = `
             <div class="treatment-entry-field">
                 <label>Tratamento</label>
-                <input
-                    list="treatment-types-list"
-                    name="treatment_type_input[]"
-                    placeholder="Escreva ou escolha..."
-                    autocomplete="off"
-                >
-                <input type="hidden" name="treatment_type_id[]" value="">
+                <select name="treatment_type_id[]" data-treatment-select required>
+                    ${buildTreatmentOptionsHtml()}
+                </select>
             </div>
             <button type="button" class="remove-treatment" data-remove-treatment>Remover</button>
         `;
@@ -582,23 +543,23 @@ $patientHospitalData = $patientHospitalData ?? [];
         syncTreatmentLabels();
         refreshTreatmentChoices();
 
-        const input = entry.querySelector('input[name="treatment_type_input[]"]');
-        input.focus();
+        const select = entry.querySelector('select[data-treatment-select]');
+        select.focus();
     }
 
     function hasSelectedTreatments() {
         return getTreatmentEntries().some((entry) => {
-            const input = entry.querySelector('input[name="treatment_type_input[]"]');
-            return input.value.trim() !== '';
+            const select = entry.querySelector('select[data-treatment-select]');
+            return Number(select.value) > 0;
         });
     }
 
     function updateSelectionValidity() {
         const hasSelection = hasSelectedTreatments();
 
-        const firstInput = treatmentList.querySelector('input[name="treatment_type_input[]"]');
-        if (firstInput) {
-            firstInput.setCustomValidity(hasSelection ? '' : 'Selecione pelo menos um tratamento.');
+        const firstSelect = treatmentList.querySelector('select[data-treatment-select]');
+        if (firstSelect) {
+            firstSelect.setCustomValidity(hasSelection ? '' : 'Selecione pelo menos um tratamento.');
         }
 
         selectionError.style.display = hasSelection ? 'none' : 'block';
@@ -606,18 +567,11 @@ $patientHospitalData = $patientHospitalData ?? [];
 
     function togglePatientBlock() {
         const hasHospitalTransfer = getTreatmentEntries().some((entry) => {
-            const input = entry.querySelector('input[name="treatment_type_input[]"]');
-            const hidden = entry.querySelector('input[name="treatment_type_id[]"]');
-            const typedValue = input.value.trim().toLowerCase();
-
-            return Number(hidden.value) === hospitalTreatmentTypeId || typedValue === 'enviado para hospital';
+            const select = entry.querySelector('select[data-treatment-select]');
+            return Number(select.value) === hospitalTreatmentTypeId;
         });
 
-        if (hasHospitalTransfer) {
-            patientBlock.style.display = 'block';
-        } else {
-            patientBlock.style.display = 'none';
-        }
+        patientBlock.style.display = hasHospitalTransfer ? 'block' : 'none';
     }
 
     addTreatmentButton.addEventListener('click', () => {
@@ -629,19 +583,12 @@ $patientHospitalData = $patientHospitalData ?? [];
 
         if (!hasSelectedTreatments()) {
             event.preventDefault();
-            const firstInput = treatmentList.querySelector('input[name="treatment_type_input[]"]');
-            if (firstInput) {
-                firstInput.reportValidity();
+            const firstSelect = treatmentList.querySelector('select[data-treatment-select]');
+            if (firstSelect) {
+                firstSelect.reportValidity();
             }
         }
     });
-
-    const datalistObserver = new MutationObserver(() => {
-        masterTreatmentOptions = getMasterTreatmentOptions();
-        treatmentMap = buildTreatmentMap(masterTreatmentOptions);
-        refreshTreatmentChoices();
-    });
-    datalistObserver.observe(treatmentDatalist, { childList: true, subtree: true });
 
     // garantir estado correto quando a página abre
     document.addEventListener('DOMContentLoaded', () => {

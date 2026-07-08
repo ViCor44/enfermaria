@@ -63,18 +63,12 @@ public function store(): void
 
     $addTreatment = isset($_POST['add_treatment']);
     $rawTreatmentTypeIds = $_POST['treatment_type_id'] ?? [];
-    $rawTreatmentTypeInputs = $_POST['treatment_type_input'] ?? [];
 
     if (!is_array($rawTreatmentTypeIds)) {
         $rawTreatmentTypeIds = [$rawTreatmentTypeIds];
     }
 
-    if (!is_array($rawTreatmentTypeInputs)) {
-        $rawTreatmentTypeInputs = [$rawTreatmentTypeInputs];
-    }
-
     $treatmentTypeIds = [];
-    $treatmentTypeInputs = [];
     $treatmentStatus    = in_array($_POST['treatment_status'] ?? '', ['em_curso','concluido'], true)
         ? $_POST['treatment_status']
         : 'em_curso';
@@ -130,26 +124,22 @@ public function store(): void
     }
 
     if ($addTreatment) {
-        $maxTreatments = max(count($rawTreatmentTypeIds), count($rawTreatmentTypeInputs));
-
-        for ($index = 0; $index < $maxTreatments; $index++) {
-            $treatmentTypeId = (int)($rawTreatmentTypeIds[$index] ?? 0);
-            $treatmentTypeInput = trim((string)($rawTreatmentTypeInputs[$index] ?? ''));
-
-            if ($treatmentTypeInput !== '') {
-                $treatmentTypeInputs[] = $treatmentTypeInput;
-            }
-
-            if ($treatmentTypeId <= 0 && $treatmentTypeInput !== '') {
-                $treatmentTypeId = Treatment::createTypeIfNotExists($treatmentTypeInput);
-            }
-
+        foreach ($rawTreatmentTypeIds as $rawId) {
+            $treatmentTypeId = (int)$rawId;
             if ($treatmentTypeId > 0) {
                 $treatmentTypeIds[] = $treatmentTypeId;
             }
         }
 
         $treatmentTypeIds = array_values(array_unique($treatmentTypeIds));
+
+        if ($treatmentTypeIds !== []) {
+            $validTypeIds = array_map(
+                static fn (array $t): int => (int)$t['id'],
+                Treatment::getTypes()
+            );
+            $treatmentTypeIds = array_values(array_intersect($treatmentTypeIds, $validTypeIds));
+        }
 
         if ($treatmentTypeIds === []) {
             $this->redirectWithFormError('Selecione pelo menos um tratamento.');
@@ -160,17 +150,8 @@ public function store(): void
 
     $hospitalTypeId = Treatment::getHospitalTransferTypeId();
 
-    $hasHospitalByName = false;
-    foreach ($treatmentTypeInputs as $inputName) {
-        if (strcasecmp($inputName, 'Enviado para hospital') === 0) {
-            $hasHospitalByName = true;
-            break;
-        }
-    }
-
     $isHospitalTreatment =
-        ($hospitalTypeId && in_array((int)$hospitalTypeId, $treatmentTypeIds, true)) ||
-        $hasHospitalByName;
+        $hospitalTypeId && in_array((int)$hospitalTypeId, $treatmentTypeIds, true);
 
     $pdo = Database::getConnection();
 

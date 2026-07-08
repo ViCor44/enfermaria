@@ -49,12 +49,19 @@ class InternalRecordController
         $patientGender = trim($_POST['patient_gender'] ?? '') ?: null;
         $isEmployee    = isset($_POST['is_employee']) ? 1 : 0;
 
-        $treatment = Text::toPortugueseTitleCase((string)($_POST['treatment'] ?? ''));
+        $treatment = trim((string)($_POST['treatment'] ?? ''));
         $description = trim($_POST['description'] ?? '');
 
         if ($treatment !== '') {
-            // Mantem os tratamentos escritos no registo interno reutilizaveis nas listas.
-            Treatment::createTypeIfNotExists($treatment);
+            $validTreatments = array_map(
+                static fn (array $t): string => (string)$t['name'],
+                Treatment::getTypes()
+            );
+            if (!in_array($treatment, $validTreatments, true)) {
+                $_SESSION['error'] = 'Tratamento inválido. Escolha um dos tratamentos existentes.';
+                header('Location: '.$this->baseUrl.'?route=internal_new');
+                exit;
+            }
         }
 
         /* -------------------- VALIDAÇÕES -------------------- */

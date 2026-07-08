@@ -52,33 +52,28 @@ public function store(): void
     $notes      = trim($_POST['notes'] ?? '') ?: null;
 
     $rawTreatmentTypeIds = $_POST['treatment_type_id'] ?? ($_POST['treatment_type_ids'] ?? []);
-    $rawTreatmentTypeInputs = $_POST['treatment_type_input'] ?? [];
 
     if (!is_array($rawTreatmentTypeIds)) {
         $rawTreatmentTypeIds = [$rawTreatmentTypeIds];
     }
 
-    if (!is_array($rawTreatmentTypeInputs)) {
-        $rawTreatmentTypeInputs = [$rawTreatmentTypeInputs];
-    }
-
     $treatmentTypeIds = [];
-    $maxTreatments = max(count($rawTreatmentTypeIds), count($rawTreatmentTypeInputs));
-
-    for ($index = 0; $index < $maxTreatments; $index++) {
-        $treatmentTypeId = (int)($rawTreatmentTypeIds[$index] ?? 0);
-        $treatmentTypeInput = trim((string)($rawTreatmentTypeInputs[$index] ?? ''));
-
-        if ($treatmentTypeId <= 0 && $treatmentTypeInput !== '') {
-            $treatmentTypeId = Treatment::createTypeIfNotExists($treatmentTypeInput);
-        }
-
+    foreach ($rawTreatmentTypeIds as $rawId) {
+        $treatmentTypeId = (int)$rawId;
         if ($treatmentTypeId > 0) {
             $treatmentTypeIds[] = $treatmentTypeId;
         }
     }
 
     $treatmentTypeIds = array_values(array_unique($treatmentTypeIds));
+
+    if ($treatmentTypeIds !== []) {
+        $validTypeIds = array_map(
+            static fn (array $t): int => (int)$t['id'],
+            Treatment::getTypes()
+        );
+        $treatmentTypeIds = array_values(array_intersect($treatmentTypeIds, $validTypeIds));
+    }
 
     if ($incidentId <= 0 || $treatmentTypeIds === []) {
         $_SESSION['error'] = 'Dados inválidos.';

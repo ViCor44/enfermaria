@@ -198,20 +198,16 @@ button {
     <div class="row">
         <div style="margin-right: 24px;">
             <label class="required">Tratamento</label>
-            <input
-                list="treatment-types-list"
+            <select
                 name="treatment"
                 id="treatment"
-                placeholder="Escreva ou escolha..."
-                autocomplete="off"
                 required
             >
-
-            <datalist id="treatment-types-list">
+                <option value="">-- Selecionar --</option>
                 <?php foreach ($treatmentTypes as $tt): ?>
-                    <option value="<?= htmlspecialchars($tt['name']) ?>"></option>
+                    <option value="<?= htmlspecialchars($tt['name']) ?>"><?= htmlspecialchars($tt['name']) ?></option>
                 <?php endforeach; ?>
-            </datalist>
+            </select>
         </div>
     </div>
 
