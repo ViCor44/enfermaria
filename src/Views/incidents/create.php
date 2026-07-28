@@ -408,7 +408,13 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
             <label>Notas do tratamento (opcional)</label>
             <textarea name="treatment_notes" placeholder="Descreva o tratamento efetuado. Evite dados pessoais desnecessários. Se incluir 'Enviado para hospital', este texto poderá aparecer no termo de seguro."><?= htmlspecialchars($oldValue('treatment_notes')) ?></textarea>
 
-            <!-- Campos extra se for 'Enviado para hospital' -->
+            <div class="form-check" style="margin-top:1rem;">
+                <input type="checkbox" id="hospital_transfer" name="hospital_transfer" value="1" <?= $oldChecked('hospital_transfer') ? 'checked' : '' ?>>
+                <label for="hospital_transfer" style="cursor:pointer;">Enviado para o hospital</label>
+            </div>
+            <div class="small">Assinale para preencher os restantes dados necessários ao envio para o hospital.</div>
+
+            <!-- Campos extra controlados pela checkbox de envio para o hospital -->
             <div id="patient-block" style="display:none;">
                 <strong>Restantes dados do utente (para envio ao hospital)</strong>
 
@@ -499,7 +505,7 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
         const addTreatmentButton = document.getElementById('add-treatment');
         const selectionError = document.getElementById('treatment-selection-error');
         const patientBlock = document.getElementById('patient-block');
-        const hospitalTypeId = <?= isset($hospitalTreatmentTypeId) && $hospitalTreatmentTypeId ? (int)$hospitalTreatmentTypeId : 'null' ?>;
+        const hospitalTransfer = document.getElementById('hospital_transfer');
         const birthDateValidators = [];
 
         function wireDatalist(inputId, datalistId, hiddenId) {
@@ -674,17 +680,8 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
         }
 
         function togglePatientBlock() {
-            if (!toggleTreatment.checked) {
-                patientBlock.style.display = 'none';
-                return;
-            }
-
-            const hasHospitalTransfer = getTreatmentEntries().some((entry) => {
-                const select = entry.querySelector('select[data-treatment-select]');
-                return Number(select.value) === hospitalTypeId;
-            });
-
-            patientBlock.style.display = hasHospitalTransfer ? 'block' : 'none';
+            patientBlock.style.display =
+                toggleTreatment.checked && hospitalTransfer.checked ? 'block' : 'none';
         }
 
         function wireTreatmentEntry(entry) {
@@ -748,6 +745,8 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
             updateSelectionValidity();
             togglePatientBlock();
         });
+
+        hospitalTransfer.addEventListener('change', togglePatientBlock);
 
         addTreatmentButton.addEventListener('click', () => {
             createTreatmentEntry();

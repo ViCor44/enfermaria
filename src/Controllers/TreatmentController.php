@@ -30,7 +30,6 @@ class TreatmentController
         }
 
         $types = Treatment::getTypes();
-        $hospitalTreatmentTypeId = Treatment::getHospitalTransferTypeId();
         $patientHospitalData = null;
 
         if (!empty($incident['patient_id'])) {
@@ -99,16 +98,13 @@ public function store(): void
             ]);
         }
 
-        /* -------------------- DETETAR SE É HOSPITAL -------------------- */
+        /* -------------------- DETETAR ENVIO PARA O HOSPITAL -------------------- */
 
-        $hospitalTypeId = Treatment::getHospitalTransferTypeId();
-
-        $isHospitalTreatment =
-            $hospitalTypeId && in_array((int)$hospitalTypeId, $treatmentTypeIds, true);
+        $isHospitalTransfer = isset($_POST['hospital_transfer']);
 
         /* -------------------- UPDATE PACIENTE -------------------- */
 
-        if ($isHospitalTreatment) {
+        if ($isHospitalTransfer) {
 
             $patientNationality = trim($_POST['patient_nationality'] ?? '') ?: null;
             $patientAddress     = trim($_POST['patient_address'] ?? '') ?: null;

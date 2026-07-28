@@ -28,9 +28,6 @@ class IncidentController
         $locations      = Location::allActive();
         $treatmentTypes = Treatment::getTypes();
 
-        // ID do tipo "Enviado para hospital"
-        $hospitalTreatmentTypeId = Treatment::getHospitalTransferTypeId();
-
         require __DIR__ . '/../Views/incidents/create.php';
     }
 
@@ -82,6 +79,7 @@ public function store(): void
     $patientIdType      = trim($_POST['patient_id_type'] ?? '') ?: null;
     $patientIdNumber    = trim($_POST['patient_id_number'] ?? '') ?: null;
     $patientRefusedHospital = isset($_POST['patient_refused_hospital']) ? 1 : 0;
+    $isHospitalTransfer = $addTreatment && isset($_POST['hospital_transfer']);
 
     if ($incidentTypeId <= 0 && $incidentTypeInput === '') {
         $this->redirectWithFormError('Tipo de acidente obrigatório.');
@@ -148,11 +146,6 @@ public function store(): void
 
     $occurredAt = $date . ' ' . $time . ':00';
 
-    $hospitalTypeId = Treatment::getHospitalTransferTypeId();
-
-    $isHospitalTreatment =
-        $hospitalTypeId && in_array((int)$hospitalTypeId, $treatmentTypeIds, true);
-
     $pdo = Database::getConnection();
 
     try {
@@ -204,7 +197,7 @@ public function store(): void
             ]);
         }
 
-        if ($isHospitalTreatment) {
+        if ($isHospitalTransfer) {
             Patient::updateHospitalData(
                 $patientId,
                 $patientNationality,
