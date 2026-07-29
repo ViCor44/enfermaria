@@ -399,8 +399,8 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
                 <div style="margin-right: 24px;">
                     <label>Estado</label>
                     <select name="treatment_status">
-                        <option value="concluido" <?= $oldValue('treatment_status') === 'concluido' ? 'selected' : '' ?>>Concluído</option>
-                        <option value="em_curso" <?= $oldValue('treatment_status', 'em_curso') === 'em_curso' ? 'selected' : '' ?>>Em curso</option>
+                        <option value="concluido" <?= $oldValue('treatment_status', 'concluido') === 'concluido' ? 'selected' : '' ?>>Concluído</option>
+                        <option value="em_curso" <?= $oldValue('treatment_status') === 'em_curso' ? 'selected' : '' ?>>Em curso</option>
                     </select>
                 </div>
             </div>

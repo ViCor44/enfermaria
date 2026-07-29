@@ -68,7 +68,7 @@ public function store(): void
     $treatmentTypeIds = [];
     $treatmentStatus    = in_array($_POST['treatment_status'] ?? '', ['em_curso','concluido'], true)
         ? $_POST['treatment_status']
-        : 'em_curso';
+        : 'concluido';
     $treatmentNotes     = trim($_POST['treatment_notes'] ?? '') ?: null;
 
     $patientNationality = trim($_POST['patient_nationality'] ?? '') ?: null;

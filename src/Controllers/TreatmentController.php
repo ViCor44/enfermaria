@@ -47,7 +47,7 @@ public function store(): void
     $userId = (int)$user['id'];
 
     $incidentId = (int)($_POST['incident_id'] ?? 0);
-    $status     = $_POST['status'] ?? 'em_curso';
+    $status     = $_POST['status'] ?? 'concluido';
     $notes      = trim($_POST['notes'] ?? '') ?: null;
 
     $rawTreatmentTypeIds = $_POST['treatment_type_id'] ?? ($_POST['treatment_type_ids'] ?? []);
