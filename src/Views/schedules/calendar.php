@@ -1,6 +1,6 @@
 <?php
 $monthNames = [1=>'Janeiro',2=>'Fevereiro',3=>'Março',4=>'Abril',5=>'Maio',6=>'Junho',7=>'Julho',8=>'Agosto',9=>'Setembro',10=>'Outubro',11=>'Novembro',12=>'Dezembro'];
-$shiftLabels = ['M'=>'Manhã','T'=>'Tarde','C'=>'Completo','TE'=>'Tempo extra'];
+$shiftLabels = ['M'=>'Manhã','T'=>'Tarde','C'=>'Completo','TE'=>'Tarde extra'];
 $first = new DateTimeImmutable(sprintf('%04d-%02d-01', $year, $month));
 $previous = $first->modify('-1 month'); $next = $first->modify('+1 month');
 $offset = (int)$first->format('N') - 1; $days = (int)$first->format('t');
