@@ -286,6 +286,13 @@ if (!isset($pendingApprovalsCount)) {
                 Dashboard
             </a>
 
+            <?php if (in_array($role, ['Administrador', 'Enfermeiro'], true)): ?>
+                <a href="<?= $baseUrl ?>?route=park_schedule"
+                   class="nav-link <?= in_array($route, ['park_schedule', 'park_schedule_save'], true) ? 'active' : '' ?>">
+                    Escala
+                </a>
+            <?php endif; ?>
+
             <?php if ($role === 'Administrador'): ?>
                 
                 <a href="<?= $baseUrl ?>?route=admin_incidents"

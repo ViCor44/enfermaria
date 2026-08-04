@@ -77,6 +77,21 @@ if ($route === 'login') {
     $controller = new App\Controllers\DashboardController();
     $controller->index();
 
+} elseif ($route === 'park_schedule') {
+    (new App\Controllers\ParkScheduleController())->index();
+
+} elseif ($route === 'park_schedule_save' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    (new App\Controllers\ParkScheduleController())->saveDay();
+
+} elseif ($route === 'park_schedule_import' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    (new App\Controllers\ParkScheduleController())->upload();
+
+} elseif ($route === 'park_schedule_import_preview') {
+    (new App\Controllers\ParkScheduleController())->preview();
+
+} elseif ($route === 'park_schedule_import_confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    (new App\Controllers\ParkScheduleController())->confirmImport();
+
 } elseif ($route === 'admin_users') {
     $controller = new App\Controllers\AdminUserController();
     $controller->pending();
