@@ -16,6 +16,7 @@ $incidentTrend = $incidentTrend ?? ['label' => 'Sem variação face a ontem', 'v
 $recentIncidents = $recentIncidents ?? [];
 $isNurse = ($role === 'Enfermeiro');
 $isAdmin = ($role === 'Administrador');
+$canViewServiceNurses = in_array($role, ['Administrador', 'Manager'], true);
 
 $incidentTrendClass = 'trend-neutral';
 if (($incidentTrend['direction'] ?? '') === 'up') {
@@ -438,6 +439,8 @@ $statsHref = $baseUrl . '?route=admin_stats';
                         <strong>Aprovações pendentes</strong>
                         <span><?= (int)$pendingApprovals ?></span>
                     </div>
+                <?php endif; ?>
+                <?php if ($canViewServiceNurses): ?>
                     <div class="meta-row">
                         <strong>Enfermeiros de serviço</strong>
                         <span>

@@ -23,7 +23,7 @@ class DashboardController
         $completedTreatmentsToday = $this->countTreatmentsCompletedForDate($pdo, new DateTimeImmutable('today'));
         $role = (string)($_SESSION['role'] ?? '');
         $pendingApprovals = $role === 'Administrador' ? $this->countPendingApprovals($pdo) : 0;
-        $onlineNurses = $role === 'Administrador' ? $this->fetchOnlineNurses($pdo) : [];
+        $onlineNurses = in_array($role, ['Administrador', 'Manager'], true) ? $this->fetchOnlineNurses($pdo) : [];
         $recentIncidents = $this->fetchRecentIncidents($pdo, 6);
 
         $lastLoginRaw = $_SESSION['last_login'] ?? null;

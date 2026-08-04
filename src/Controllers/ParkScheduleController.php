@@ -5,6 +5,7 @@ use App\Models\ParkSchedule;
 use App\Services\PdfScheduleImporter;
 use DateTimeImmutable;
 use RuntimeException;
+use Throwable;
 
 class ParkScheduleController
 {
@@ -12,7 +13,7 @@ class ParkScheduleController
 
     public function index(): void
     {
-        Auth::requireRole(['Administrador', 'Enfermeiro']);
+        Auth::requireRole(['Administrador', 'Enfermeiro', 'Manager']);
         [$year, $month] = $this->requestedMonth();
         $_SESSION['park_schedule_csrf'] ??= bin2hex(random_bytes(32));
         $nurses = ParkSchedule::nurses();
@@ -23,7 +24,7 @@ class ParkScheduleController
 
     public function saveDay(): void
     {
-        Auth::requireRole(['Administrador', 'Enfermeiro']);
+        Auth::requireRole(['Administrador', 'Enfermeiro', 'Manager']);
         [$year, $month] = $this->requestedMonth();
         if (!hash_equals((string)($_SESSION['park_schedule_csrf'] ?? ''), (string)($_POST['csrf_token'] ?? ''))) {
             http_response_code(419); exit('Pedido expirado. Atualize a página e tente novamente.');
@@ -48,7 +49,7 @@ class ParkScheduleController
 
     public function upload(): void
     {
-        Auth::requireRole(['Administrador', 'Enfermeiro']);
+        Auth::requireRole(['Administrador', 'Enfermeiro', 'Manager']);
         $this->checkCsrf();
         $file = $_FILES['schedule_pdf'] ?? null;
         if (!is_array($file) || ($file['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file((string)$file['tmp_name'])) {
@@ -65,6 +66,7 @@ class ParkScheduleController
             $this->redirect((int)date('Y'), (int)date('n'));
         }
         try {
+            unset($_SESSION['park_schedule_mapping']);
             $_SESSION['park_schedule_import'] = (new PdfScheduleImporter())->parse((string)$file['tmp_name']);
             header('Location: '.$this->baseUrl.'?route=park_schedule_import_preview'); exit;
         } catch (RuntimeException $e) {
@@ -75,25 +77,27 @@ class ParkScheduleController
 
     public function preview(): void
     {
-        Auth::requireRole(['Administrador', 'Enfermeiro']);
+        Auth::requireRole(['Administrador', 'Enfermeiro', 'Manager']);
         $import = $_SESSION['park_schedule_import'] ?? null;
         if (!is_array($import)) $this->redirect((int)date('Y'), (int)date('n'));
         $nurses = ParkSchedule::nurses();
         $activePdfNames = array_values(array_unique(array_column($import['entries'], 'pdf_name')));
         $suggestions = $this->suggestions($activePdfNames, $nurses);
         $unmatchedCount = count(array_filter($activePdfNames, static fn(string $name): bool => empty($suggestions[$name])));
+        $previousMapping = is_array($_SESSION['park_schedule_mapping'] ?? null) ? $_SESSION['park_schedule_mapping'] : [];
         $baseUrl = $this->baseUrl;
         require __DIR__ . '/../Views/schedules/import_preview.php';
     }
 
     public function confirmImport(): void
     {
-        Auth::requireRole(['Administrador', 'Enfermeiro']);
+        Auth::requireRole(['Administrador', 'Enfermeiro', 'Manager']);
         $this->checkCsrf();
         $import = $_SESSION['park_schedule_import'] ?? null;
         if (!is_array($import)) $this->redirect((int)date('Y'), (int)date('n'));
         $validNurses = array_map('intval', array_column(ParkSchedule::nurses(), 'id'));
         $posted = is_array($_POST['mapping'] ?? null) ? $_POST['mapping'] : [];
+        $_SESSION['park_schedule_mapping'] = $posted;
         $mapping = [];
         foreach ($posted as $encodedName => $staffChoice) {
             $name = base64_decode((string)$encodedName, true);
@@ -106,15 +110,39 @@ class ParkScheduleController
             if (in_array($nurseId, $validNurses, true)) $mapping[$name] = $nurseId;
         }
         $assignments = [];
+        $occupied = [];
         foreach ($import['entries'] as $entry) {
             if (!isset($mapping[$entry['pdf_name']])) {
                 $_SESSION['schedule_error'] = 'Associe todos os enfermeiros antes de importar.';
                 header('Location: '.$this->baseUrl.'?route=park_schedule_import_preview'); exit;
             }
-            $assignments[] = ['date'=>$entry['date'], 'shift'=>$entry['shift'], 'nurse_id'=>$mapping[$entry['pdf_name']]];
+            $staffId = $mapping[$entry['pdf_name']];
+            $key = $staffId.'|'.$entry['date'];
+            if (isset($occupied[$key])) {
+                $previous = $occupied[$key];
+                if ($previous['pdf_name'] === $entry['pdf_name'] && $previous['shift'] === $entry['shift']) {
+                    continue;
+                }
+                $date = DateTimeImmutable::createFromFormat('!Y-m-d', $entry['date']);
+                $_SESSION['schedule_error'] = sprintf(
+                    'Conflito em %s: “%s” e “%s” foram associados à mesma pessoa. Corrija uma das associações.',
+                    $date ? $date->format('d/m/Y') : $entry['date'],
+                    $previous['pdf_name'],
+                    $entry['pdf_name']
+                );
+                header('Location: '.$this->baseUrl.'?route=park_schedule_import_preview'); exit;
+            }
+            $occupied[$key] = ['pdf_name'=>$entry['pdf_name'], 'shift'=>$entry['shift']];
+            $assignments[] = ['date'=>$entry['date'], 'shift'=>$entry['shift'], 'nurse_id'=>$staffId];
         }
-        ParkSchedule::replaceMonth((int)$import['year'], (int)$import['month'], (int)$_SESSION['user_id'], $assignments);
-        unset($_SESSION['park_schedule_import']);
+        try {
+            ParkSchedule::replaceMonth((int)$import['year'], (int)$import['month'], (int)$_SESSION['user_id'], $assignments);
+        } catch (Throwable $e) {
+            error_log('Erro ao importar escala: '.$e->getMessage());
+            $_SESSION['schedule_error'] = 'Não foi possível gravar a escala. Confirme as associações e tente novamente.';
+            header('Location: '.$this->baseUrl.'?route=park_schedule_import_preview'); exit;
+        }
+        unset($_SESSION['park_schedule_import'], $_SESSION['park_schedule_mapping']);
         $_SESSION['schedule_success'] = count($assignments).' turnos importados do PDF.';
         $this->redirect((int)$import['year'], (int)$import['month']);
     }
