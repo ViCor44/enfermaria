@@ -386,6 +386,7 @@ if (!isset($pendingApprovalsCount)) {
                 <?= htmlspecialchars($nome) ?><br>
                 <span class="user-role"><?= htmlspecialchars($roleLabel) ?></span>
             </div>
+            <a href="<?= $baseUrl ?>?route=sms_preferences" class="btn-logout" title="Preferências de notificações SMS">SMS</a>
             <a href="<?= $baseUrl ?>?route=logout" class="btn-logout">Sair</a>
         </div>
     </div>

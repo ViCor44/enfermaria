@@ -10,7 +10,7 @@ final class NurseServiceSmsNotifier
     {
         if (($nurse['role_name'] ?? '') !== 'Enfermeiro') return;
         $pdo = Database::getConnection();
-        $recipients = $pdo->query("SELECT u.id,u.phone FROM users u INNER JOIN roles r ON r.id=u.role_id WHERE r.name IN ('Administrador','Manager') AND u.approved=1 AND u.deleted_at IS NULL AND u.phone IS NOT NULL AND TRIM(u.phone)<>''")->fetchAll(PDO::FETCH_ASSOC);
+        $recipients = $pdo->query("SELECT u.id,u.phone FROM users u INNER JOIN roles r ON r.id=u.role_id WHERE r.name IN ('Administrador','Manager') AND u.approved=1 AND u.deleted_at IS NULL AND u.receive_sms_notifications=1 AND u.phone IS NOT NULL AND TRIM(u.phone)<>''")->fetchAll(PDO::FETCH_ASSOC);
         $nurseId = (int)($nurse['id'] ?? $nurse['nurse_user_id'] ?? 0);
         $nurseName = trim((string)($nurse['full_name'] ?? $nurse['nurse_full_name'] ?? 'Enfermeiro'));
         $message = self::gsmText('SAE: '.$nurseName.' registou-se como enfermeiro de servico as '.date('H:i').'.');

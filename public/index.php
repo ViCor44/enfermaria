@@ -77,6 +77,11 @@ if ($route === 'login') {
     $controller = new App\Controllers\DashboardController();
     $controller->index();
 
+} elseif ($route === 'sms_preferences') {
+    (new App\Controllers\SmsPreferenceController())->edit();
+
+} elseif ($route === 'sms_preferences_update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    (new App\Controllers\SmsPreferenceController())->update();
 } elseif ($route === 'park_schedule') {
     (new App\Controllers\ParkScheduleController())->index();
 
