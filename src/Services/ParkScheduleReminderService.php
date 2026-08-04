@@ -14,6 +14,12 @@ final class ParkScheduleReminderService
         'TE' => ['Tarde Extra', '13:00-encerramento'],
     ];
 
+    private static function shortName(string $fullName): string
+    {
+        $parts = preg_split('/\s+/u', trim($fullName), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        if (count($parts) <= 1) return $parts[0] ?? 'Enfermeiro';
+        return $parts[0] . ' ' . $parts[count($parts) - 1];
+    }
     /** @return array{date:string,found:int,sent:int,failed:int,skipped:int} */
     public function sendForDate(DateTimeImmutable $date): array
     {
@@ -61,8 +67,8 @@ final class ParkScheduleReminderService
                 }
 
                 $message = sprintf(
-                    'SAE: Lembrete para amanhã, %s. Turno %s, horário %s, no parque.',
-                    $date->format('d/m/Y'), $shift[0], $shift[1]
+                    'SAE: Olá %s, lembrete para amanhã, %s. Turno %s, horário %s, no parque.',
+                    self::shortName((string)$assignment['full_name']), $date->format('d/m/Y'), $shift[0], $shift[1]
                 );
                 $claim = $pdo->prepare(
                     "INSERT INTO park_schedule_sms_log
