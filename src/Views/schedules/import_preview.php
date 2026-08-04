@@ -7,7 +7,7 @@
 /** @var int $unmatchedCount */
 /** @var string $baseUrl */
 $monthNames = [1=>'Janeiro',2=>'Fevereiro',3=>'Março',4=>'Abril',5=>'Maio',6=>'Junho',7=>'Julho',8=>'Agosto',9=>'Setembro',10=>'Outubro',11=>'Novembro',12=>'Dezembro'];
-$shiftLabels = ['M'=>'Manhã (10:00–13:45)','T'=>'Tarde (14:00–18:00)','C'=>'Completo (10:00–18:00)','TE'=>'Tarde extra (13:00–encerramento)'];
+$shiftLabels = ['C'=>'Completo (10:00–18:00)','M'=>'Manhã (10:00–13:45)','T'=>'Tarde (14:00–18:00)','TE'=>'Tarde extra (13:00–encerramento)'];
 $error = $_SESSION['schedule_error'] ?? null;
 unset($_SESSION['schedule_error']);
 ?>

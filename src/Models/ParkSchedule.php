@@ -17,7 +17,7 @@ class ParkSchedule
 
     public static function assignments(int $year, int $month): array
     {
-        $stmt = Database::getConnection()->prepare("SELECT a.work_date,a.staff_id AS nurse_user_id,a.shift_type,u.full_name FROM park_schedule_assignments a INNER JOIN park_schedules s ON s.id=a.schedule_id INNER JOIN park_schedule_staff u ON u.id=a.staff_id WHERE s.year=? AND s.month=? ORDER BY a.work_date,u.full_name");
+        $stmt = Database::getConnection()->prepare("SELECT a.work_date,a.staff_id AS nurse_user_id,a.shift_type,u.full_name FROM park_schedule_assignments a INNER JOIN park_schedules s ON s.id=a.schedule_id INNER JOIN park_schedule_staff u ON u.id=a.staff_id WHERE s.year=? AND s.month=? ORDER BY a.work_date,FIELD(a.shift_type,'C','M','T','TE'),u.full_name");
         $stmt->execute([$year, $month]);
         $days = [];
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) $days[$row['work_date']][] = $row;
