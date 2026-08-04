@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS park_schedule_sms_log (
+    id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    work_date DATE NOT NULL,
+    staff_id INT NOT NULL,
+    assignment_id INT NULL,
+    shift_type ENUM('C','M','T','TE') NOT NULL,
+    recipient_phone VARCHAR(30) NOT NULL,
+    message VARCHAR(160) NOT NULL,
+    status ENUM('pending','sent','failed') NOT NULL DEFAULT 'pending',
+    attempts SMALLINT UNSIGNED NOT NULL DEFAULT 0,
+    http_code SMALLINT UNSIGNED NULL,
+    response TEXT NULL,
+    error_message VARCHAR(500) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_attempt_at DATETIME NULL,
+    sent_at DATETIME NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_park_schedule_sms_staff_date (work_date,staff_id),
+    KEY idx_park_schedule_sms_status (status,last_attempt_at),
+    CONSTRAINT fk_park_schedule_sms_staff FOREIGN KEY (staff_id) REFERENCES park_schedule_staff(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
