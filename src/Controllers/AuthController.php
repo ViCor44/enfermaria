@@ -63,6 +63,7 @@ class AuthController
         $_SESSION['user_name'] = $user['full_name'];
 
         User::updateLastLogin($user['id']);
+        $this->notifyNurseServiceRegistration($user);
 
         header('Location: ' . $this->baseUrl . '?route=dashboard');
         exit;
@@ -389,6 +390,7 @@ class AuthController
         $_SESSION['user_name']  = $user['full_name'];
 
         User::updateLastLogin($user['id']);
+        $this->notifyNurseServiceRegistration($user);
 
         header('Location: ' . $this->baseUrl . '?route=dashboard');
         exit;
@@ -531,6 +533,7 @@ class AuthController
             $_SESSION['user_name'] = (string)$request['nurse_full_name'];
 
             User::updateLastLogin((int)$request['nurse_user_id']);
+            $this->notifyNurseServiceRegistration($request);
             RemoteAccessRequest::markConsumed((int)$request['id']);
 
             \App\Helpers\Logger::login("REMOTE ACCESS CONSUMED | request_id='{$request['id']}' | nurse_id='{$request['nurse_user_id']}' | ip='{$ip}'");
@@ -544,4 +547,15 @@ class AuthController
         }
     }
 
+    private function notifyNurseServiceRegistration(array $user): void
+    {
+        try {
+            \App\Services\NurseServiceSmsNotifier::notify($user);
+        } catch (\Throwable $e) {
+            // O login nunca deve falhar por indisponibilidade do modem ou migração em falta.
+            \App\Helpers\Logger::login(
+                "NURSE SERVICE SMS FAILED | nurse_id='" . (int)($user['id'] ?? 0) . "' | error='" . $e->getMessage() . "'"
+            );
+        }
+    }
 }
