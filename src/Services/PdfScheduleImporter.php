@@ -7,6 +7,8 @@ use Smalot\PdfParser\Parser;
 
 class PdfScheduleImporter
 {
+    public const VERSION = '2026.08.04.2';
+
     private const MONTHS = [
         'janeiro'=>1, 'fevereiro'=>2, 'marco'=>3, 'abril'=>4,
         'maio'=>5, 'junho'=>6, 'julho'=>7, 'agosto'=>8,
@@ -48,7 +50,14 @@ class PdfScheduleImporter
         if ($entries === []) {
             throw new RuntimeException('O PDF não contém turnos reconhecíveis.');
         }
-        return ['year'=>$year, 'month'=>$month, 'rows'=>$rows, 'entries'=>$entries, 'contacts'=>$this->contacts($text, $rows)];
+        return [
+            'parser_version'=>self::VERSION,
+            'year'=>$year,
+            'month'=>$month,
+            'rows'=>$rows,
+            'entries'=>$entries,
+            'contacts'=>$this->contacts($text, $rows),
+        ];
     }
 
     private function readMonth(string $text): array

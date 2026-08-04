@@ -80,6 +80,11 @@ class ParkScheduleController
         Auth::requireRole(['Administrador', 'Enfermeiro', 'Manager']);
         $import = $_SESSION['park_schedule_import'] ?? null;
         if (!is_array($import)) $this->redirect((int)date('Y'), (int)date('n'));
+        if (($import['parser_version'] ?? '') !== PdfScheduleImporter::VERSION) {
+            unset($_SESSION['park_schedule_import'], $_SESSION['park_schedule_mapping']);
+            $_SESSION['schedule_error'] = 'O importador foi atualizado. Carregue novamente o PDF para voltar a analisá-lo.';
+            $this->redirect((int)date('Y'), (int)date('n'));
+        }
         $nurses = ParkSchedule::nurses();
         $activePdfNames = array_values(array_unique(array_column($import['entries'], 'pdf_name')));
         $suggestions = $this->suggestions($activePdfNames, $nurses, $import['contacts'] ?? []);
@@ -95,6 +100,11 @@ class ParkScheduleController
         $this->checkCsrf();
         $import = $_SESSION['park_schedule_import'] ?? null;
         if (!is_array($import)) $this->redirect((int)date('Y'), (int)date('n'));
+        if (($import['parser_version'] ?? '') !== PdfScheduleImporter::VERSION) {
+            unset($_SESSION['park_schedule_import'], $_SESSION['park_schedule_mapping']);
+            $_SESSION['schedule_error'] = 'O importador foi atualizado. Carregue novamente o PDF.';
+            $this->redirect((int)date('Y'), (int)date('n'));
+        }
         $validNurses = array_map('intval', array_column(ParkSchedule::nurses(), 'id'));
         $posted = is_array($_POST['mapping'] ?? null) ? $_POST['mapping'] : [];
         $_SESSION['park_schedule_mapping'] = $posted;
