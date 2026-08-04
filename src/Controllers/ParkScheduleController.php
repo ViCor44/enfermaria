@@ -82,7 +82,7 @@ class ParkScheduleController
         if (!is_array($import)) $this->redirect((int)date('Y'), (int)date('n'));
         $nurses = ParkSchedule::nurses();
         $activePdfNames = array_values(array_unique(array_column($import['entries'], 'pdf_name')));
-        $suggestions = $this->suggestions($activePdfNames, $nurses);
+        $suggestions = $this->suggestions($activePdfNames, $nurses, $import['contacts'] ?? []);
         $unmatchedCount = count(array_filter($activePdfNames, static fn(string $name): bool => empty($suggestions[$name])));
         $previousMapping = is_array($_SESSION['park_schedule_mapping'] ?? null) ? $_SESSION['park_schedule_mapping'] : [];
         $baseUrl = $this->baseUrl;
@@ -147,16 +147,19 @@ class ParkScheduleController
         $this->redirect((int)$import['year'], (int)$import['month']);
     }
 
-    private function suggestions(array $pdfNames, array $nurses): array
+    private function suggestions(array $pdfNames, array $nurses, array $contacts): array
     {
         $aliases = ['beta'=>'elisabete simao', 'ana rita g'=>'ana rita gameiro', 'viktoriia m'=>'viktoriia manziuk'];
         $result = [];
         foreach ($pdfNames as $pdfName) {
             $needle = PdfScheduleImporter::normalize($pdfName);
             $needle = $aliases[$needle] ?? $needle;
+            $pdfPhone = preg_replace('/\D+/', '', (string)($contacts[$pdfName] ?? ''));
             foreach ($nurses as $nurse) {
                 $candidate = PdfScheduleImporter::normalize($nurse['full_name']);
-                if ($candidate === $needle || str_starts_with($candidate, $needle.' ') || str_starts_with($needle, $candidate.' ')) {
+                $staffPhone = preg_replace('/\D+/', '', (string)($nurse['phone'] ?? ''));
+                $samePhone = $pdfPhone !== '' && $staffPhone !== '' && $pdfPhone === $staffPhone;
+                if ($samePhone || $candidate === $needle) {
                     $result[$pdfName] = (int)$nurse['id']; break;
                 }
             }
