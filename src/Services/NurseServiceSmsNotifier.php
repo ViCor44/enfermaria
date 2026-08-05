@@ -14,15 +14,9 @@ final class NurseServiceSmsNotifier
         $nurseId = (int)($nurse['id'] ?? $nurse['nurse_user_id'] ?? 0);
         $nurseName = trim((string)($nurse['full_name'] ?? $nurse['nurse_full_name'] ?? 'Enfermeiro'));
         $message = self::gsmText('SAE: '.$nurseName.' registou-se como enfermeiro de servico as '.date('H:i').'.');
-        $sms = new TeltonikaSmsClient();
         foreach ($recipients as $recipient) {
             $claim = $pdo->prepare("INSERT IGNORE INTO nurse_service_sms_log (service_date,nurse_user_id,recipient_user_id,recipient_phone,message,status) VALUES (CURDATE(),?,?,?,?,'pending')");
             $claim->execute([$nurseId,(int)$recipient['id'],(string)$recipient['phone'],$message]);
-            if ($claim->rowCount() !== 1) continue;
-            $result = $sms->send((string)$recipient['phone'],$message);
-            $status = $result['ok'] ? 'sent' : 'failed';
-            $update = $pdo->prepare("UPDATE nurse_service_sms_log SET status=?,http_code=?,response=?,error_message=?,sent_at=IF(?='sent',NOW(),NULL) WHERE service_date=CURDATE() AND nurse_user_id=? AND recipient_user_id=?");
-            $update->execute([$status,$result['http_code'],json_encode($result['response'],JSON_UNESCAPED_UNICODE|JSON_INVALID_UTF8_SUBSTITUTE),$result['error'],$status,$nurseId,(int)$recipient['id']]);
         }
     }
 

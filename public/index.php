@@ -19,6 +19,11 @@ ini_set('session.gc_maxlifetime', '28800');
 session_set_cookie_params(28800);
 session_start();
 
+// As páginas operacionais devem refletir imediatamente escalas e alterações publicadas.
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: 0');
+
 // Carregar .env
 $dotenv = Dotenv::createImmutable(__DIR__ . '/..');
 $dotenv->load();
