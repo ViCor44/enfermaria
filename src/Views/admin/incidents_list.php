@@ -285,7 +285,10 @@ tr.hospital-refused:hover {
 
                         if ((int)$i['refused_hospital'] === 1) {
                             $rowClass = 'hospital-refused';
-                        } elseif ((int)$i['refused_hospital'] === 0 && !empty($i['patient_address'])) {
+                        } elseif (
+                            (int)$i['refused_hospital'] === 0
+                            && !empty($i['was_sent_to_hospital'])
+                        ) {
                             $rowClass = 'hospital-accepted';
                         }
 

@@ -134,7 +134,14 @@ class Incident
                 p.dob AS patient_dob,
                 p.gender AS patient_gender,
                 p.is_employee AS patient_is_employee,
-                p.refused_hospital
+                p.refused_hospital,
+                EXISTS (
+                    SELECT 1
+                    FROM treatments tr_hospital
+                    JOIN treatment_types tt_hospital ON tt_hospital.id = tr_hospital.treatment_type_id
+                    WHERE tr_hospital.incident_id = i.id
+                      AND tt_hospital.name = 'Enviado para hospital'
+                ) AS was_sent_to_hospital
 
             FROM incidents i
             JOIN incident_types it ON it.id = i.incident_type_id
