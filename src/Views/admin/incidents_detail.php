@@ -5,6 +5,8 @@ $role    = $_SESSION['role'] ?? '';
 $currentUserId = $_SESSION['user_id'] ?? null;
 
 $hasHospitalTreatment = false;
+$hasHospitalRefusal = !empty($incident['refused_hospital'])
+    && (int)$incident['refused_hospital'] === 1;
 
 foreach ($treatments as $t) {
     if (strcasecmp($t['treatment_type_name'], 'Enviado para hospital') === 0) {
@@ -589,8 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-        <?php if ($hasHospitalTreatment): ?>
-            <?php if (!empty($incident['refused_hospital']) && (int)$incident['refused_hospital'] === 1): ?>
+        <?php if ($hasHospitalRefusal): ?>
                 <div style="
                     margin-top:1rem;
                     padding:.8rem 1rem;
@@ -617,8 +618,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </a>
 
                 </div>
-
-            <?php else: ?>
+        <?php elseif ($hasHospitalTreatment): ?>
                 <div style="
                     margin-top:1rem;
                     padding:.8rem 1rem;
@@ -644,7 +644,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     </a>
 
                 </div>
-            <?php endif; ?>
         <?php endif; ?>
 
     </div>
