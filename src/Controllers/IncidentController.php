@@ -49,10 +49,6 @@ public function store(): void
 
     $patientName   = trim($_POST['patient_name'] ?? '');
     $patientDob    = trim($_POST['patient_dob'] ?? '');
-    $patientHospitalDob = trim($_POST['patient_hospital_dob'] ?? '');
-    if ($patientDob === '' && $patientHospitalDob !== '') {
-        $patientDob = $patientHospitalDob;
-    }
     $patientGender = trim($_POST['patient_gender'] ?? '') ?: null;
     $patientIsEmployee = isset($_POST['patient_is_employee']) ? 1 : 0;
 
@@ -217,7 +213,7 @@ public function store(): void
         unset($_SESSION['old_incident_form']);
 
         $_SESSION['success'] = 'Acidente registado com sucesso.';
-        header('Location: '.$this->baseUrl.'?route=admin_incidents');
+        header('Location: '.$this->baseUrl.'?route=admin_incident_detail&id='.$incidentId);
         exit;
 
     } catch (\Throwable $e) {

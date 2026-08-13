@@ -332,7 +332,7 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
 
             <div style="margin-right: 24px;">
                 <label class="required">Data de nascimento</label>
-                <input type="date" name="patient_dob" required autocomplete="bday" min="01/01/1920" max="<?= date('d/m/Y') ?>" value="<?= htmlspecialchars($oldValue('patient_dob')) ?>">
+                <input type="date" id="patient_dob" name="patient_dob" required autocomplete="bday" min="1920-01-01" max="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars($oldValue('patient_dob')) ?>">
             </div>
 
             <div style="margin-right: 24px;">
@@ -448,10 +448,6 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
                 </div>
 
                 <div class="row">
-                    <div style="margin-right: 24px;">
-                        <label>Data de Nascimento</label>
-                        <input type="date" name="patient_hospital_dob" id="patient_hospital_dob" min="1920-01-01" max="<?= date('Y-m-d') ?>" value="<?= htmlspecialchars($oldValue('patient_hospital_dob', $oldValue('patient_dob'))) ?>">
-                    </div>
                     <div style="margin-right: 24px;">
                         <label>Tipo de Identificação</label>
                         <select name="patient_id_type" id="patient_id_type">
@@ -601,12 +597,8 @@ if (isset($old['treatment_type_id']) && is_array($old['treatment_type_id'])) {
         }
 
         const patientDobValidator = wireBirthDateField('patient_dob');
-        const patientHospitalDobValidator = wireBirthDateField('patient_hospital_dob');
         if (patientDobValidator) {
             birthDateValidators.push(patientDobValidator);
-        }
-        if (patientHospitalDobValidator) {
-            birthDateValidators.push(patientHospitalDobValidator);
         }
 
         function getTreatmentEntries() {
