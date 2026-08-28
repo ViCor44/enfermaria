@@ -567,11 +567,23 @@ $baseUrl = '/enfermaria/public/index.php';
             },
             body: 'nurse_name=' + encodeURIComponent(nurseName)
         })
-        .then(function (response) { return response.json(); })
-        .then(function (data) {
+        .then(function (response) {
+            return response.text().then(function (raw) {
+                var data;
+                try {
+                    data = JSON.parse(raw);
+                } catch (parseError) {
+                    var snippet = (raw || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+                    throw new Error('HTTP ' + response.status + ' — resposta inválida: ' + (snippet || 'vazia'));
+                }
+                return { response: response, data: data };
+            });
+        })
+        .then(function (result) {
             submitBtn.disabled = false;
+            var data = result.data;
             if (!data || data.ok !== true || !data.request_code) {
-                setStatus((data && data.message) ? data.message : 'Falha ao criar pedido.', true);
+                setStatus((data && data.message) ? data.message : ('Falha ao criar pedido (HTTP ' + result.response.status + ').'), true);
                 return;
             }
 
@@ -580,9 +592,10 @@ $baseUrl = '/enfermaria/public/index.php';
             setStatus('Pedido enviado. Aguarde aprovacao do administrador.', false);
             pollStatus(data.request_code);
         })
-        .catch(function () {
+        .catch(function (error) {
             submitBtn.disabled = false;
-            setStatus('Erro de comunicacao ao enviar pedido.', true);
+            var detail = (error && error.message) ? error.message : 'sem detalhe';
+            setStatus('Erro de comunicação ao enviar pedido (' + detail + ').', true);
         });
     });
 

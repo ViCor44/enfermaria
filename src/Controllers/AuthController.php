@@ -451,6 +451,9 @@ class AuthController
             ]);
             return;
         } catch (\Throwable $e) {
+            \App\Helpers\Logger::login(
+                "REMOTE ACCESS REQUEST FAILED | nurse_name='{$nurseName}' | ip='{$ip}' | error='" . $e->getMessage() . "'"
+            );
             echo json_encode(['ok' => false, 'message' => 'Funcionalidade de acesso remoto indisponivel.']);
             return;
         }
@@ -495,6 +498,9 @@ class AuthController
             ]);
             return;
         } catch (\Throwable $e) {
+            \App\Helpers\Logger::login(
+                "REMOTE ACCESS STATUS FAILED | code='{$requestCode}' | error='" . $e->getMessage() . "'"
+            );
             echo json_encode(['ok' => false, 'message' => 'Nao foi possivel consultar o pedido.']);
             return;
         }
