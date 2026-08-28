@@ -135,6 +135,17 @@ public function store(): void
             $treatmentTypeIds = array_values(array_intersect($treatmentTypeIds, $validTypeIds));
         }
 
+        if ($isHospitalTransfer) {
+            $hospitalTransferTypeId = Treatment::getHospitalTransferTypeId();
+            if ($hospitalTransferTypeId === null) {
+                $this->redirectWithFormError('O tratamento de envio para o hospital não está configurado.');
+            }
+
+            if (!in_array($hospitalTransferTypeId, $treatmentTypeIds, true)) {
+                $treatmentTypeIds[] = $hospitalTransferTypeId;
+            }
+        }
+
         if ($treatmentTypeIds === []) {
             $this->redirectWithFormError('Selecione pelo menos um tratamento.');
         }

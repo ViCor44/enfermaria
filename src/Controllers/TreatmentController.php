@@ -49,6 +49,7 @@ public function store(): void
     $incidentId = (int)($_POST['incident_id'] ?? 0);
     $status     = $_POST['status'] ?? 'concluido';
     $notes      = trim($_POST['notes'] ?? '') ?: null;
+    $isHospitalTransfer = isset($_POST['hospital_transfer']);
 
     $rawTreatmentTypeIds = $_POST['treatment_type_id'] ?? ($_POST['treatment_type_ids'] ?? []);
 
@@ -74,6 +75,19 @@ public function store(): void
         $treatmentTypeIds = array_values(array_intersect($treatmentTypeIds, $validTypeIds));
     }
 
+    if ($isHospitalTransfer) {
+        $hospitalTransferTypeId = Treatment::getHospitalTransferTypeId();
+        if ($hospitalTransferTypeId === null) {
+            $_SESSION['error'] = 'O tratamento de envio para o hospital não está configurado.';
+            header('Location: ' . $this->baseUrl . '?route=treatments_new&incident_id=' . $incidentId);
+            exit;
+        }
+
+        if (!in_array($hospitalTransferTypeId, $treatmentTypeIds, true)) {
+            $treatmentTypeIds[] = $hospitalTransferTypeId;
+        }
+    }
+
     if ($incidentId <= 0 || $treatmentTypeIds === []) {
         $_SESSION['error'] = 'Dados inválidos.';
         header('Location: '.$this->baseUrl.'?route=admin_incidents');
@@ -97,10 +111,6 @@ public function store(): void
                 'notes'             => $notes,
             ]);
         }
-
-        /* -------------------- DETETAR ENVIO PARA O HOSPITAL -------------------- */
-
-        $isHospitalTransfer = isset($_POST['hospital_transfer']);
 
         /* -------------------- UPDATE PACIENTE -------------------- */
 
