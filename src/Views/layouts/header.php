@@ -263,8 +263,220 @@ if (!isset($pendingApprovalsCount)) {
         }
 
     }
+
+    :root {
+        --app-sidebar-width: 272px;
+    }
+
+    body {
+        padding-left: var(--app-sidebar-width);
+        transition: padding-left 0.2s ease;
+    }
+
+    .topbar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        z-index: 1200;
+        width: var(--app-sidebar-width);
+        height: 100vh;
+        padding: 0;
+        overflow: hidden;
+        background: #123f72;
+        box-shadow: 8px 0 28px rgba(18, 45, 77, 0.14);
+    }
+
+    .topbar-inner {
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        margin: 0;
+        padding: 22px 16px 16px;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 22px;
+    }
+
+    .brand {
+        min-height: 58px;
+        padding: 0 6px 18px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.13);
+    }
+
+    .brand-logo { margin-right: 11px; }
+    .logo-sae { width: 42px; height: 42px; object-fit: contain; }
+    .brand-text-title { font-size: 0.98rem; line-height: 1.25; letter-spacing: 0; }
+    .brand-text-sub { margin-top: 3px; font-size: 0.7rem; line-height: 1.3; }
+
+    .main-nav {
+        display: flex;
+        min-height: 0;
+        flex: 1;
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 5px;
+        overflow-y: auto;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255,255,255,.25) transparent;
+    }
+
+    .nav-link,
+    .nav-btn {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 43px;
+        padding: 0 13px;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        color: #e8f1fb;
+        font-size: 0.9rem;
+        white-space: nowrap;
+        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    .nav-link:hover,
+    .nav-btn:hover {
+        border-color: rgba(255,255,255,.12);
+        background: rgba(255,255,255,.09);
+        transform: none;
+    }
+
+    .nav-link.active,
+    .nav-dropdown.active > .nav-btn {
+        border-color: rgba(255,255,255,.2);
+        background: #fff;
+        color: #174f8c;
+        font-weight: 700;
+    }
+
+    .nav-dropdown { position: static; }
+
+    .nav-btn {
+        width: 100%;
+        appearance: none;
+        background: transparent;
+        font-family: inherit;
+        text-align: left;
+        cursor: pointer;
+    }
+
+    .nav-menu {
+        position: static;
+        display: none;
+        min-width: 0;
+        margin: 4px 0 5px 13px;
+        padding-left: 12px;
+        border-left: 1px solid rgba(255,255,255,.22);
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+
+    .nav-dropdown:hover .nav-menu,
+    .nav-dropdown:focus-within .nav-menu,
+    .nav-dropdown.submenu-open .nav-menu {
+        display: grid;
+    }
+
+    .nav-menu a {
+        padding: 9px 11px;
+        border-radius: 6px;
+        color: #d4e5f6;
+        font-size: 0.84rem;
+    }
+
+    .nav-menu a:hover,
+    .nav-menu a.active {
+        background: rgba(255,255,255,.1);
+        color: #fff;
+    }
+
+    .user-area {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255,255,255,.13);
+    }
+
+    .user-pill {
+        grid-column: 1 / -1;
+        padding: 10px 12px;
+        border-radius: 7px;
+        background: rgba(255,255,255,.09);
+        font-size: 0.84rem;
+        text-align: left;
+    }
+
+    .btn-logout,
+    .btn-restore-session {
+        display: inline-flex;
+        min-height: 38px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 10px;
+        border: 1px solid rgba(255,255,255,.24);
+        border-radius: 7px;
+        background: transparent;
+        color: #fff;
+        font-size: 0.8rem;
+    }
+
+    .btn-restore-session { grid-column: 1 / -1; }
+
+    .sidebar-toggle {
+        position: fixed;
+        top: 16px;
+        left: calc(var(--app-sidebar-width) - 17px);
+        z-index: 1300;
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        padding: 0;
+        border: 1px solid #d8e3ef;
+        border-radius: 50%;
+        background: #fff;
+        color: #234a75;
+        box-shadow: 0 5px 14px rgba(27, 56, 88, 0.18);
+        cursor: pointer;
+        transition: left 0.2s ease, transform 0.2s ease;
+    }
+
+    .sidebar-toggle svg { width: 18px; height: 18px; }
+
+    .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 1100;
+        display: none;
+        background: rgba(12, 27, 45, 0.48);
+    }
+
+    body.sidebar-collapsed { padding-left: 0; }
+    body.sidebar-collapsed .topbar { transform: translateX(-100%); }
+    body.sidebar-collapsed .sidebar-toggle { left: 16px; transform: rotate(180deg); }
+    .topbar { transition: transform 0.2s ease; }
+
+    @media (max-width: 900px) {
+        body { padding-left: 0; }
+        .topbar { transform: translateX(-100%); }
+        .sidebar-toggle { left: 16px; transform: rotate(180deg); }
+        body.sidebar-open { overflow: hidden; }
+        body.sidebar-open .topbar { transform: translateX(0); }
+        body.sidebar-open .sidebar-toggle { left: calc(var(--app-sidebar-width) - 17px); transform: none; }
+        body.sidebar-open .sidebar-backdrop { display: block; }
+    }
 </style>
-<header class="topbar">
+<button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Recolher menu" aria-controls="appSidebar" aria-expanded="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <path d="M15 18l-6-6 6-6"/>
+    </svg>
+</button>
+<div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+<header class="topbar" id="appSidebar">
     <div class="topbar-inner">
         <!-- Marca -->
         <div class="brand">
@@ -330,11 +542,11 @@ if (!isset($pendingApprovalsCount)) {
             <?php if ($role === 'Enfermeiro'): ?>
                 <div class="nav-dropdown <?= in_array($route, ['incidents_new','internal_new']) ? 'active' : '' ?>">
 
-                    <span class="nav-link nav-btn">
+                    <button class="nav-link nav-btn" type="button" aria-expanded="false" aria-controls="newRecordMenu">
                         Novo
-                    </span>
+                    </button>
 
-                    <div class="nav-menu">
+                    <div class="nav-menu" id="newRecordMenu">
                         <a href="<?= $baseUrl ?>?route=internal_new"
                         class="<?= $route === 'internal_new' ? 'active' : '' ?>">
                             Situação Menor
@@ -368,8 +580,8 @@ if (!isset($pendingApprovalsCount)) {
                    class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
                     Ocorrências
                 </a>
-                <a href="/enfermaria/public/index.php?route=admin_stats"
-                    class="nav-link <?= ($_GET['route'] ?? '') === 'admin_stats' ? 'active' : '' ?>">
+                <a href="<?= $baseUrl ?>?route=admin_stats"
+                    class="nav-link <?= $route === 'admin_stats' ? 'active' : '' ?>">
                     Estatísticas
                 </a>
             <?php endif; ?>
@@ -386,8 +598,69 @@ if (!isset($pendingApprovalsCount)) {
                 <?= htmlspecialchars($nome) ?><br>
                 <span class="user-role"><?= htmlspecialchars($roleLabel) ?></span>
             </div>
-            <a href="<?= $baseUrl ?>?route=sms_preferences" class="btn-logout" title="Preferências de notificações SMS">SMS</a>
+            <a href="<?= $baseUrl ?>?route=user_settings" class="btn-logout" title="Definições da conta">Definições</a>
             <a href="<?= $baseUrl ?>?route=logout" class="btn-logout">Sair</a>
         </div>
     </div>
 </header>
+<script>
+(() => {
+    const toggle = document.getElementById('sidebarToggle');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    const sidebar = document.getElementById('appSidebar');
+    const newRecordDropdown = sidebar.querySelector('.nav-dropdown');
+    const newRecordButton = newRecordDropdown?.querySelector('.nav-btn');
+    const mobileQuery = window.matchMedia('(max-width: 900px)');
+
+    function isOpen() {
+        return mobileQuery.matches
+            ? document.body.classList.contains('sidebar-open')
+            : !document.body.classList.contains('sidebar-collapsed');
+    }
+
+    function syncState() {
+        const open = isOpen();
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Recolher menu' : 'Abrir menu');
+    }
+
+    function toggleSidebar() {
+        if (mobileQuery.matches) {
+            document.body.classList.toggle('sidebar-open');
+        } else {
+            document.body.classList.toggle('sidebar-collapsed');
+        }
+        syncState();
+    }
+
+    toggle.addEventListener('click', toggleSidebar);
+    newRecordButton?.addEventListener('click', () => {
+        if (!mobileQuery.matches) return;
+        const open = newRecordDropdown.classList.toggle('submenu-open');
+        newRecordButton.setAttribute('aria-expanded', String(open));
+    });
+    backdrop.addEventListener('click', () => {
+        document.body.classList.remove('sidebar-open');
+        syncState();
+    });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && document.body.classList.contains('sidebar-open')) {
+            document.body.classList.remove('sidebar-open');
+            toggle.focus();
+            syncState();
+        }
+    });
+    sidebar.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', () => {
+            if (mobileQuery.matches) document.body.classList.remove('sidebar-open');
+        });
+    });
+    mobileQuery.addEventListener('change', () => {
+        document.body.classList.remove('sidebar-open', 'sidebar-collapsed');
+        newRecordDropdown?.classList.remove('submenu-open');
+        newRecordButton?.setAttribute('aria-expanded', 'false');
+        syncState();
+    });
+    syncState();
+})();
+</script>

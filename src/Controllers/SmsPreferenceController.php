@@ -11,7 +11,7 @@ final class SmsPreferenceController
     public function edit(): void
     {
         Auth::requireLogin();
-        $stmt = Database::getConnection()->prepare('SELECT full_name, phone, receive_sms_notifications FROM users WHERE id = ? AND deleted_at IS NULL');
+        $stmt = Database::getConnection()->prepare('SELECT full_name, email, phone, receive_sms_notifications FROM users WHERE id = ? AND deleted_at IS NULL');
         $stmt->execute([(int)$_SESSION['user_id']]);
         $user = $stmt->fetch();
         if (!$user) {
@@ -26,14 +26,15 @@ final class SmsPreferenceController
         Auth::requireLogin();
         if (!hash_equals((string)($_SESSION['sms_preferences_csrf'] ?? ''), (string)($_POST['csrf_token'] ?? ''))) {
             $_SESSION['error'] = 'Pedido inválido. Tente novamente.';
-            header('Location: ' . $this->baseUrl . '?route=sms_preferences');
+            header('Location: ' . $this->baseUrl . '?route=user_settings');
             exit;
         }
         $enabled = isset($_POST['receive_sms_notifications']) ? 1 : 0;
         $stmt = Database::getConnection()->prepare('UPDATE users SET receive_sms_notifications = ? WHERE id = ? AND deleted_at IS NULL');
         $stmt->execute([$enabled, (int)$_SESSION['user_id']]);
+        unset($_SESSION['sms_preferences_csrf']);
         $_SESSION['success'] = $enabled ? 'Notificações por SMS ativadas.' : 'Notificações por SMS desativadas.';
-        header('Location: ' . $this->baseUrl . '?route=sms_preferences');
+        header('Location: ' . $this->baseUrl . '?route=user_settings');
         exit;
     }
 }

@@ -226,6 +226,95 @@ tbody tr.record-row:hover {
     color: #334155;
     white-space: pre-wrap;
 }
+
+.modal-body-location {
+    display: none;
+    margin-top: 1rem;
+    padding: 0.85rem;
+    border: 1px solid #e6edf5;
+    border-radius: 10px;
+}
+
+.modal-body-location.visible { display: block; }
+
+.modal-body-location > small {
+    display: block;
+    margin-bottom: 0.7rem;
+    color: #64748b;
+}
+
+.modal-body-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.55rem 1rem;
+    margin-bottom: 1rem;
+    padding: 0.7rem 0.8rem;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.modal-body-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: #475569;
+    font-size: 0.78rem;
+}
+
+.modal-body-legend-swatch {
+    width: 12px;
+    height: 12px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--mark-color);
+    box-shadow: 0 0 0 3px var(--mark-glow);
+}
+
+.modal-body-maps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 1rem;
+    max-width: 390px;
+    margin: 0 auto;
+}
+
+.modal-body-map { text-align: center; }
+
+.modal-body-canvas {
+    position: relative;
+    aspect-ratio: 1 / 2;
+    padding: 5px;
+    border: 1px solid #dbe5ef;
+    border-radius: 8px;
+    background: #f8fbfe;
+}
+
+.modal-body-canvas img { width: 100%; height: 100%; object-fit: contain; }
+
+.modal-body-marker {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: var(--mark-color);
+    box-shadow: 0 0 0 5px var(--mark-glow);
+    transform: translate(-50%, -50%);
+}
+
+.mark-contusion { --mark-color: #e5484d; --mark-glow: rgba(229, 72, 77, 0.17); }
+.mark-wound { --mark-color: #d4145a; --mark-glow: rgba(212, 20, 90, 0.17); }
+.mark-burn { --mark-color: #ff8a00; --mark-glow: rgba(255, 138, 0, 0.18); }
+.mark-pain { --mark-color: #6c5ce7; --mark-glow: rgba(108, 92, 231, 0.17); }
+.mark-other { --mark-color: #13b8a6; --mark-glow: rgba(19, 184, 166, 0.17); }
+
+.modal-body-map span {
+    display: block;
+    margin-top: 0.35rem;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
 </style>
 </head>
 <body>
@@ -310,6 +399,7 @@ tbody tr.record-row:hover {
             data-treatment="<?= htmlspecialchars((string)($r['treatment'] ?? '—'), ENT_QUOTES, 'UTF-8') ?>"
             data-nurse-name="<?= htmlspecialchars((string)$r['nurse_name'], ENT_QUOTES, 'UTF-8') ?>"
             data-description="<?= htmlspecialchars((string)($r['description'] ?: 'Sem descrição.'), ENT_QUOTES, 'UTF-8') ?>"
+            data-body-marks="<?= htmlspecialchars((string)($r['body_marks'] ?? '[]'), ENT_QUOTES, 'UTF-8') ?>"
         >
             <td><?= (int)$r['id'] ?></td>
             <td><?= htmlspecialchars($r['first_name'] ?? '—') ?></td>
@@ -354,6 +444,27 @@ tbody tr.record-row:hover {
                 <small>Descrição / Observações</small>
                 <p id="modal_description"></p>
             </div>
+
+            <div class="modal-body-location" id="modal_body_location">
+                <small>Localização no corpo</small>
+                <div class="modal-body-legend" aria-label="Legenda das marcações">
+                    <span class="modal-body-legend-item mark-contusion"><i class="modal-body-legend-swatch" aria-hidden="true"></i>Hematoma / Contusão</span>
+                    <span class="modal-body-legend-item mark-wound"><i class="modal-body-legend-swatch" aria-hidden="true"></i>Ferida</span>
+                    <span class="modal-body-legend-item mark-burn"><i class="modal-body-legend-swatch" aria-hidden="true"></i>Queimadura</span>
+                    <span class="modal-body-legend-item mark-pain"><i class="modal-body-legend-swatch" aria-hidden="true"></i>Dor</span>
+                    <span class="modal-body-legend-item mark-other"><i class="modal-body-legend-swatch" aria-hidden="true"></i>Outra ocorrência</span>
+                </div>
+                <div class="modal-body-maps">
+                    <?php foreach (['front' => 'Frente', 'back' => 'Costas'] as $view => $label): ?>
+                        <div class="modal-body-map">
+                            <div class="modal-body-canvas" data-view="<?= $view ?>">
+                                <img src="/enfermaria/public/assets/img/body-<?= $view ?>.svg" alt="Vista <?= strtolower($label) ?> do corpo humano" data-body-image="<?= $view ?>">
+                            </div>
+                            <span><?= $label ?></span>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -363,6 +474,25 @@ tbody tr.record-row:hover {
     const modal = document.getElementById('recordModal');
     const closeBtn = document.getElementById('modalCloseBtn');
     const rows = document.querySelectorAll('tr.record-row');
+    const bodyLocation = document.getElementById('modal_body_location');
+    const bodyImagePaths = {
+        front: '/enfermaria/public/assets/img/body-front.svg',
+        back: '/enfermaria/public/assets/img/body-back.svg',
+        frontFemale: '/enfermaria/public/assets/img/body-front-female.svg',
+        backFemale: '/enfermaria/public/assets/img/body-back-female.svg'
+    };
+    document.querySelectorAll('.modal-body-canvas [data-body-image]').forEach(image => {
+        image.addEventListener('error', () => {
+            image.src = bodyImagePaths[image.dataset.bodyImage];
+        });
+    });
+    const markTypes = {
+        contusion: 'Hematoma / Contusão',
+        wound: 'Ferida',
+        burn: 'Queimadura',
+        pain: 'Dor',
+        other: 'Outra ocorrência'
+    };
     const fields = {
         id: document.getElementById('modal_id'),
         first_name: document.getElementById('modal_first_name'),
@@ -390,6 +520,37 @@ tbody tr.record-row:hover {
         fields.treatment.textContent = d.treatment || '—';
         fields.nurse_name.textContent = d.nurseName || '—';
         fields.description.textContent = d.description || 'Sem descrição.';
+
+        const female = d.patientGender === 'F';
+        document.querySelectorAll('.modal-body-canvas [data-body-image]').forEach(image => {
+            const view = image.dataset.bodyImage;
+            const pathKey = female ? `${view}Female` : view;
+            image.src = bodyImagePaths[pathKey];
+        });
+
+        document.querySelectorAll('.modal-body-marker').forEach(marker => marker.remove());
+
+        let marks = [];
+        try {
+            marks = JSON.parse(d.bodyMarks || '[]');
+        } catch (error) {
+            marks = [];
+        }
+
+        marks.forEach(mark => {
+            const canvas = document.querySelector(`.modal-body-canvas[data-view="${mark.view}"]`);
+            if (!canvas) return;
+
+            const marker = document.createElement('i');
+            const markType = markTypes[mark.type] ? mark.type : 'other';
+            marker.className = `modal-body-marker mark-${markType}`;
+            marker.style.left = `${mark.x}%`;
+            marker.style.top = `${mark.y}%`;
+            marker.title = markTypes[markType];
+            canvas.appendChild(marker);
+        });
+
+        bodyLocation.classList.toggle('visible', marks.length > 0);
     }
 
     function openModal() {

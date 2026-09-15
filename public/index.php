@@ -82,10 +82,10 @@ if ($route === 'login') {
     $controller = new App\Controllers\DashboardController();
     $controller->index();
 
-} elseif ($route === 'sms_preferences') {
+} elseif (in_array($route, ['user_settings', 'sms_preferences'], true)) {
     (new App\Controllers\SmsPreferenceController())->edit();
 
-} elseif ($route === 'sms_preferences_update' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+} elseif (in_array($route, ['user_settings_update', 'sms_preferences_update'], true) && $_SERVER['REQUEST_METHOD'] === 'POST') {
     (new App\Controllers\SmsPreferenceController())->update();
 } elseif ($route === 'park_schedule') {
     (new App\Controllers\ParkScheduleController())->index();

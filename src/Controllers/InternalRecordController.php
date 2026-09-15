@@ -51,6 +51,49 @@ class InternalRecordController
 
         $treatment = trim((string)($_POST['treatment'] ?? ''));
         $description = trim($_POST['description'] ?? '');
+        $bodyMarksJson = trim((string)($_POST['body_marks'] ?? '[]'));
+        $bodyMarksInput = json_decode($bodyMarksJson, true);
+
+        if (!is_array($bodyMarksInput) || count($bodyMarksInput) > 20) {
+            $_SESSION['error'] = 'As marcações corporais são inválidas.';
+            header('Location: '.$this->baseUrl.'?route=internal_new');
+            exit;
+        }
+
+        $bodyMarks = [];
+        $validBodyMarkTypes = ['contusion', 'wound', 'burn', 'pain', 'other'];
+        foreach ($bodyMarksInput as $mark) {
+            if (
+                !is_array($mark)
+                || !in_array($mark['view'] ?? null, ['front', 'back'], true)
+            || !in_array($mark['type'] ?? null, $validBodyMarkTypes, true)
+                || !is_numeric($mark['x'] ?? null)
+                || !is_numeric($mark['y'] ?? null)
+            ) {
+                $_SESSION['error'] = 'As marcações corporais são inválidas.';
+                header('Location: '.$this->baseUrl.'?route=internal_new');
+                exit;
+            }
+
+            $x = round((float)$mark['x'], 2);
+            $y = round((float)$mark['y'], 2);
+            if ($x < 0 || $x > 100 || $y < 0 || $y > 100) {
+                $_SESSION['error'] = 'As marcações corporais são inválidas.';
+                header('Location: '.$this->baseUrl.'?route=internal_new');
+                exit;
+            }
+
+            $bodyMarks[] = [
+                'view' => $mark['view'],
+                'type' => $mark['type'],
+                'x' => $x,
+                'y' => $y,
+            ];
+        }
+
+        $bodyMarksJson = $bodyMarks === []
+            ? null
+            : json_encode($bodyMarks, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
 
         if ($treatment !== '') {
             $validTreatments = array_map(
@@ -96,9 +139,9 @@ class InternalRecordController
         try {
             $stmt = $pdo->prepare("
                 INSERT INTO internal_records
-                (user_id, first_name, last_name, is_employee, occurred_at, location_id, patient_age, patient_gender, treatment, description)
+                (user_id, first_name, last_name, is_employee, occurred_at, location_id, patient_age, patient_gender, treatment, description, body_marks)
                 VALUES
-                (:user_id, :first_name, :last_name, :is_employee, :occurred_at, :location_id, :age, :gender, :treatment, :descr)
+                (:user_id, :first_name, :last_name, :is_employee, :occurred_at, :location_id, :age, :gender, :treatment, :descr, :body_marks)
             ");
 
             $stmt->execute([
@@ -112,6 +155,7 @@ class InternalRecordController
                 ':gender'      => $patientGender,
                 ':treatment'   => $treatment,
                 ':descr'       => $description,
+                ':body_marks'  => $bodyMarksJson,
             ]);
 
             $_SESSION['success'] = 'Registo interno criado com sucesso.';
