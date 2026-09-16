@@ -306,6 +306,8 @@ tbody tr.record-row:hover {
 .mark-wound { --mark-color: #d4145a; --mark-glow: rgba(212, 20, 90, 0.17); }
 .mark-burn { --mark-color: #ff8a00; --mark-glow: rgba(255, 138, 0, 0.18); }
 .mark-pain { --mark-color: #6c5ce7; --mark-glow: rgba(108, 92, 231, 0.17); }
+.mark-insect_bite { --mark-color: #65a30d; --mark-glow: rgba(101, 163, 13, 0.18); }
+.mark-epistaxis { --mark-color: #8b1e3f; --mark-glow: rgba(139, 30, 63, 0.18); }
 .mark-other { --mark-color: #13b8a6; --mark-glow: rgba(19, 184, 166, 0.17); }
 
 .modal-body-map span {
@@ -452,6 +454,8 @@ tbody tr.record-row:hover {
                     <span class="modal-body-legend-item mark-wound"><i class="modal-body-legend-swatch" aria-hidden="true"></i>Ferida</span>
                     <span class="modal-body-legend-item mark-burn"><i class="modal-body-legend-swatch" aria-hidden="true"></i>Queimadura</span>
                     <span class="modal-body-legend-item mark-pain"><i class="modal-body-legend-swatch" aria-hidden="true"></i>Dor</span>
+                    <span class="modal-body-legend-item mark-insect_bite"><i class="modal-body-legend-swatch" aria-hidden="true"></i>Picada de inseto</span>
+                    <span class="modal-body-legend-item mark-epistaxis"><i class="modal-body-legend-swatch" aria-hidden="true"></i>Epistaxis</span>
                     <span class="modal-body-legend-item mark-other"><i class="modal-body-legend-swatch" aria-hidden="true"></i>Outra ocorrência</span>
                 </div>
                 <div class="modal-body-maps">
@@ -491,6 +495,8 @@ tbody tr.record-row:hover {
         wound: 'Ferida',
         burn: 'Queimadura',
         pain: 'Dor',
+        insect_bite: 'Picada de inseto',
+        epistaxis: 'Epistaxis',
         other: 'Outra ocorrência'
     };
     const fields = {

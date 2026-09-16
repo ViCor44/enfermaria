@@ -61,7 +61,7 @@ class InternalRecordController
         }
 
         $bodyMarks = [];
-        $validBodyMarkTypes = ['contusion', 'wound', 'burn', 'pain', 'other'];
+        $validBodyMarkTypes = ['contusion', 'wound', 'burn', 'pain', 'insect_bite', 'epistaxis', 'other'];
         foreach ($bodyMarksInput as $mark) {
             if (
                 !is_array($mark)

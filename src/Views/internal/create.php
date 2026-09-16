@@ -324,6 +324,8 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
     .mark-wound { --mark-color: #d4145a; --mark-glow: rgba(212, 20, 90, 0.17); }
     .mark-burn { --mark-color: #ff8a00; --mark-glow: rgba(255, 138, 0, 0.18); }
     .mark-pain { --mark-color: #6c5ce7; --mark-glow: rgba(108, 92, 231, 0.17); }
+    .mark-insect_bite { --mark-color: #65a30d; --mark-glow: rgba(101, 163, 13, 0.18); }
+    .mark-epistaxis { --mark-color: #8b1e3f; --mark-glow: rgba(139, 30, 63, 0.18); }
     .mark-other { --mark-color: #13b8a6; --mark-glow: rgba(19, 184, 166, 0.17); }
 
     .body-map-label {
@@ -617,11 +619,13 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 
         <aside class="form-sidebar" aria-label="Ajuda e ações">
             <div class="legend-panel">
-                <h2 class="panel-title"><span class="panel-icon" aria-hidden="true">i</span>Legenda</h2>
+                <h2 class="panel-title"><span class="panel-icon" aria-hidden="true">i</span>Tipo de Ocorrência</h2>
                 <button class="legend-item mark-contusion active" type="button" data-mark-type="contusion" aria-pressed="true"><span class="legend-swatch" aria-hidden="true"></span><span>Hematoma / Contusão</span></button>
                 <button class="legend-item mark-wound" type="button" data-mark-type="wound" aria-pressed="false"><span class="legend-swatch" aria-hidden="true"></span><span>Ferida</span></button>
                 <button class="legend-item mark-burn" type="button" data-mark-type="burn" aria-pressed="false"><span class="legend-swatch" aria-hidden="true"></span><span>Queimadura</span></button>
                 <button class="legend-item mark-pain" type="button" data-mark-type="pain" aria-pressed="false"><span class="legend-swatch" aria-hidden="true"></span><span>Dor</span></button>
+                <button class="legend-item mark-insect_bite" type="button" data-mark-type="insect_bite" aria-pressed="false"><span class="legend-swatch" aria-hidden="true"></span><span>Picada de inseto</span></button>
+                <button class="legend-item mark-epistaxis" type="button" data-mark-type="epistaxis" aria-pressed="false"><span class="legend-swatch" aria-hidden="true"></span><span>Epistaxis</span></button>
                 <button class="legend-item mark-other" type="button" data-mark-type="other" aria-pressed="false"><span class="legend-swatch" aria-hidden="true"></span><span>Outra ocorrência</span></button>
             </div>
 
@@ -630,7 +634,7 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
                 <ol>
                     <li>Identifique o utente.</li>
                     <li>Indique a data, hora e local.</li>
-                    <li>Escolha o tipo de ocorrência na legenda.</li>
+                    <li>Escolha o tipo de ocorrência.</li>
                     <li>Marque no corpo a zona afetada.</li>
                     <li>Selecione o tratamento prestado.</li>
                     <li>Descreva a situação de forma sucinta.</li>
@@ -695,6 +699,8 @@ $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
         wound: 'Ferida',
         burn: 'Queimadura',
         pain: 'Dor',
+        insect_bite: 'Picada de inseto',
+        epistaxis: 'Epistaxis',
         other: 'Outra ocorrência'
     };
     let selectedMarkType = 'contusion';
