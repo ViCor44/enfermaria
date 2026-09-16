@@ -7,7 +7,7 @@ use Smalot\PdfParser\Parser;
 
 class PdfScheduleImporter
 {
-    public const VERSION = '2026.08.04.2';
+    public const VERSION = '2026.09.16.1';
 
     private const MONTHS = [
         'janeiro'=>1, 'fevereiro'=>2, 'marco'=>3, 'abril'=>4,
@@ -28,6 +28,7 @@ class PdfScheduleImporter
         $items = $this->items($pages[0]->getDataTm());
         $dayColumns = $this->dayColumns($items);
         $rows = $this->nurseRows($items);
+        $shiftPeriods = $this->shiftPeriods($text, $month);
         if (count($dayColumns) < (int)(new DateTimeImmutable("$year-$month-01"))->format('t') || $rows === []) {
             throw new RuntimeException('Não foi possível reconhecer a grelha do horário.');
         }
@@ -39,11 +40,14 @@ class PdfScheduleImporter
             if (abs($row['y'] - $shift['y']) > 12 || abs($day['x'] - $shift['x']) > 12) {
                 continue;
             }
+            $hours = $this->shiftHoursForDay($shiftPeriods, $day['day'], $shift['text']);
             $entries[] = [
                 'pdf_name' => $row['name'],
                 'day' => $day['day'],
                 'date' => sprintf('%04d-%02d-%02d', $year, $month, $day['day']),
                 'shift' => $shift['text'],
+                'shift_start_time' => $hours['start'] ?? null,
+                'shift_end_time' => $hours['end'] ?? null,
             ];
         }
 
@@ -56,8 +60,63 @@ class PdfScheduleImporter
             'month'=>$month,
             'rows'=>$rows,
             'entries'=>$entries,
+            'shift_periods'=>$shiftPeriods,
             'contacts'=>$this->contacts($text, $rows),
         ];
+    }
+
+    private function shiftPeriods(string $text, int $month): array
+    {
+        $periods = [];
+        $current = null;
+        foreach (preg_split('/\R/u', $text) ?: [] as $line) {
+            $line = trim($line);
+            if (preg_match('/^(\d{1,2})\s*[-–—]\s*(\d{1,2})\s+([\p{L}]+)\s*:\s*(\d{1,2}(?:h\d{0,2}|:\d{2}))\s*[-–—]\s*(\d{1,2}(?:h\d{0,2}|:\d{2}))$/iu', $line, $match)) {
+                $monthName = $this->normalize($match[3]);
+                if ((self::MONTHS[$monthName] ?? null) !== $month) continue;
+                $periods[] = [
+                    'from_day' => (int)$match[1],
+                    'to_day' => (int)$match[2],
+                    'shifts' => [
+                        'C' => ['start' => $this->parseTime($match[4]), 'end' => $this->parseTime($match[5])],
+                    ],
+                ];
+                $current = count($periods) - 1;
+                continue;
+            }
+
+            if ($current !== null && preg_match('/^(M|T|C|TE)\s*[-–—]\s*(\d{1,2}(?:h\d{0,2}|:\d{2}))\s*[-–—]\s*(\d{1,2}(?:h\d{0,2}|:\d{2})|encerramento)$/iu', $line, $match)) {
+                $periods[$current]['shifts'][strtoupper($match[1])] = [
+                    'start' => $this->parseTime($match[2]),
+                    'end' => $this->normalize($match[3]) === 'encerramento' ? null : $this->parseTime($match[3]),
+                ];
+            }
+        }
+
+        return $periods;
+    }
+
+    private function shiftHoursForDay(array $periods, int $day, string $shift): array
+    {
+        foreach ($periods as $period) {
+            if ($day >= $period['from_day'] && $day <= $period['to_day']) {
+                return $period['shifts'][$shift] ?? [];
+            }
+        }
+        return [];
+    }
+
+    private function parseTime(string $value): string
+    {
+        if (!preg_match('/^(\d{1,2})(?:h|:)?(\d{2})?$/i', trim($value), $match)) {
+            throw new RuntimeException('Foi encontrado um horário inválido no PDF.');
+        }
+        $hour = (int)$match[1];
+        $minute = isset($match[2]) ? (int)$match[2] : 0;
+        if ($hour > 23 || $minute > 59) {
+            throw new RuntimeException('Foi encontrado um horário inválido no PDF.');
+        }
+        return sprintf('%02d:%02d', $hour, $minute);
     }
 
     private function readMonth(string $text): array

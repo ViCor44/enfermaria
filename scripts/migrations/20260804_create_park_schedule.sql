@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS park_schedule_assignments (
     work_date DATE NOT NULL,
     staff_id INT NOT NULL,
     shift_type ENUM('M', 'T', 'C', 'TE') NOT NULL,
+    shift_start_time TIME NULL,
+    shift_end_time TIME NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     UNIQUE KEY uq_park_staff_day (schedule_id, work_date, staff_id),
     KEY idx_park_assignment_date (work_date),

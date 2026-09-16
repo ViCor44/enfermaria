@@ -143,7 +143,13 @@ class ParkScheduleController
                 header('Location: '.$this->baseUrl.'?route=park_schedule_import_preview'); exit;
             }
             $occupied[$key] = ['pdf_name'=>$entry['pdf_name'], 'shift'=>$entry['shift']];
-            $assignments[] = ['date'=>$entry['date'], 'shift'=>$entry['shift'], 'nurse_id'=>$staffId];
+            $assignments[] = [
+                'date'=>$entry['date'],
+                'shift'=>$entry['shift'],
+                'nurse_id'=>$staffId,
+                'shift_start_time'=>$entry['shift_start_time'] ?? null,
+                'shift_end_time'=>$entry['shift_end_time'] ?? null,
+            ];
         }
         try {
             ParkSchedule::replaceMonth((int)$import['year'], (int)$import['month'], (int)$_SESSION['user_id'], $assignments);

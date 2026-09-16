@@ -17,7 +17,7 @@ class ParkSchedule
 
     public static function assignments(int $year, int $month): array
     {
-        $stmt = Database::getConnection()->prepare("SELECT a.work_date,a.staff_id AS nurse_user_id,a.shift_type,u.full_name FROM park_schedule_assignments a INNER JOIN park_schedules s ON s.id=a.schedule_id INNER JOIN park_schedule_staff u ON u.id=a.staff_id WHERE s.year=? AND s.month=? ORDER BY a.work_date,FIELD(a.shift_type,'C','M','T','TE'),u.full_name");
+        $stmt = Database::getConnection()->prepare("SELECT a.work_date,a.staff_id AS nurse_user_id,a.shift_type,a.shift_start_time,a.shift_end_time,u.full_name FROM park_schedule_assignments a INNER JOIN park_schedules s ON s.id=a.schedule_id INNER JOIN park_schedule_staff u ON u.id=a.staff_id WHERE s.year=? AND s.month=? ORDER BY a.work_date,FIELD(a.shift_type,'C','M','T','TE'),u.full_name");
         $stmt->execute([$year, $month]);
         $days = [];
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) $days[$row['work_date']][] = $row;
@@ -36,8 +36,8 @@ class ParkSchedule
             $scheduleId = (int)$stmt->fetchColumn();
             $stmt = $pdo->prepare('DELETE FROM park_schedule_assignments WHERE schedule_id=? AND work_date=?');
             $stmt->execute([$scheduleId, $date]);
-            $stmt = $pdo->prepare('INSERT INTO park_schedule_assignments (schedule_id,work_date,staff_id,shift_type) VALUES (?,?,?,?)');
-            foreach ($assignments as $item) $stmt->execute([$scheduleId, $date, $item['nurse_id'], $item['shift']]);
+            $stmt = $pdo->prepare('INSERT INTO park_schedule_assignments (schedule_id,work_date,staff_id,shift_type,shift_start_time,shift_end_time) VALUES (?,?,?,?,?,?)');
+            foreach ($assignments as $item) $stmt->execute([$scheduleId, $date, $item['nurse_id'], $item['shift'], null, null]);
             $pdo->commit();
         } catch (\Throwable $e) {
             if ($pdo->inTransaction()) $pdo->rollBack();
@@ -56,9 +56,9 @@ class ParkSchedule
             $stmt->execute([$year, $month]);
             $scheduleId = (int)$stmt->fetchColumn();
             $pdo->prepare('DELETE FROM park_schedule_assignments WHERE schedule_id=?')->execute([$scheduleId]);
-            $stmt = $pdo->prepare('INSERT INTO park_schedule_assignments (schedule_id,work_date,staff_id,shift_type) VALUES (?,?,?,?)');
+            $stmt = $pdo->prepare('INSERT INTO park_schedule_assignments (schedule_id,work_date,staff_id,shift_type,shift_start_time,shift_end_time) VALUES (?,?,?,?,?,?)');
             foreach ($assignments as $item) {
-                $stmt->execute([$scheduleId, $item['date'], $item['nurse_id'], $item['shift']]);
+                $stmt->execute([$scheduleId, $item['date'], $item['nurse_id'], $item['shift'], $item['shift_start_time'] ?? null, $item['shift_end_time'] ?? null]);
             }
             $pdo->commit();
         } catch (\Throwable $e) {

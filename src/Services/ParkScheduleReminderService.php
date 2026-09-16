@@ -8,10 +8,10 @@ use PDO;
 final class ParkScheduleReminderService
 {
     private const SHIFTS = [
-        'C' => ['Completo', '10:00-18:00'],
-        'M' => ['Manhã', '10:00-13:45'],
-        'T' => ['Tarde', '14:00-18:00'],
-        'TE' => ['Tarde Extra', '13:00-encerramento'],
+        'C' => ['Completo', '10:00', '17:00'],
+        'M' => ['Manhã', '10:00', '13:30'],
+        'T' => ['Tarde', '13:45', '17:00'],
+        'TE' => ['Tarde Extra', '13:00', null],
     ];
 
     private static function shortName(string $fullName): string
@@ -35,7 +35,7 @@ final class ParkScheduleReminderService
 
         try {
             $stmt = $pdo->prepare(
-                "SELECT a.id AS assignment_id,a.work_date,a.staff_id,a.shift_type,s.full_name,
+                "SELECT a.id AS assignment_id,a.work_date,a.staff_id,a.shift_type,a.shift_start_time,a.shift_end_time,s.full_name,
                         COALESCE(NULLIF(TRIM(u.phone),''),NULLIF(TRIM(s.phone),'')) AS phone,
                         u.id AS user_id,
                         CASE WHEN s.user_id IS NULL THEN 1
@@ -66,9 +66,10 @@ final class ParkScheduleReminderService
                     continue;
                 }
 
+                $hours = $this->assignmentHours($assignment, $shift);
                 $message = sprintf(
                     'SAE: Olá %s, lembrete para amanhã, %s. Turno %s, horário %s, no parque.',
-                    self::shortName((string)$assignment['full_name']), $date->format('d/m/Y'), $shift[0], $shift[1]
+                    self::shortName((string)$assignment['full_name']), $date->format('d/m/Y'), $shift[0], $hours
                 );
                 $claim = $pdo->prepare(
                     "INSERT INTO park_schedule_sms_log
@@ -95,5 +96,18 @@ final class ParkScheduleReminderService
             $release->execute([$lockName]);
         }
         return $summary;
+    }
+
+    private function formatTime(mixed $value): ?string
+    {
+        $value = trim((string)$value);
+        return preg_match('/^\d{2}:\d{2}/', $value) ? substr($value, 0, 5) : null;
+    }
+
+    private function assignmentHours(array $assignment, array $shift): string
+    {
+        $startTime = $this->formatTime($assignment['shift_start_time'] ?? null) ?? $shift[1];
+        $endTime = $this->formatTime($assignment['shift_end_time'] ?? null) ?? $shift[2];
+        return $startTime . '-' . ($endTime ?? 'encerramento');
     }
 }
