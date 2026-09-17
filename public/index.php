@@ -164,6 +164,10 @@ if ($route === 'login') {
     $controller = new App\Controllers\TreatmentController();
     $controller->store();
 
+} elseif ($route === 'treatments_pending_status') {
+    $controller = new App\Controllers\TreatmentController();
+    $controller->pendingStatus();
+
 } elseif ($route === 'admin_incidents') {
     $controller = new App\Controllers\AdminIncidentController();
     $controller->index();
@@ -189,7 +193,7 @@ if ($route === 'login') {
 } elseif ($route === 'admin_treatment_update_notes' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new App\Controllers\AdminTreatmentController();
     $controller->updateNotes();
-} elseif ($route === 'treatment_conclude') {
+} elseif ($route === 'treatment_conclude' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new App\Controllers\TreatmentController();
     $controller->conclude();
 } elseif ($route === 'admin_incident_print') {

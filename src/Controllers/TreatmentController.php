@@ -11,6 +11,22 @@ class TreatmentController
 {
     private string $baseUrl = '/enfermaria/public/index.php';
 
+    public function pendingStatus(): void
+    {
+        Auth::requireRole(['Enfermeiro']);
+
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+
+        $user = Auth::user();
+        $pendingCount = Treatment::countInProgress((int)$user['id']);
+
+        echo json_encode([
+            'success' => true,
+            'pending_count' => $pendingCount,
+        ]);
+    }
+
     public function create(): void
     {
         Auth::requireRole(['Enfermeiro']);
@@ -246,6 +262,18 @@ public function store(): void
             $_SESSION['error'] = 'Tratamento inválido.';
             header('Location: ' . $this->baseUrl . '?route=admin_treatments');
             exit;
+        }
+
+        if (($user['role'] ?? '') === 'Enfermeiro') {
+            $pdo = Database::getConnection();
+            $stmt = $pdo->prepare('SELECT user_id FROM treatments WHERE id = ? LIMIT 1');
+            $stmt->execute([$treatmentId]);
+
+            if ((int)$stmt->fetchColumn() !== $userId) {
+                $_SESSION['error'] = 'Só o enfermeiro responsável pode concluir este tratamento.';
+                header('Location: ' . $this->baseUrl . '?route=admin_treatments');
+                exit;
+            }
         }
 
         try {

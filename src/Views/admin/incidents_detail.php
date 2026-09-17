@@ -3,6 +3,8 @@ $baseUrl = '/enfermaria/public/index.php';
 $nome    = $_SESSION['user_name'] ?? 'Administrador';
 $role    = $_SESSION['role'] ?? '';
 $currentUserId = $_SESSION['user_id'] ?? null;
+$flashSuccess = $_SESSION['success'] ?? null;
+unset($_SESSION['success']);
 
 $hasHospitalTreatment = false;
 $hasHospitalRefusal = !empty($incident['refused_hospital'])
@@ -258,6 +260,24 @@ foreach ($treatments as $t) {
 <body>
 
 <?php require __DIR__ . '/../layouts/header.php'; ?>
+<?php if ($flashSuccess): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var message = <?= json_encode($flashSuccess, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'Sucesso',
+            text: message,
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+    } else {
+        window.alert(message);
+    }
+});
+</script>
+<?php endif; ?>
 <main>
     <div style="text-align: left; margin-bottom: 1rem;">
         <a href="<?= $baseUrl ?>?route=admin_incidents" class="back-link">

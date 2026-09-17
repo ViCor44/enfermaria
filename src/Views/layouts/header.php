@@ -599,10 +599,11 @@ if (!isset($pendingApprovalsCount)) {
                 <span class="user-role"><?= htmlspecialchars($roleLabel) ?></span>
             </div>
             <a href="<?= $baseUrl ?>?route=user_settings" class="btn-logout" title="Definições da conta">Definições</a>
-            <a href="<?= $baseUrl ?>?route=logout" class="btn-logout">Sair</a>
+            <a href="<?= $baseUrl ?>?route=logout" class="btn-logout" id="logoutLink">Sair</a>
         </div>
     </div>
 </header>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 (() => {
     const toggle = document.getElementById('sidebarToggle');
@@ -662,5 +663,123 @@ if (!isset($pendingApprovalsCount)) {
         syncState();
     });
     syncState();
+})();
+
+(() => {
+    const isNurse = <?= json_encode($role === 'Enfermeiro') ?>;
+    if (!isNurse) return;
+
+    const reminderInterval = 30 * 60 * 1000;
+    const pendingStatusUrl = <?= json_encode($baseUrl . '?route=treatments_pending_status') ?>;
+    const treatmentsUrl = <?= json_encode($baseUrl . '?route=admin_treatments&status=em_curso') ?>;
+    const logoutLink = document.getElementById('logoutLink');
+    const storageKey = 'saePendingTreatmentReminder:<?= (int)($_SESSION['user_id'] ?? 0) ?>';
+    let reminderTimer = null;
+    let reminderOpen = false;
+
+    async function getPendingCount() {
+        const response = await fetch(pendingStatusUrl, {
+            credentials: 'same-origin',
+            headers: { 'Accept': 'application/json' },
+            cache: 'no-store'
+        });
+        if (!response.ok) throw new Error('pending_status_failed');
+
+        const data = await response.json();
+        return data.success ? Number(data.pending_count) || 0 : 0;
+    }
+
+    function scheduleReminder(delay = reminderInterval) {
+        window.clearTimeout(reminderTimer);
+        reminderTimer = window.setTimeout(showScheduledReminder, Math.max(delay, 1000));
+    }
+
+    async function showScheduledReminder() {
+        if (reminderOpen) {
+            scheduleReminder(60000);
+            return;
+        }
+
+        try {
+            const pendingCount = await getPendingCount();
+            if (pendingCount > 0) {
+                reminderOpen = true;
+                localStorage.setItem(storageKey, String(Date.now()));
+
+                const message = pendingCount === 1
+                    ? 'Tem 1 tratamento por concluir. Conclua-o e registe uma nota de conclusão.'
+                    : `Tem ${pendingCount} tratamentos por concluir. Conclua-os e registe as respetivas notas de conclusão.`;
+
+                if (typeof Swal !== 'undefined') {
+                    const result = await Swal.fire({
+                        title: 'Tratamentos por concluir',
+                        text: message,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Ver tratamentos',
+                        cancelButtonText: 'Lembrar mais tarde',
+                        reverseButtons: true
+                    });
+                    if (result.isConfirmed) window.location.href = treatmentsUrl;
+                } else if (window.confirm(`${message}\n\nPretende ver os tratamentos agora?`)) {
+                    window.location.href = treatmentsUrl;
+                }
+            }
+        } catch (error) {
+            console.error('Não foi possível verificar os tratamentos pendentes.', error);
+        } finally {
+            reminderOpen = false;
+            scheduleReminder();
+        }
+    }
+
+    logoutLink?.addEventListener('click', async event => {
+        event.preventDefault();
+
+        try {
+            const pendingCount = await getPendingCount();
+            if (pendingCount === 0) {
+                window.location.href = logoutLink.href;
+                return;
+            }
+
+            const message = pendingCount === 1
+                ? 'Ainda tem 1 tratamento por concluir. Antes de sair, conclua-o e deixe uma nota de conclusão.'
+                : `Ainda tem ${pendingCount} tratamentos por concluir. Antes de sair, conclua-os e deixe as notas de conclusão.`;
+
+            if (typeof Swal !== 'undefined') {
+                const result = await Swal.fire({
+                    title: 'Tratamentos por concluir',
+                    text: message,
+                    icon: 'warning',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'Ver tratamentos',
+                    denyButtonText: 'Sair mesmo assim',
+                    cancelButtonText: 'Continuar no sistema',
+                    reverseButtons: true
+                });
+
+                if (result.isConfirmed) window.location.href = treatmentsUrl;
+                if (result.isDenied) window.location.href = logoutLink.href;
+                return;
+            }
+
+            if (window.confirm(`${message}\n\nOK: ver tratamentos. Cancelar: continuar para sair.`)) {
+                window.location.href = treatmentsUrl;
+            } else if (window.confirm('Confirma que pretende sair mesmo assim?')) {
+                window.location.href = logoutLink.href;
+            }
+        } catch (error) {
+            console.error('Não foi possível verificar os tratamentos antes de sair.', error);
+            if (window.confirm('Não foi possível verificar os tratamentos pendentes. Pretende sair mesmo assim?')) {
+                window.location.href = logoutLink.href;
+            }
+        }
+    });
+
+    const lastReminder = Number(localStorage.getItem(storageKey)) || 0;
+    const elapsed = Date.now() - lastReminder;
+    scheduleReminder(elapsed >= reminderInterval ? 1000 : reminderInterval - elapsed);
 })();
 </script>

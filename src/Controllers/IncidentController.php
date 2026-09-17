@@ -223,7 +223,7 @@ public function store(): void
 
         unset($_SESSION['old_incident_form']);
 
-        $_SESSION['success'] = 'Acidente registado com sucesso.';
+        $_SESSION['success'] = 'Ocorrência registada com sucesso.';
         header('Location: '.$this->baseUrl.'?route=admin_incident_detail&id='.$incidentId);
         exit;
 

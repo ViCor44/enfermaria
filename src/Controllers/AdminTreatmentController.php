@@ -21,6 +21,8 @@ class AdminTreatmentController
         $from   = $_GET['from'] ?? '';
         $to     = $_GET['to'] ?? '';
         $locationId = isset($_GET['location_id']) ? (int)$_GET['location_id'] : 0;
+        $user = Auth::user();
+        $currentRole = (string)($user['role'] ?? '');
 
         $locations = Location::allActive();
 
@@ -30,6 +32,7 @@ class AdminTreatmentController
             'fromDate' => $from !== '' ? $from : null,
             'toDate'   => $to   !== '' ? $to   : null,
             'locationId' => $locationId > 0 ? $locationId : null,
+            'userId' => $currentRole === 'Enfermeiro' ? (int)$user['id'] : null,
         ]);
 
         require __DIR__ . '/../Views/admin/treatments_list.php';
