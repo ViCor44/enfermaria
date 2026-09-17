@@ -158,7 +158,7 @@ class InternalRecordController
                 ':body_marks'  => $bodyMarksJson,
             ]);
 
-            $_SESSION['success'] = 'Registo interno criado com sucesso.';
+            $_SESSION['success'] = 'Registo interno efetuado com sucesso.';
             header('Location: '.$this->baseUrl.'?route=dashboard');
             exit;
 

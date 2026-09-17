@@ -11,6 +11,8 @@ $pendingApprovals = $pendingApprovals ?? 0;
 $onlineNurses = $onlineNurses ?? [];
 $currentDate = $currentDate ?? date('d/m/Y');
 $lastLogin = $lastLogin ?? 'Sem registo';
+$flashSuccess = $_SESSION['success'] ?? null;
+unset($_SESSION['success']);
 
 $incidentTrend = $incidentTrend ?? ['label' => 'Sem variação face a ontem', 'value' => '0%', 'direction' => 'neutral'];
 $recentIncidents = $recentIncidents ?? [];
@@ -334,6 +336,24 @@ $statsHref = $baseUrl . '?route=admin_stats';
 </head>
 <body>
 <?php require __DIR__ . '/../layouts/header.php'; ?>
+<?php if ($flashSuccess): ?>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var message = <?= json_encode($flashSuccess, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
+
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'Sucesso',
+            text: message,
+            icon: 'success',
+            confirmButtonText: 'OK'
+        });
+    } else {
+        window.alert(message);
+    }
+});
+</script>
+<?php endif; ?>
 
 <main class="dashboard-page">
     <section class="hero">
