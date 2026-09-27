@@ -5,197 +5,333 @@ $baseUrl = '/enfermaria/public/index.php';
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SAE | Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
+    :root {
+        --page-bg: #edf4fb;
+        --surface: #ffffff;
+        --surface-soft: #f6f9fd;
+        --text: #16324f;
+        --muted: #64778d;
+        --accent: #1f6feb;
+        --accent-dark: #1859bd;
+        --border: #d8e4f1;
+        --focus: rgba(31, 111, 235, .18);
+        --shadow: 0 24px 70px rgba(20, 57, 94, .16);
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
     body {
         margin: 0;
-        font-family: system-ui, sans-serif;
-        height: 100vh;
-        display: flex;
-        background: linear-gradient(135deg, #6a11cb, #2575fc);
-        color: #fff;
+        min-height: 100vh;
+        min-height: 100dvh;
+        font-family: 'Manrope', 'Segoe UI', sans-serif;
+        background:
+            linear-gradient(rgba(31, 111, 235, .045) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(31, 111, 235, .045) 1px, transparent 1px),
+            var(--page-bg);
+        background-size: 34px 34px;
+        color: var(--text);
     }
 
     .container {
-        display: flex;
-        width: 100%;
-        height: 100%;
+        width: min(1180px, calc(100% - 48px));
+        min-height: min(720px, calc(100dvh - 48px));
+        margin: 24px auto;
+        display: grid;
+        grid-template-columns: minmax(0, .92fr) minmax(420px, 1.08fr);
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, .8);
+        border-radius: 20px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
     }
 
-    /* Painel esquerdo */
     .left-panel {
-        flex: 1.2;
-        padding: 4rem;
+        position: relative;
+        padding: clamp(36px, 5vw, 68px);
         display: flex;
         flex-direction: column;
-        justify-content: center;
-        color: white;
+        justify-content: space-between;
+        overflow: hidden;
+        color: #fff;
+        background: linear-gradient(145deg, #164c91 0%, #1f6feb 58%, #4aa7e8 100%);
+    }
+
+    .left-panel::after {
+        content: '';
+        position: absolute;
+        right: -90px;
+        bottom: -105px;
+        width: 310px;
+        height: 310px;
+        border: 54px solid rgba(255, 255, 255, .09);
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .brand-mark {
+        position: relative;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
+        color: #fff;
+        text-decoration: none;
+        width: fit-content;
+    }
+
+    .brand-mark img {
+        width: 58px;
+        height: 58px;
+        padding: 5px;
+        object-fit: contain;
+        border-radius: 12px;
+        background: #fff;
+    }
+
+    .brand-name {
+        display: block;
+        font-size: 1.12rem;
+        font-weight: 800;
+    }
+
+    .brand-subtitle {
+        display: block;
+        margin-top: 2px;
+        font-size: .76rem;
+        font-weight: 600;
+        opacity: .82;
+    }
+
+    .welcome-copy {
+        position: relative;
+        z-index: 1;
+        margin: 70px 0;
+    }
+
+    .eyebrow {
+        margin: 0 0 14px;
+        font-size: .76rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .12em;
+        color: #cce7ff;
     }
 
     .left-panel h1 {
-        font-size: 2.4rem;
-        margin-top: 2rem;
-        line-height: 1.3;
+        max-width: 520px;
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3.25rem);
+        line-height: 1.08;
+        letter-spacing: 0;
     }
 
-    .left-panel p {
-        font-size: 1.1rem;
-        max-width: 420px;
-        opacity: 0.9;
+    .left-panel p:not(.eyebrow) {
+        max-width: 460px;
+        margin: 20px 0 0;
+        font-size: 1rem;
+        line-height: 1.7;
+        color: #e3f1ff;
     }
 
-    /* Logo SAE */
-    .logo {
-        width: 180px;
-        margin-bottom: 1rem;
+    .about-link {
+        position: relative;
+        z-index: 1;
+        width: fit-content;
+        color: #fff;
+        font-size: .88rem;
+        font-weight: 700;
+        text-underline-offset: 4px;
     }
 
-    /* Painel direito */
     .right-panel {
-        flex: 1;
-        background: #fff;
-        border-radius: 25px 0 0 25px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem;
-        box-shadow: -10px 0 30px rgba(0,0,0,0.15);
-        color: #333;
+        display: grid;
+        place-items: center;
+        padding: clamp(34px, 6vw, 76px);
+        background: var(--surface);
     }
 
     .card {
         width: 100%;
-        max-width: 350px;
-        text-align: center;
+        max-width: 410px;
     }
 
     .card h2 {
-        margin-bottom: 1.5rem;
-        font-size: 1.6rem;
+        margin: 0;
+        font-size: clamp(1.8rem, 3vw, 2.25rem);
+        line-height: 1.2;
+        color: var(--text);
+        letter-spacing: 0;
+    }
+
+    .card-intro {
+        margin: 10px 0 26px;
+        color: var(--muted);
+        font-size: .95rem;
+        line-height: 1.55;
     }
 
     label {
         display: block;
-        text-align: left;
-        margin-top: 1rem;
-        font-weight: 600;
-        color: #444;
+        margin: 18px 0 7px;
+        font-size: .84rem;
+        font-weight: 800;
+        color: #304b68;
     }
 
     input {
         width: 100%;
-        padding: .7rem;
-        border-radius: 6px;
-        border: 1px solid #ccc;
-        margin-top: .3rem;
-        font-size: 1rem;
+        min-height: 50px;
+        padding: 0 14px;
+        border: 1px solid #bfd0e1;
+        border-radius: 8px;
+        background: #fbfdff;
+        color: var(--text);
+        font: inherit;
+        font-size: .95rem;
+        transition: border-color .2s, box-shadow .2s, background .2s;
     }
 
-    button {
+    input:hover {
+        border-color: #8eacd0;
+    }
+
+    input:focus {
+        outline: none;
+        border-color: var(--accent);
+        background: #fff;
+        box-shadow: 0 0 0 4px var(--focus);
+    }
+
+    .primary-button,
+    #submitRemoteAccess {
         width: 100%;
-        padding: .8rem;
+        min-height: 50px;
+        padding: 0 18px;
         border: none;
         border-radius: 8px;
-        margin-top: 1.5rem;
-        background: #2575fc;
-        color: white;
-        font-size: 1rem;
+        background: var(--accent);
+        color: #fff;
+        font: inherit;
+        font-weight: 800;
         cursor: pointer;
-        transition: 0.2s;
+        transition: background .2s, box-shadow .2s, transform .15s;
     }
 
-    button:hover {
-        background: #1258d4;
+    .primary-button {
+        margin-top: 24px;
+    }
+
+    .primary-button:hover,
+    #submitRemoteAccess:hover {
+        background: var(--accent-dark);
+        box-shadow: 0 10px 24px rgba(31, 111, 235, .2);
+        transform: translateY(-1px);
+    }
+
+    button:focus-visible,
+    a:focus-visible {
+        outline: 3px solid rgba(31, 111, 235, .28);
+        outline-offset: 3px;
     }
 
     .error {
-        background: #ffe0e0;
-        color: #900;
-        padding: .7rem;
-        border-radius: 6px;
-        margin-bottom: 1rem;
+        background: #fff1f1;
+        border: 1px solid #f4caca;
+        color: #9a2525;
+        padding: 12px 14px;
+        border-radius: 8px;
+        margin: 18px 0;
+        font-size: .9rem;
     }
 
     .success {
-        background: #e6f9ec;
-        border: 1px solid #2ecc71;
-        color: #1e7e34;
-        padding: 12px;
+        background: #edf9f2;
+        border: 1px solid #a9ddbd;
+        color: #236b3d;
+        padding: 12px 14px;
         border-radius: 8px;
-        margin-bottom: 15px;
-        font-size: 0.95rem;
+        margin: 18px 0;
+        font-size: .9rem;
     }
 
     footer {
-        margin-top: 1rem;
-        font-size: .9rem;
-        color: #666;
+        margin-top: 22px;
+        font-size: .88rem;
+        color: var(--muted);
     }
 
     footer a {
-        color: #2575fc;
+        color: var(--accent);
         text-decoration: none;
-        font-weight: 600;
+        font-weight: 800;
     }
 
-    .link-button {
-        background: transparent;
-        border: none;
-        color: #2575fc;
-        font-weight: 600;
-        cursor: pointer;
-        padding: 0;
-        font-size: .95rem;
-    }
-
-    .link-button:hover {
-        background: transparent;
-        color: #1258d4;
+    footer a:hover {
         text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .account-links {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
     }
 
     .remote-access-callout {
-        margin-top: 1.25rem;
-        padding: 14px 16px;
-        border-radius: 10px;
-        background: #fff4e0;
-        border: 1px solid #f1b95a;
-        color: #6a4300;
-        text-align: left;
+        margin-top: 24px;
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface-soft);
     }
 
     .remote-access-callout strong {
         display: block;
-        font-size: 1rem;
-        margin-bottom: 4px;
-        color: #5a3700;
+        margin-bottom: 5px;
+        color: var(--text);
+        font-size: .9rem;
     }
 
     .remote-access-callout p {
-        margin: 0 0 10px;
-        font-size: .9rem;
-        line-height: 1.4;
+        margin: 0 0 12px;
+        color: var(--muted);
+        font-size: .82rem;
+        line-height: 1.5;
     }
 
     .remote-access-callout .remote-access-btn {
-        display: inline-block;
-        background: #f39c12;
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 8px 14px;
-        font-weight: 600;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--accent);
+        font: inherit;
+        font-size: .84rem;
+        font-weight: 800;
         cursor: pointer;
-        font-size: .95rem;
     }
 
     .remote-access-callout .remote-access-btn:hover {
-        background: #d97e0a;
+        color: var(--accent-dark);
+        text-decoration: underline;
+        text-underline-offset: 3px;
     }
+
     .modal-overlay {
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, .45);
+        padding: 20px;
+        background: rgba(15, 35, 58, .58);
+        backdrop-filter: blur(5px);
         display: none;
         align-items: center;
         justify-content: center;
@@ -209,23 +345,23 @@ $baseUrl = '/enfermaria/public/index.php';
     .modal-card {
         width: min(92vw, 430px);
         background: #fff;
-        border-radius: 14px;
-        padding: 1.15rem 1.1rem 1.2rem;
+        border-radius: 12px;
+        padding: 24px;
         box-shadow: 0 18px 44px rgba(17, 35, 72, .28);
-        color: #2b2b2b;
-        border: 1px solid #e8edf7;
+        color: var(--text);
+        border: 1px solid var(--border);
     }
 
     .modal-card h3 {
-        margin: .15rem 0 .35rem;
-        font-size: 1.22rem;
-        color: #1e2c46;
+        margin: 0 0 6px;
+        font-size: 1.3rem;
+        color: var(--text);
     }
 
     .modal-hint {
-        margin: .1rem 0 .85rem;
-        color: #5f738f;
-        font-size: .93rem;
+        margin: 0 0 16px;
+        color: var(--muted);
+        font-size: .9rem;
         line-height: 1.45;
     }
 
@@ -235,32 +371,35 @@ $baseUrl = '/enfermaria/public/index.php';
     }
 
     .modal-card input {
-        box-sizing: border-box;
-        border: 1px solid #b7c9e6;
-        border-radius: 9px;
-        transition: border-color .2s, box-shadow .2s;
-    }
-
-    .modal-card input:focus {
-        outline: none;
-        border-color: #3f7de8;
-        box-shadow: 0 0 0 3px rgba(63, 125, 232, .18);
+        border-radius: 8px;
     }
 
     .modal-actions {
         display: flex;
         gap: .6rem;
         justify-content: flex-end;
-        margin-top: .9rem;
+        margin-top: 16px;
     }
 
     .btn-secondary {
-        border: 1px solid #cfd9ea;
+        min-height: 46px;
+        border: 1px solid var(--border);
         background: #fff;
         color: #36516f;
         border-radius: 8px;
-        padding: .6rem .9rem;
+        padding: 0 18px;
+        font: inherit;
+        font-weight: 700;
         cursor: pointer;
+    }
+
+    .btn-secondary:hover {
+        background: var(--surface-soft);
+    }
+
+    #submitRemoteAccess {
+        width: auto;
+        min-height: 46px;
     }
 
     .request-status {
@@ -291,50 +430,105 @@ $baseUrl = '/enfermaria/public/index.php';
         width: 100%;
     }
 
+    @media (max-width: 820px) {
+        .container {
+            width: min(100% - 28px, 560px);
+            min-height: auto;
+            margin: 14px auto;
+            grid-template-columns: 1fr;
+        }
+
+        .left-panel {
+            min-height: 245px;
+            padding: 28px;
+        }
+
+        .welcome-copy {
+            margin: 42px 0 18px;
+        }
+
+        .left-panel h1 {
+            max-width: 440px;
+            font-size: 2rem;
+        }
+
+        .left-panel p:not(.eyebrow) {
+            margin-top: 12px;
+            font-size: .9rem;
+        }
+
+        .about-link {
+            display: none;
+        }
+
+        .right-panel {
+            padding: 34px 28px 38px;
+        }
+    }
+
+    @media (max-width: 440px) {
+        .container {
+            width: 100%;
+            margin: 0;
+            border: 0;
+            border-radius: 0;
+        }
+
+        .left-panel,
+        .right-panel {
+            padding-left: 22px;
+            padding-right: 22px;
+        }
+
+        .brand-mark img {
+            width: 48px;
+            height: 48px;
+        }
+
+        .account-links {
+            align-items: flex-start;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .modal-actions {
+            flex-direction: column-reverse;
+        }
+
+        .modal-actions button,
+        #submitRemoteAccess {
+            width: 100%;
+        }
+    }
+
 </style>
 </head>
 <body>
 
 <div class="container">
 
-    <!-- PAINEL ESQUERDO -->
     <div class="left-panel">
+        <a href="<?= $baseUrl ?>?route=about" class="brand-mark" aria-label="SAE - Sobre o sistema">
+            <img src="/enfermaria/public/assets/img/logo-sae.png" alt="">
+            <span>
+                <span class="brand-name">SAE</span>
+                <span class="brand-subtitle">Sistema de Apoio à Enfermaria</span>
+            </span>
+        </a>
 
-        <!-- Logo SAE (SVG direto) -->
-        <div class="logo">
-            <svg href="<?= $baseUrl ?>?route=about" viewBox="0 0 300 360">
-                <rect x="55" y="20" width="190" height="150" rx="20" stroke="#a8d4ff" stroke-width="12" fill="none"/>
-                <rect x="95" y="120" width="30" height="50" fill="#a8d4ff"/>
-                <rect x="135" y="90" width="30" height="80" fill="#a8d4ff"/>
-                <rect x="175" y="110" width="30" height="60" fill="#a8d4ff"/>
-
-                <polyline points="175,70 195,90 225,55"
-                          fill="none" stroke="#a8d4ff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
-
-                <text x="150" y="240" text-anchor="middle"
-                      font-family="Arial" font-size="80" font-weight="700" fill="#ffffff">SAE</text>
-                <text x="150" y="285" text-anchor="middle" font-family="Arial" font-size="26" fill="#ffffff">
-                    Sistema de Apoio
-                </text>
-                <text x="150" y="315" text-anchor="middle" font-family="Arial" font-size="26" fill="#ffffff">
-                    à Enfermaria
-                </text>
-            </svg>
+        <div class="welcome-copy">
+            <p class="eyebrow">Área reservada</p>
+            <h1>A enfermaria, organizada num só lugar.</h1>
+            <p>Acompanhe ocorrências, tratamentos e equipas com acesso rápido e seguro.</p>
         </div>
 
-        <h1>Bem-vindo ao Sistema de Apoio à Enfermaria</h1>
-        <p>
-            Aceda ao painel para gerir acidentes, tratamentos e utilizadores de forma simples e rápida.
-        </p>
-        <a href="<?= $baseUrl ?>?route=about" class="nav-link">Sobre</a>
-
+        <a href="<?= $baseUrl ?>?route=about" class="about-link">Conhecer o SAE</a>
     </div>
 
-    <!-- PAINEL DIREITO -->
     <div class="right-panel">
         <div class="card">
-
-            <h2>Login</h2>
+            <h2>Iniciar sessão</h2>
+            <p class="card-intro">Introduza os seus dados para aceder ao painel.</p>
 
             <?php if (!empty($_SESSION['success_register'])): ?>
                 <div class="success"><?= htmlspecialchars($_SESSION['success_register']) ?></div>
@@ -348,25 +542,24 @@ $baseUrl = '/enfermaria/public/index.php';
 
             <form method="post" action="/enfermaria/public/index.php?route=login_submit">
 
-                <label>Email</label>
-                <input type="email" name="email" required>
+                <label for="loginEmail">Email</label>
+                <input id="loginEmail" type="email" name="email" autocomplete="username" placeholder="nome@exemplo.pt" required autofocus>
 
-                <label>Password</label>
-                <input type="password" name="password" required>
+                <label for="loginPassword">Password</label>
+                <input id="loginPassword" type="password" name="password" autocomplete="current-password" placeholder="Introduza a sua password" required>
 
-                <button type="submit">Entrar</button>
+                <button type="submit" class="primary-button">Entrar</button>
             </form>
 
             <footer>
-                Não tem conta?
-                <a href="/enfermaria/public/index.php?route=register">Registe-se</a>
-                <p style="text-align:center; margin-top:1rem;">
-                    <a href="?route=forgot_password">Esqueci-me da password</a>
-                </p>
+                <div class="account-links">
+                    <span>Não tem conta? <a href="/enfermaria/public/index.php?route=register">Registe-se</a></span>
+                    <a href="<?= $baseUrl ?>?route=forgot_password">Recuperar password</a>
+                </div>
 
                 <div class="remote-access-callout">
                     <strong>Esqueceu-se do cartão?</strong>
-                    <p>Avise um administrador e peça aqui acesso remoto para entrar no sistema.</p>
+                    <p>Peça ao administrador uma autorização temporária para entrar no sistema.</p>
                     <button type="button" class="remote-access-btn" id="openRemoteAccessModal">Pedir acesso remoto</button>
                 </div>
             </footer>            

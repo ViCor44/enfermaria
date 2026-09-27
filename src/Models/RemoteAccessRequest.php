@@ -69,6 +69,22 @@ class RemoteAccessRequest
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public static function countPending(int $minutes = 20): int
+    {
+        $pdo = Database::getConnection();
+        $minutes = max(1, $minutes);
+        $cutoff = date('Y-m-d H:i:s', time() - ($minutes * 60));
+        $stmt = $pdo->prepare(
+            "SELECT COUNT(*)
+             FROM remote_access_requests
+             WHERE status = 'pending'
+               AND created_at >= ?"
+        );
+        $stmt->execute([$cutoff]);
+
+        return (int)$stmt->fetchColumn();
+    }
+
     public static function approve(int $requestId, int $adminId): ?array
     {
         $pdo = Database::getConnection();

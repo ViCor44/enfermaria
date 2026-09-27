@@ -10,6 +10,15 @@ if (!isset($pendingApprovalsCount)) {
         ? count(\App\Models\User::getPendingApprovals())
         : 0;
 }
+$pendingRemoteRequestsCount = ($role === 'Administrador')
+    ? \App\Models\RemoteAccessRequest::countPending(20)
+    : 0;
+$pendingUserRequestsCount = $pendingApprovalsCount + $pendingRemoteRequestsCount;
+$pendingUserRequestsLabel = sprintf(
+    '%d por aprovar · %d pedidos de acesso remoto',
+    $pendingApprovalsCount,
+    $pendingRemoteRequestsCount
+);
 ?>
 <style>
     .topbar {
@@ -525,9 +534,10 @@ if (!isset($pendingApprovalsCount)) {
                 <a href="<?= $baseUrl ?>?route=admin_users"
                 class="nav-link nav-link-with-badge <?= $route === 'admin_users' ? 'active' : '' ?>">
                     Utilizadores
-                    <?php if ($pendingApprovalsCount > 0): ?>
-                        <span class="nav-badge" title="Utilizadores por aprovar">
-                            <?= (int)$pendingApprovalsCount ?>
+                    <?php if ($pendingUserRequestsCount > 0): ?>
+                        <span class="nav-badge" title="<?= htmlspecialchars($pendingUserRequestsLabel, ENT_QUOTES, 'UTF-8') ?>"
+                              aria-label="<?= htmlspecialchars($pendingUserRequestsLabel, ENT_QUOTES, 'UTF-8') ?>">
+                            <?= (int)$pendingUserRequestsCount ?>
                         </span>
                     <?php endif; ?>
                 </a>
