@@ -168,12 +168,13 @@ public function store(): void
     }
 
     if ($isHospitalTransfer && (
-        $patientAddress === null
+        $patientNationality === null
+        || $patientAddress === null
         || $patientPostalCode === null
         || $patientCity === null
         || $patientPhone === null
     )) {
-        $this->redirectWithFormError('Preencha a morada, código postal, cidade e telefone para o envio ao hospital.');
+        $this->redirectWithFormError('Preencha a nacionalidade, morada, código postal, cidade e telefone para o envio ao hospital.');
     }
 
     if ($incidentTypeId <= 0) {

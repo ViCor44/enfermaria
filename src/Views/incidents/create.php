@@ -272,6 +272,54 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
     .hospital-details.visible { display: block; }
     .refusal-toggle { margin-top: 4px; border-color: #ead7b7; background: #fffaf2; }
 
+    @media (min-width: 1121px) {
+        .incident-form.hospital-expanded .hospital-column {
+            grid-column: 1 / -1;
+        }
+
+        .incident-form.hospital-expanded .hospital-panel {
+            display: grid;
+            grid-template-columns: minmax(280px, .9fr) minmax(620px, 2.1fr);
+            grid-template-rows: auto 1fr;
+            column-gap: 28px;
+        }
+
+        .incident-form.hospital-expanded .hospital-panel > .panel-title {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .incident-form.hospital-expanded .hospital-toggle {
+            grid-column: 1;
+            grid-row: 2;
+            align-self: start;
+        }
+
+        .incident-form.hospital-expanded .hospital-details.visible {
+            display: grid;
+            grid-column: 2;
+            grid-row: 1 / span 2;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px 12px;
+            margin-top: 0;
+            padding: 0 0 0 28px;
+            border-top: 0;
+            border-left: 1px solid #ead7b7;
+        }
+
+        .incident-form.hospital-expanded .hospital-details > .field,
+        .incident-form.hospital-expanded .hospital-details > .field-grid,
+        .incident-form.hospital-expanded .hospital-details > .refusal-toggle {
+            margin: 0;
+        }
+
+        .incident-form.hospital-expanded .hospital-details > .field:nth-child(2),
+        .incident-form.hospital-expanded .hospital-details > .field-grid,
+        .incident-form.hospital-expanded .hospital-details > .refusal-toggle {
+            grid-column: 1 / -1;
+        }
+    }
+
     .treatment-list { display: grid; gap: 10px; }
 
     .treatment-entry {
@@ -478,7 +526,7 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
     @media (max-width: 1120px) {
         .incident-form {
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            grid-template-areas: "patient incident" "body body" "treatment hospital";
+            grid-template-areas: "incident patient" "body body" "treatment hospital";
         }
         .form-column { display: contents; }
     }
@@ -490,7 +538,7 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
         .incident-form { grid-template-columns: 1fr; }
         .field-grid { grid-template-columns: 1fr; }
         .form-panel { padding: 17px; }
-        .incident-form { grid-template-areas: "patient" "incident" "body" "treatment" "hospital"; }
+        .incident-form { grid-template-areas: "incident" "patient" "body" "treatment" "hospital"; }
         .body-heading { align-items: stretch; flex-direction: column; }
         .body-actions { justify-content: space-between; }
         .body-instruction { margin-left: 0; }
@@ -679,8 +727,8 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
 
                 <div class="hospital-details" id="hospital-details">
                     <div class="field">
-                        <label for="patient_nationality">Nacionalidade</label>
-                        <input type="text" id="patient_nationality" name="patient_nationality" autocomplete="country-name" value="<?= htmlspecialchars($oldValue('patient_nationality')) ?>">
+                        <label class="required" for="patient_nationality">Nacionalidade</label>
+                        <input type="text" id="patient_nationality" name="patient_nationality" autocomplete="country-name" data-hospital-required value="<?= htmlspecialchars($oldValue('patient_nationality')) ?>">
                     </div>
 
                     <div class="field">
@@ -739,12 +787,12 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
     leftColumn.className = 'form-column form-column-left';
     rightColumn.className = 'form-column form-column-right';
     leftColumn.append(
-        form.querySelector('.patient-panel'),
+        form.querySelector('.incident-panel'),
         form.querySelector('.treatment-panel'),
         form.querySelector('.hospital-column')
     );
     rightColumn.append(
-        form.querySelector('.incident-panel'),
+        form.querySelector('.patient-panel'),
         form.querySelector('.body-panel')
     );
     form.append(leftColumn, rightColumn);
@@ -804,6 +852,12 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
 
     function syncHospitalDetails() {
         const visible = hospitalTransfer.checked;
+        form.classList.toggle('hospital-expanded', visible);
+        if (visible) {
+            form.appendChild(document.querySelector('.hospital-column'));
+        } else {
+            leftColumn.appendChild(document.querySelector('.hospital-column'));
+        }
         hospitalDetails.classList.toggle('visible', visible);
         hospitalDetails.setAttribute('aria-hidden', String(!visible));
         hospitalRequiredFields.forEach(field => { field.required = visible; });
