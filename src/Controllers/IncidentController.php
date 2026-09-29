@@ -24,9 +24,12 @@ class IncidentController
     {
         Auth::requireRole(['Enfermeiro']);
 
-        $types          = Incident::getTypes();
-        $locations      = Location::allActive();
-        $treatmentTypes = Treatment::getTypes();
+        $types     = Incident::getTypes();
+        $locations = Location::allActive();
+        $treatmentTypes = array_values(array_filter(
+            Treatment::getTypes(),
+            static fn (array $type): bool => strcasecmp((string)$type['name'], 'Enviado para hospital') !== 0
+        ));
 
         require __DIR__ . '/../Views/incidents/create.php';
     }
@@ -53,19 +56,14 @@ public function store(): void
     $patientIsEmployee = isset($_POST['patient_is_employee']) ? 1 : 0;
 
     $description = trim($_POST['description'] ?? '') ?: null;
-
-    $addTreatment = isset($_POST['add_treatment']);
     $rawTreatmentTypeIds = $_POST['treatment_type_id'] ?? [];
-
     if (!is_array($rawTreatmentTypeIds)) {
         $rawTreatmentTypeIds = [$rawTreatmentTypeIds];
     }
-
-    $treatmentTypeIds = [];
-    $treatmentStatus    = in_array($_POST['treatment_status'] ?? '', ['em_curso','concluido'], true)
-        ? $_POST['treatment_status']
-        : 'concluido';
-    $treatmentNotes     = trim($_POST['treatment_notes'] ?? '') ?: null;
+    $rawTreatmentNotes = $_POST['treatment_notes'] ?? [];
+    if (!is_array($rawTreatmentNotes)) {
+        $rawTreatmentNotes = [$rawTreatmentNotes];
+    }
 
     $patientNationality = trim($_POST['patient_nationality'] ?? '') ?: null;
     $patientAddress     = trim($_POST['patient_address'] ?? '') ?: null;
@@ -75,7 +73,67 @@ public function store(): void
     $patientIdType      = trim($_POST['patient_id_type'] ?? '') ?: null;
     $patientIdNumber    = trim($_POST['patient_id_number'] ?? '') ?: null;
     $patientRefusedHospital = isset($_POST['patient_refused_hospital']) ? 1 : 0;
-    $isHospitalTransfer = $addTreatment && isset($_POST['hospital_transfer']);
+    $isHospitalTransfer = isset($_POST['hospital_transfer']);
+    $bodyMarksInput = json_decode(trim((string)($_POST['body_marks'] ?? '[]')), true);
+
+    if (!is_array($bodyMarksInput) || count($bodyMarksInput) > 20) {
+        $this->redirectWithFormError('As marcações corporais são inválidas.');
+    }
+
+    $bodyMarks = [];
+    $validBodyMarkTypes = ['contusion', 'wound', 'burn', 'pain', 'insect_bite', 'epistaxis', 'other'];
+    foreach ($bodyMarksInput as $mark) {
+        if (
+            !is_array($mark)
+            || !in_array($mark['view'] ?? null, ['front', 'back'], true)
+            || !in_array($mark['type'] ?? null, $validBodyMarkTypes, true)
+            || !is_numeric($mark['x'] ?? null)
+            || !is_numeric($mark['y'] ?? null)
+        ) {
+            $this->redirectWithFormError('As marcações corporais são inválidas.');
+        }
+
+        $x = round((float)$mark['x'], 2);
+        $y = round((float)$mark['y'], 2);
+        if ($x < 0 || $x > 100 || $y < 0 || $y > 100) {
+            $this->redirectWithFormError('As marcações corporais são inválidas.');
+        }
+
+        $bodyMarks[] = [
+            'view' => $mark['view'],
+            'type' => $mark['type'],
+            'x' => $x,
+            'y' => $y,
+        ];
+    }
+
+    $bodyMarksJson = $bodyMarks === []
+        ? null
+        : json_encode($bodyMarks, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR);
+
+    $validTreatmentTypeIds = [];
+    foreach (Treatment::getTypes() as $type) {
+        if (strcasecmp((string)$type['name'], 'Enviado para hospital') !== 0) {
+            $validTreatmentTypeIds[] = (int)$type['id'];
+        }
+    }
+
+    $treatmentsToCreate = [];
+    foreach ($rawTreatmentTypeIds as $index => $rawTreatmentTypeId) {
+        $treatmentTypeId = (int)$rawTreatmentTypeId;
+        if (
+            $treatmentTypeId > 0
+            && in_array($treatmentTypeId, $validTreatmentTypeIds, true)
+            && !isset($treatmentsToCreate[$treatmentTypeId])
+        ) {
+            $notes = trim((string)($rawTreatmentNotes[$index] ?? ''));
+            $treatmentsToCreate[$treatmentTypeId] = $notes !== '' ? $notes : null;
+        }
+    }
+
+    if ($treatmentsToCreate === []) {
+        $this->redirectWithFormError('Selecione pelo menos um tratamento prestado.');
+    }
 
     if ($incidentTypeId <= 0 && $incidentTypeInput === '') {
         $this->redirectWithFormError('Tipo de acidente obrigatório.');
@@ -109,6 +167,15 @@ public function store(): void
         $this->redirectWithFormError('A data de nascimento é inválida.');
     }
 
+    if ($isHospitalTransfer && (
+        $patientAddress === null
+        || $patientPostalCode === null
+        || $patientCity === null
+        || $patientPhone === null
+    )) {
+        $this->redirectWithFormError('Preencha a morada, código postal, cidade e telefone para o envio ao hospital.');
+    }
+
     if ($incidentTypeId <= 0) {
         $incidentTypeId = Incident::createTypeIfNotExists($incidentTypeInput);
     }
@@ -117,37 +184,11 @@ public function store(): void
         $locationId = Location::createIfNotExists($locationInput);
     }
 
-    if ($addTreatment) {
-        foreach ($rawTreatmentTypeIds as $rawId) {
-            $treatmentTypeId = (int)$rawId;
-            if ($treatmentTypeId > 0) {
-                $treatmentTypeIds[] = $treatmentTypeId;
-            }
-        }
-
-        $treatmentTypeIds = array_values(array_unique($treatmentTypeIds));
-
-        if ($treatmentTypeIds !== []) {
-            $validTypeIds = array_map(
-                static fn (array $t): int => (int)$t['id'],
-                Treatment::getTypes()
-            );
-            $treatmentTypeIds = array_values(array_intersect($treatmentTypeIds, $validTypeIds));
-        }
-
-        if ($isHospitalTransfer) {
-            $hospitalTransferTypeId = Treatment::getHospitalTransferTypeId();
-            if ($hospitalTransferTypeId === null) {
-                $this->redirectWithFormError('O tratamento de envio para o hospital não está configurado.');
-            }
-
-            if (!in_array($hospitalTransferTypeId, $treatmentTypeIds, true)) {
-                $treatmentTypeIds[] = $hospitalTransferTypeId;
-            }
-        }
-
-        if ($treatmentTypeIds === []) {
-            $this->redirectWithFormError('Selecione pelo menos um tratamento.');
+    $hospitalTransferTypeId = null;
+    if ($isHospitalTransfer) {
+        $hospitalTransferTypeId = Treatment::getHospitalTransferTypeId();
+        if ($hospitalTransferTypeId === null) {
+            $this->redirectWithFormError('O envio para o hospital não está configurado.');
         }
     }
 
@@ -160,9 +201,9 @@ public function store(): void
 
         $stmt = $pdo->prepare("
             INSERT INTO incidents
-            (user_id, incident_type_id, location_id, occurred_at, description)
+            (user_id, incident_type_id, location_id, occurred_at, description, body_marks)
             VALUES
-            (:user_id, :type, :loc, :occurred, :descr)
+            (:user_id, :type, :loc, :occurred, :descr, :body_marks)
         ");
 
         $stmt->execute([
@@ -171,6 +212,7 @@ public function store(): void
             ':loc'      => $locationId,
             ':occurred' => $occurredAt,
             ':descr'    => $description,
+            ':body_marks' => $bodyMarksJson,
         ]);
 
         $incidentId = (int)$pdo->lastInsertId();
@@ -194,13 +236,23 @@ public function store(): void
             ':incident_id' => $incidentId,
         ]);
 
-        foreach ($treatmentTypeIds as $treatmentTypeId) {
+        foreach ($treatmentsToCreate as $treatmentTypeId => $treatmentNotes) {
             Treatment::create([
                 'incident_id'       => $incidentId,
                 'user_id'           => $userId,
                 'treatment_type_id' => $treatmentTypeId,
-                'status'            => $treatmentStatus,
+                'status'            => 'concluido',
                 'notes'             => $treatmentNotes,
+            ]);
+        }
+
+        if ($hospitalTransferTypeId !== null) {
+            Treatment::create([
+                'incident_id'       => $incidentId,
+                'user_id'           => $userId,
+                'treatment_type_id' => $hospitalTransferTypeId,
+                'status'            => 'concluido',
+                'notes'             => null,
             ]);
         }
 

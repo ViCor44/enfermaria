@@ -1,0 +1,2 @@
+ALTER TABLE incidents
+  ADD COLUMN IF NOT EXISTS body_marks LONGTEXT NULL AFTER description;

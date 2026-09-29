@@ -5,17 +5,35 @@ $role    = $_SESSION['role'] ?? '';
 $currentUserId = $_SESSION['user_id'] ?? null;
 $flashSuccess = $_SESSION['success'] ?? null;
 unset($_SESSION['success']);
+$incidentView = $incident ?? [];
 
 $hasHospitalTreatment = false;
 $hasHospitalRefusal = !empty($incident['refused_hospital'])
     && (int)$incident['refused_hospital'] === 1;
+$careTreatments = [];
 
 foreach ($treatments as $t) {
     if (strcasecmp($t['treatment_type_name'], 'Enviado para hospital') === 0) {
         $hasHospitalTreatment = true;
-        break;
+        continue;
     }
+    $careTreatments[] = $t;
 }
+
+$bodyMarkLabels = [
+    'contusion' => 'Hematoma / Contusão',
+    'wound' => 'Ferida',
+    'burn' => 'Queimadura',
+    'pain' => 'Dor',
+    'insect_bite' => 'Picada de inseto',
+    'epistaxis' => 'Epistaxis',
+    'other' => 'Outra ocorrência',
+];
+$bodyMarks = json_decode((string)($incidentView['body_marks'] ?? '[]'), true);
+$bodyMarks = is_array($bodyMarks) ? $bodyMarks : [];
+$femaleBody = ($incidentView['patient_gender'] ?? '') === 'F';
+$bodyFrontImage = $femaleBody ? 'body-front-female.svg' : 'body-front.svg';
+$bodyBackImage = $femaleBody ? 'body-back-female.svg' : 'body-back.svg';
 
 ?>
 <!DOCTYPE html>
@@ -242,11 +260,134 @@ foreach ($treatments as $t) {
         background:#0f5bdb;
     }
 
+    main.detail-page {
+        width: min(1380px, calc(100% - 40px));
+        max-width: none;
+        padding: 28px 0 48px;
+        text-align: left;
+    }
+
+    .detail-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 18px;
+    }
+
+    .detail-heading h1 {
+        margin: 0;
+        color: #10213f;
+        font-size: clamp(1.7rem, 2.5vw, 2.25rem);
+        letter-spacing: 0;
+    }
+
+    .detail-heading p { margin: 7px 0 0; color: #697890; font-size: .92rem; }
+
+    .heading-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .heading-actions .back-link {
+        display: inline-flex;
+        min-height: 40px;
+        align-items: center;
+        padding: 0 14px;
+        border: 1px solid #d5e0ed;
+        border-radius: 7px;
+        background: #fff;
+        color: #294f7a;
+        font-weight: 650;
+    }
+    .heading-actions .back-link:hover { background: #eef5fc; text-decoration: none; }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: minmax(330px, .85fr) minmax(520px, 1.45fr);
+        gap: 14px;
+        align-items: stretch;
+        margin-bottom: 14px;
+    }
+
+    .detail-page .card {
+        margin-bottom: 14px;
+        padding: 20px;
+        border: 1px solid #dce5f0;
+        border-radius: 8px;
+        box-shadow: 0 7px 22px rgba(26, 54, 93, .055);
+    }
+
+    .detail-grid .card { margin-bottom: 0; }
+    .detail-page .card h2 { color: #10213f; font-size: 1rem; }
+
+    .section-header { gap: 16px; }
+    .detail-page .label { color: #697890; font-size: .7rem; font-weight: 750; letter-spacing: .07em; }
+    .detail-page .value { color: #1f3653; font-size: .9rem; line-height: 1.45; }
+    .detail-page .subtitle { color: #697890; font-size: .82rem; line-height: 1.5; }
+
+    .patient-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px 24px;
+        margin-top: 16px;
+    }
+
+    .patient-grid .wide { grid-column: span 2; }
+
+    .body-card { display: grid; grid-template-columns: minmax(380px, 1fr) 210px; gap: 22px; }
+    .body-card-header { grid-column: 1 / -1; display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+    .body-card-header h2 { margin: 0; }
+    .body-card-header span { color: #697890; font-size: .8rem; }
+
+    .body-maps { display: grid; grid-template-columns: repeat(2, minmax(150px, 1fr)); gap: 12px; max-width: 620px; margin: 0 auto; }
+    .body-map { text-align: center; }
+    .body-canvas { position: relative; width: min(100%, 190px); aspect-ratio: 1 / 2; margin: 0 auto; }
+    .body-canvas img { width: 100%; height: 100%; object-fit: contain; }
+    .body-map-label { display: block; margin-top: 7px; color: #405571; font-size: .8rem; font-weight: 700; }
+
+    .body-marker {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border: 3px solid #fff;
+        border-radius: 50%;
+        background: var(--mark-color);
+        box-shadow: 0 0 0 7px var(--mark-glow), 0 2px 7px rgba(31,45,61,.25);
+        transform: translate(-50%, -50%);
+    }
+
+    .mark-contusion { --mark-color:#e5484d; --mark-glow:rgba(229,72,77,.17); }
+    .mark-wound { --mark-color:#d4145a; --mark-glow:rgba(212,20,90,.17); }
+    .mark-burn { --mark-color:#ff8a00; --mark-glow:rgba(255,138,0,.18); }
+    .mark-pain { --mark-color:#6c5ce7; --mark-glow:rgba(108,92,231,.17); }
+    .mark-insect_bite { --mark-color:#65a30d; --mark-glow:rgba(101,163,13,.18); }
+    .mark-epistaxis { --mark-color:#8b1e3f; --mark-glow:rgba(139,30,63,.18); }
+    .mark-other { --mark-color:#13b8a6; --mark-glow:rgba(19,184,166,.17); }
+
+    .body-legend { display: grid; align-content: start; gap: 5px; padding: 10px; border: 1px solid #dce5f0; border-radius: 7px; background: #f8fbff; }
+    .body-legend-item { display: flex; align-items: center; gap: 10px; min-height: 34px; color: #405571; font-size: .77rem; }
+    .legend-swatch { width: 13px; height: 13px; border: 3px solid #fff; border-radius: 50%; background: var(--mark-color); box-shadow: 0 0 0 4px var(--mark-glow); }
+
+    .empty-body { grid-column: 1 / -1; padding: 24px; border: 1px dashed #cbd8e7; border-radius: 7px; background: #f8fbff; color: #697890; text-align: center; }
+
+    .detail-page table { border: 1px solid #e0e8f2; border-radius: 7px; box-shadow: none; }
+    .detail-page th { background: #eef4fb; color: #405571; font-size: .76rem; text-transform: uppercase; letter-spacing: .04em; }
+    .detail-page td { color: #2d405d; font-size: .86rem; }
+
     /* Responsividade */
+    @media (max-width: 1050px) {
+        .detail-grid { grid-template-columns: 1fr; }
+        .body-card { grid-template-columns: 1fr; }
+        .body-card-header { grid-column: 1; }
+        .body-legend { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
     @media (max-width: 768px) {
-        main {
+        main.detail-page {
+            width: min(100% - 24px, 1380px);
             padding: 1rem;
         }
+        .detail-heading { flex-direction: column; }
+        .patient-grid { grid-template-columns: 1fr 1fr; }
+        .patient-grid .wide { grid-column: span 2; }
+        .body-maps { grid-template-columns: repeat(2, minmax(120px, 1fr)); }
         .row {
             flex-direction: column;
             gap: 1rem;
@@ -278,25 +419,20 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 <?php endif; ?>
-<main>
-    <div style="text-align: left; margin-bottom: 1rem;">
-        <a href="<?= $baseUrl ?>?route=admin_incidents" class="back-link">
-            ← Voltar à lista de Ocorrências
-        </a>
-
-        <span class="separator">|</span>
-
-        <a class="back-link" href="<?= $baseUrl ?>?route=admin_incident_print&id=<?= (int)$incident['id'] ?>" target="_blank">
-            Gerar PDF
-        </a>
+<main class="detail-page">
+    <div class="detail-heading">
+        <div>
+            <h1>Episódio #<?= (int)($incident['episode_number'] ?? $incident['id']) ?></h1>
+            <p>Detalhes clínicos, utente, tratamentos e encaminhamento da ocorrência.</p>
+        </div>
+        <div class="heading-actions">
+            <a href="<?= $baseUrl ?>?route=admin_incidents" class="back-link">&larr; Voltar à lista</a>
+            <a class="back-link" href="<?= $baseUrl ?>?route=admin_incident_print&id=<?= (int)$incident['id'] ?>" target="_blank">Gerar PDF</a>
+        </div>
     </div>
 
-    <h1>Episódio #<?= (int)($incident['episode_number'] ?? $incident['id']) ?></h1>
-
-    <hr class="separator-hr"> <!-- Adicionado para consistência com outras páginas -->
-
-    <!-- Dados da Ocorrência -->
-    <div class="card">
+    <div class="detail-grid">
+    <div class="card occurrence-card">
         <h2>Dados da Ocorrência</h2>
         <div class="row">
             <div>
@@ -328,8 +464,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <?php endif; ?>
     </div>
 
-    <!-- Dados do paciente -->
-    <div class="card">
+    <div class="card patient-card">
         <div class="section-header">
             <h2>Dados do utente</h2>
             <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
@@ -341,8 +476,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
             <?php if (!empty($canSeePatient) && $canSeePatient === true): ?>
                 <!-- Admin ou enfermeiro que tratou vêem os dados -->
-                <div class="row" style="margin-top:1rem;">
-                    <div>
+                <div class="patient-grid">
+                    <div class="wide">
                         <div class="label">Nome completo</div>
                         <div class="value"><?= htmlspecialchars($incident['patient_name']) ?></div>
                     </div>
@@ -369,10 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <?= $incident['patient_nationality'] ? htmlspecialchars($incident['patient_nationality']) : '—' ?>
                         </div>
                     </div>
-                </div>
-
-                <div class="row" style="margin-top:1rem;">
-                    <div>
+                    <div class="wide">
                         <div class="label">Morada</div>
                         <div class="value"><?= htmlspecialchars($incident['patient_address'] ?? '—') ?></div>
                     </div>
@@ -380,14 +512,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         <div class="label">Telefone</div>
                         <div class="value"><?= htmlspecialchars($incident['patient_phone'] ?? '—') ?></div>
                     </div>
-                </div>
-
-                <div class="row" style="margin-top:1rem;">
                     <div>
-                        <div class="label">Data de Nascimento</div>
-                        <div class="value">
-                            <?= !empty($incident['patient_dob']) ? htmlspecialchars($incident['patient_dob']) : '—' ?>
-                        </div>
+                        <div class="label">Código postal / Cidade</div>
+                        <div class="value"><?= htmlspecialchars(trim((string)($incidentView['patient_postal_code'] ?? '') . ' ' . (string)($incidentView['patient_city'] ?? '')) ?: '—') ?></div>
                     </div>
                     <div>
                         <div class="label">Identificação</div>
@@ -395,9 +522,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             <?= !empty($incident['patient_id_type']) ? htmlspecialchars($incident['patient_id_type']) . ' • ' . htmlspecialchars($incident['patient_id_number']) : '—' ?>
                         </div>
                     </div>
-
-                    
-
                 </div>
                 <p class="subtitle" style="margin-top:1rem;">
                     Estes dados são visíveis apenas à administração e ao enfermeiro responsável, por motivos de RGPD.
@@ -409,6 +533,39 @@ document.addEventListener('DOMContentLoaded', function() {
                     Existem dados de utente associados a esta Ocorrência, mas não tem permissão para os visualizar.
                 </p>
             <?php endif; ?>
+    </div>
+    </div>
+
+    <div class="card body-card">
+        <div class="body-card-header">
+            <h2>Localização no corpo</h2>
+            <span><?= count($bodyMarks) ?> <?= count($bodyMarks) === 1 ? 'marcação' : 'marcações' ?></span>
+        </div>
+        <?php if ($bodyMarks === []): ?>
+            <div class="empty-body">Não foram assinaladas zonas do corpo nesta ocorrência.</div>
+        <?php else: ?>
+            <div class="body-maps">
+                <?php foreach (['front' => ['Frente', $bodyFrontImage], 'back' => ['Costas', $bodyBackImage]] as $view => [$viewLabel, $image]): ?>
+                    <div class="body-map">
+                        <div class="body-canvas">
+                            <img src="/enfermaria/public/assets/img/<?= htmlspecialchars($image) ?>" alt="<?= htmlspecialchars($viewLabel) ?> do corpo humano">
+                            <?php foreach ($bodyMarks as $mark): ?>
+                                <?php if (($mark['view'] ?? '') === $view && isset($mark['x'], $mark['y'])): ?>
+                                    <?php $markType = isset($bodyMarkLabels[$mark['type'] ?? '']) ? $mark['type'] : 'other'; ?>
+                                    <span class="body-marker mark-<?= htmlspecialchars($markType) ?>" style="left:<?= (float)$mark['x'] ?>%;top:<?= (float)$mark['y'] ?>%;" title="<?= htmlspecialchars($bodyMarkLabels[$markType]) ?>"></span>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </div>
+                        <span class="body-map-label"><?= htmlspecialchars($viewLabel) ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+            <div class="body-legend">
+                <?php foreach ($bodyMarkLabels as $type => $label): ?>
+                    <div class="body-legend-item mark-<?= htmlspecialchars($type) ?>"><span class="legend-swatch"></span><?= htmlspecialchars($label) ?></div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
     </div>
 
     <!-- Tratamentos associados -->
@@ -422,7 +579,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 </a>
             <?php endif; ?>
         </div>
-       <?php if (empty($treatments)): ?>
+    <?php if (empty($careTreatments)): ?>
             <p class="subtitle">Não existem tratamentos registados para esta Ocorrência.</p>
         <?php else: ?>
             <table>
@@ -436,7 +593,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </tr>
                 </thead>
                 <tbody>
-                <?php foreach ($treatments as $tr): ?>
+                <?php foreach ($careTreatments as $tr): ?>
                     <tr class="treatment-row" style="cursor:pointer"
                         data-id="<?= (int)$tr['id'] ?>"
                         data-created_at="<?= htmlspecialchars($tr['created_at']) ?>"
@@ -628,12 +785,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 <?php if (!empty($canGenerateHospitalDocs) && $canGenerateHospitalDocs === true): ?>
                     <a class="btn-outline"
                     target="_blank"
-                    href="/enfermaria/public/index.php?route=admin_incident_print_refusal&id=<?= (int)$incident['id'] ?>">
+                    href="/enfermaria/public/index.php?route=admin_incident_print_refusal&id=<?= (int)($incidentView['id'] ?? 0) ?>">
                         📄 Gerar termo de recusa
                     </a>
                 <?php endif; ?>
                     <a class="btn-primary"
-                    href="<?= $baseUrl ?>?route=incident_hospital_followup&id=<?= (int)$incident['id'] ?>">
+                    href="<?= $baseUrl ?>?route=incident_hospital_followup&id=<?= (int)($incidentView['id'] ?? 0) ?>">
                         ➕ Registar ida posterior ao hospital
                     </a>
 
@@ -654,12 +811,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 <?php if (!empty($canGenerateHospitalDocs) && $canGenerateHospitalDocs === true): ?>
                     <a class="btn-outline"
                     target="_blank"
-                    href="<?= $baseUrl ?>?route=incident_insurance_term&id=<?= (int)$incident['id'] ?>">
+                    href="<?= $baseUrl ?>?route=incident_insurance_term&id=<?= (int)($incidentView['id'] ?? 0) ?>">
                         📄 Gerar termo de seguro
                     </a>
                 <?php endif; ?>
                     <a class="btn-primary"
-                    href="<?= $baseUrl ?>?route=incident_hospital_followup&id=<?= (int)$incident['id'] ?>">
+                    href="<?= $baseUrl ?>?route=incident_hospital_followup&id=<?= (int)($incidentView['id'] ?? 0) ?>">
                         ➕ Registar ida posterior ao hospital
                     </a>
 
