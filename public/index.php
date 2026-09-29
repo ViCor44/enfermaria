@@ -171,6 +171,12 @@ if ($route === 'login') {
 } elseif ($route === 'admin_incidents') {
     $controller = new App\Controllers\AdminIncidentController();
     $controller->index();
+
+} elseif ($route === 'admin_hospital_transfers') {
+    (new App\Controllers\AdminIncidentController())->hospitalTransfers();
+
+} elseif ($route === 'admin_hospital_transfers_pdf') {
+    (new App\Controllers\AdminIncidentController())->hospitalTransfersPdf();
     
 } elseif ($route === 'admin_incident_detail') {
     $controller = new App\Controllers\AdminIncidentController();

@@ -232,6 +232,61 @@ class Incident
 
         return $row ?: null;
     }
+
+    public static function searchHospitalTransfers(?string $fromDate = null, ?string $toDate = null): array
+    {
+        $pdo = Database::getConnection();
+        $sql = "
+            SELECT i.*,
+                (SELECT COUNT(*) FROM incidents i2 WHERE i2.id <= i.id) AS episode_number,
+                it.name AS incident_type_name,
+                l.name AS location_name,
+                u.full_name AS nurse_name,
+                p.full_name AS patient_name,
+                p.dob AS patient_dob,
+                p.gender AS patient_gender,
+                p.is_employee AS patient_is_employee,
+                p.nationality AS patient_nationality,
+                p.address AS patient_address,
+                p.postal_code AS patient_postal_code,
+                p.city AS patient_city,
+                p.phone AS patient_phone,
+                p.id_type AS patient_id_type,
+                p.id_number AS patient_id_number,
+                p.refused_hospital,
+                (SELECT MIN(th.created_at)
+                 FROM treatments th
+                 JOIN treatment_types tth ON tth.id = th.treatment_type_id
+                 WHERE th.incident_id = i.id AND tth.name = 'Enviado para hospital') AS hospital_recorded_at,
+                (SELECT GROUP_CONCAT(CONCAT(tt.name, IF(tr.notes IS NULL OR tr.notes = '', '', CONCAT(' - ', tr.notes))) ORDER BY tr.created_at SEPARATOR ' | ')
+                 FROM treatments tr
+                 JOIN treatment_types tt ON tt.id = tr.treatment_type_id
+                 WHERE tr.incident_id = i.id) AS treatments_summary
+            FROM incidents i
+            JOIN incident_types it ON it.id = i.incident_type_id
+            JOIN locations l ON l.id = i.location_id
+            JOIN users u ON u.id = i.user_id
+            LEFT JOIN patients p ON p.id = i.patient_id
+            WHERE EXISTS (
+                SELECT 1 FROM treatments th
+                JOIN treatment_types tth ON tth.id = th.treatment_type_id
+                WHERE th.incident_id = i.id AND tth.name = 'Enviado para hospital'
+            )
+        ";
+        $params = [];
+        if ($fromDate !== null) {
+            $sql .= ' AND DATE(i.occurred_at) >= :from_date';
+            $params[':from_date'] = $fromDate;
+        }
+        if ($toDate !== null) {
+            $sql .= ' AND DATE(i.occurred_at) <= :to_date';
+            $params[':to_date'] = $toDate;
+        }
+        $sql .= ' ORDER BY i.occurred_at DESC';
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     public static function getTreatmentsForIncident(int $incidentId): array
     {
         $pdo = Database::getConnection();

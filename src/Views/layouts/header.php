@@ -645,6 +645,12 @@ $pendingUserRequestsLabel = sprintf(
 
             <?php if ($role === 'Administrador'): ?>
                 
+                <a href="<?= $baseUrl ?>?route=admin_hospital_transfers"
+                class="nav-link <?= in_array($route, ['admin_hospital_transfers', 'admin_hospital_transfers_pdf'], true) ? 'active' : '' ?>" title="Encaminhamentos hospitalares">
+                    <span class="nav-icon"><i data-lucide="ambulance"></i></span>
+                    <span class="nav-label">Envios hospitalares</span>
+                </a>
+
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
                 class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>" title="Ocorrências">
                     <span class="nav-icon"><i data-lucide="siren"></i></span>

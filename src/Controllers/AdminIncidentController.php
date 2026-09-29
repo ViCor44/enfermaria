@@ -30,6 +30,47 @@ class AdminIncidentController
         return false;
     }
 
+    private function hospitalDateFilters(): array
+    {
+        $valid = static function (string $value): bool {
+            $date = \DateTimeImmutable::createFromFormat('Y-m-d', $value);
+            return $date !== false && $date->format('Y-m-d') === $value;
+        };
+        $from = trim((string)($_GET['from'] ?? ''));
+        $to = trim((string)($_GET['to'] ?? ''));
+        $from = $valid($from) ? $from : '';
+        $to = $valid($to) ? $to : '';
+        return [$from, $to];
+    }
+
+    public function hospitalTransfers(): void
+    {
+        Auth::requireRole(['Administrador']);
+        [$fromDate, $toDate] = $this->hospitalDateFilters();
+        $incidents = Incident::searchHospitalTransfers($fromDate ?: null, $toDate ?: null);
+        require __DIR__ . '/../Views/admin/hospital_transfers.php';
+    }
+
+    public function hospitalTransfersPdf(): void
+    {
+        Auth::requireRole(['Administrador']);
+        [$fromDate, $toDate] = $this->hospitalDateFilters();
+        $incidents = Incident::searchHospitalTransfers($fromDate ?: null, $toDate ?: null);
+        ob_start();
+        require __DIR__ . '/../Views/admin/hospital_transfers_pdf.php';
+        $html = (string)ob_get_clean();
+
+        $options = new Options();
+        $options->set('isRemoteEnabled', true);
+        $options->set('isHtml5ParserEnabled', true);
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+        $dompdf->stream('encaminhamentos-hospitalares-' . date('Ymd') . '.pdf', ['Attachment' => false]);
+        exit;
+    }
+
     public function index(): void
     {
         Auth::requireRole(['Administrador', 'Manager', 'Enfermeiro']);

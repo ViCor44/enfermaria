@@ -208,7 +208,7 @@ tr.hospital-refused:hover {
     }
 }
 </style>
-<link rel="stylesheet" href="/enfermaria/public/assets/css/admin-lists.css">
+<link rel="stylesheet" href="/enfermaria/public/assets/css/admin-lists.css?v=20260929-2">
 </head>
 <body class="list-view">
 
