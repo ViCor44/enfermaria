@@ -208,15 +208,20 @@ tr.hospital-refused:hover {
     }
 }
 </style>
+<link rel="stylesheet" href="/enfermaria/public/assets/css/admin-lists.css">
 </head>
-<body>
+<body class="list-view">
 
 <?php require __DIR__ . '/../layouts/header.php'; ?>
-<main>
-    <h1>Ocorrências</h1>
-    <p class="subtitle">Pesquisa por intervalo de datas e local (apenas visão de administração, com dados agregados).</p>
-
-    <hr class="separator"> <!-- Adicionado para consistência com login e dashboard -->
+<main class="list-page">
+    <div class="list-heading">
+        <div>
+            <span class="list-eyebrow">Gestão clínica</span>
+            <h1>Ocorrências</h1>
+            <p class="subtitle">Consulte os episódios por intervalo de datas, local ou número de episódio.</p>
+        </div>
+        <span class="result-count"><?= count($incidents) ?> resultado<?= count($incidents) === 1 ? '' : 's' ?></span>
+    </div>
 
     <div class="filters">
         <form method="get" action="<?= $baseUrl ?>">
@@ -249,7 +254,7 @@ tr.hospital-refused:hover {
                 </select>
             </div>
 
-            <div>
+            <div class="filter-actions">
                 <button type="submit">Filtrar</button>
                 <a href="<?= $baseUrl ?>?route=admin_incidents" class="btn-reset">Limpar</a>
             </div>
@@ -257,9 +262,9 @@ tr.hospital-refused:hover {
     </div>
 
     <?php if (empty($incidents)): ?>
-        <p>Não foram encontradas Ocorrências com os critérios selecionados.</p>
+        <div class="empty-state">Não foram encontradas ocorrências com os critérios selecionados.</div>
     <?php else: ?>
-        <table>
+        <div class="table-card"><div class="table-scroll"><table>
             <thead>
                 <tr>
                     <th>Episódio</th>
@@ -317,12 +322,12 @@ tr.hospital-refused:hover {
                     <td><?= !empty($i['patient_is_employee']) ? 'Sim' : 'Não' ?></td>
                     <td><?= htmlspecialchars($i['nurse_name'] ?? '') ?></td>
                     <?php if ($role === 'Enfermeiro'): ?>
-                    <td><a href="<?= $baseUrl ?>?route=treatments_new&incident_id=<?= (int)$i['id'] ?>">Adicionar tratamento</a></td>
+                    <td><a class="row-action" href="<?= $baseUrl ?>?route=treatments_new&incident_id=<?= (int)$i['id'] ?>">Adicionar tratamento</a></td>
                     <?php endif; ?>
                 </tr>
             <?php endforeach; ?>
             </tbody>
-        </table>
+        </table></div></div>
     <?php endif; ?>
 </main>
 

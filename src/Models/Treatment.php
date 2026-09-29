@@ -303,6 +303,25 @@ class Treatment
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    public static function hasHospitalTransferForIncident(int $incidentId): bool
+    {
+        $pdo = Database::getConnection();
+        $stmt = $pdo->prepare("
+            SELECT 1
+            FROM treatments t
+            JOIN treatment_types tt ON tt.id = t.treatment_type_id
+            WHERE t.incident_id = :incident_id
+              AND LOWER(tt.name) = LOWER(:type_name)
+            LIMIT 1
+        ");
+        $stmt->execute([
+            ':incident_id' => $incidentId,
+            ':type_name' => 'Enviado para hospital',
+        ]);
+
+        return (bool)$stmt->fetchColumn();
+    }
+
     public static function statsByType(array $filters = []): array
     {
         $db = Database::getConnection();

@@ -21,6 +21,11 @@ if (!is_array($oldTreatmentNotes)) {
     $oldTreatmentNotes = [$oldTreatmentNotes];
 }
 $oldTreatmentNotes = array_values($oldTreatmentNotes);
+$oldTreatmentStatuses = $old['treatment_status'] ?? [];
+if (!is_array($oldTreatmentStatuses)) {
+    $oldTreatmentStatuses = [$oldTreatmentStatuses];
+}
+$oldTreatmentStatuses = array_values($oldTreatmentStatuses);
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -129,12 +134,15 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
     .body-panel { grid-area: body; }
     .treatment-panel { grid-area: treatment; }
     .hospital-column {
-        grid-area: hospital;
-        display: flex;
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
         min-width: 0;
-        flex-direction: column;
         gap: 14px;
     }
+    .hospital-panel { grid-column: 1 / -1; }
+    .hospital-column .privacy-note { align-self: stretch; margin: 0; }
+    .hospital-column .submit-button { width: auto; min-width: 220px; }
 
     .form-panel {
         min-width: 0;
@@ -526,9 +534,10 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
     @media (max-width: 1120px) {
         .incident-form {
             grid-template-columns: repeat(2, minmax(0, 1fr));
-            grid-template-areas: "incident patient" "body body" "treatment hospital";
+            grid-template-areas: "patient incident" "treatment body" "hospital hospital";
         }
         .form-column { display: contents; }
+        .hospital-column { grid-area: hospital; }
     }
 
     @media (max-width: 720px) {
@@ -538,7 +547,9 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
         .incident-form { grid-template-columns: 1fr; }
         .field-grid { grid-template-columns: 1fr; }
         .form-panel { padding: 17px; }
-        .incident-form { grid-template-areas: "incident" "patient" "body" "treatment" "hospital"; }
+        .incident-form { grid-template-areas: "patient" "incident" "body" "treatment" "hospital"; }
+        .hospital-column { grid-template-columns: 1fr; }
+        .hospital-column .submit-button { width: 100%; }
         .body-heading { align-items: stretch; flex-direction: column; }
         .body-actions { justify-content: space-between; }
         .body-instruction { margin-left: 0; }
@@ -704,6 +715,13 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
                                 <label for="treatment_notes_<?= (int)$index ?>">Notas do tratamento</label>
                                 <textarea class="treatment-notes" name="treatment_notes[]" id="treatment_notes_<?= (int)$index ?>" data-treatment-notes maxlength="1000" placeholder="Descreva os cuidados prestados."><?= htmlspecialchars((string)($oldTreatmentNotes[$index] ?? '')) ?></textarea>
                             </div>
+                            <div>
+                                <label for="treatment_status_<?= (int)$index ?>">Estado</label>
+                                <select name="treatment_status[]" id="treatment_status_<?= (int)$index ?>" data-treatment-status>
+                                    <option value="concluido" <?= ($oldTreatmentStatuses[$index] ?? 'concluido') === 'concluido' ? 'selected' : '' ?>>Concluído</option>
+                                    <option value="em_curso" <?= ($oldTreatmentStatuses[$index] ?? '') === 'em_curso' ? 'selected' : '' ?>>Em curso</option>
+                                </select>
+                            </div>
                         </div>
                         <button class="remove-treatment" type="button" data-remove-treatment title="Remover tratamento" aria-label="Remover tratamento">&times;</button>
                     </div>
@@ -787,15 +805,14 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
     leftColumn.className = 'form-column form-column-left';
     rightColumn.className = 'form-column form-column-right';
     leftColumn.append(
-        form.querySelector('.incident-panel'),
-        form.querySelector('.treatment-panel'),
-        form.querySelector('.hospital-column')
+        form.querySelector('.patient-panel'),
+        form.querySelector('.treatment-panel')
     );
     rightColumn.append(
-        form.querySelector('.patient-panel'),
+        form.querySelector('.incident-panel'),
         form.querySelector('.body-panel')
     );
-    form.append(leftColumn, rightColumn);
+    form.append(leftColumn, rightColumn, form.querySelector('.hospital-column'));
 
     const hospitalTransfer = document.getElementById('hospital_transfer');
     const hospitalDetails = document.getElementById('hospital-details');
@@ -853,11 +870,6 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
     function syncHospitalDetails() {
         const visible = hospitalTransfer.checked;
         form.classList.toggle('hospital-expanded', visible);
-        if (visible) {
-            form.appendChild(document.querySelector('.hospital-column'));
-        } else {
-            leftColumn.appendChild(document.querySelector('.hospital-column'));
-        }
         hospitalDetails.classList.toggle('visible', visible);
         hospitalDetails.setAttribute('aria-hidden', String(!visible));
         hospitalRequiredFields.forEach(field => { field.required = visible; });
@@ -910,6 +922,8 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
             const select = entry.querySelector('[data-treatment-select]');
             const notes = entry.querySelector('[data-treatment-notes]');
             const notesLabel = notes.previousElementSibling;
+            const status = entry.querySelector('[data-treatment-status]');
+            const statusLabel = status.previousElementSibling;
             const removeButton = entry.querySelector('[data-remove-treatment]');
             const selectedElsewhere = new Set(
                 entries
@@ -923,6 +937,8 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
             select.id = `treatment_type_id_${index}`;
             notes.id = `treatment_notes_${index}`;
             notesLabel.htmlFor = notes.id;
+            status.id = `treatment_status_${index}`;
+            statusLabel.htmlFor = status.id;
             Array.from(select.options).forEach(option => {
                 option.disabled = option.value !== '' && selectedElsewhere.has(option.value);
             });
@@ -956,6 +972,13 @@ $oldTreatmentNotes = array_values($oldTreatmentNotes);
                 <div>
                     <label>Notas do tratamento</label>
                     <textarea class="treatment-notes" name="treatment_notes[]" data-treatment-notes maxlength="1000" placeholder="Descreva os cuidados prestados."></textarea>
+                </div>
+                <div>
+                    <label>Estado</label>
+                    <select name="treatment_status[]" data-treatment-status>
+                        <option value="concluido" selected>Concluído</option>
+                        <option value="em_curso">Em curso</option>
+                    </select>
                 </div>
             </div>
             <button class="remove-treatment" type="button" data-remove-treatment title="Remover tratamento" aria-label="Remover tratamento">&times;</button>

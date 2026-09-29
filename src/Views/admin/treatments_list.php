@@ -203,13 +203,19 @@ a:hover {
     }
 }
 </style>
+<link rel="stylesheet" href="/enfermaria/public/assets/css/admin-lists.css">
 </head>
-<body>
+<body class="list-view">
 <?php require __DIR__ . '/../layouts/header.php'; ?>
-<main>
-    <h1>Tratamentos</h1>
-
-    <hr class="separator"> <!-- Adicionado para consistência -->
+<main class="list-page">
+    <div class="list-heading">
+        <div>
+            <span class="list-eyebrow">Acompanhamento clínico</span>
+            <h1>Tratamentos</h1>
+            <p class="subtitle">Consulte os tratamentos registados e acompanhe o respetivo estado.</p>
+        </div>
+        <span class="result-count"><?= count($treatments) ?> resultado<?= count($treatments) === 1 ? '' : 's' ?></span>
+    </div>
 
     <div class="filters">
         <form method="get" action="<?= $baseUrl ?>">
@@ -233,7 +239,7 @@ a:hover {
                 <input type="date" name="to" value="<?= htmlspecialchars($_GET['to'] ?? '') ?>">
             </div>
 
-            <div>
+            <div class="filter-actions">
                 <button type="submit">Filtrar</button>
                 <a href="<?= $baseUrl ?>?route=admin_treatments" class="btn-reset">Limpar</a>
             </div>
@@ -241,9 +247,9 @@ a:hover {
     </div>
 
     <?php if (empty($treatments)): ?>
-        <p>Nenhum tratamento encontrado.</p>
+        <div class="empty-state">Não foram encontrados tratamentos com os critérios selecionados.</div>
     <?php else: ?>
-        <table>
+        <div class="table-card"><div class="table-scroll"><table>
             <thead>
                 <tr>
                     <th>Data registo</th>
@@ -320,7 +326,7 @@ a:hover {
                     </tr>
                 <?php endforeach; ?>
             </tbody>
-        </table>
+        </table></div></div>
 
         <div id="treatment-modal" style="display:none;position:fixed;z-index:9999;left:0;top:0;width:100vw;height:100vh;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;">
             <div style="background:#fff;padding:2rem 2.5rem;border-radius:12px;max-width:520px;width:92vw;box-shadow:0 8px 32px rgba(0,0,0,0.18);position:relative;">

@@ -45,7 +45,18 @@ class TreatmentController
             return;
         }
 
-        $types = Treatment::getTypes();
+        $types = array_values(array_filter(
+            Treatment::getTypes(),
+            static fn (array $type): bool => strcasecmp((string)$type['name'], 'Enviado para hospital') !== 0
+        ));
+        $existingTreatments = Treatment::findByIncidentId($incidentId);
+        $previousHospitalTransfers = array_values(array_filter(
+            $existingTreatments,
+            static fn (array $treatment): bool => strcasecmp(
+                (string)($treatment['treatment_type_name'] ?? ''),
+                'Enviado para hospital'
+            ) === 0
+        ));
         $patientHospitalData = null;
 
         if (!empty($incident['patient_id'])) {
@@ -66,6 +77,7 @@ public function store(): void
     $status     = $_POST['status'] ?? 'concluido';
     $notes      = trim($_POST['notes'] ?? '') ?: null;
     $isHospitalTransfer = isset($_POST['hospital_transfer']);
+    $repeatHospitalTransferConfirmed = ($_POST['repeat_hospital_transfer_confirmed'] ?? '') === '1';
 
     $rawTreatmentTypeIds = $_POST['treatment_type_id'] ?? ($_POST['treatment_type_ids'] ?? []);
 
@@ -92,6 +104,12 @@ public function store(): void
     }
 
     if ($isHospitalTransfer) {
+        if (Treatment::hasHospitalTransferForIncident($incidentId) && !$repeatHospitalTransferConfirmed) {
+            $_SESSION['error'] = 'Este episódio já tem um envio para o hospital. Confirme explicitamente o novo envio.';
+            header('Location: ' . $this->baseUrl . '?route=treatments_new&incident_id=' . $incidentId);
+            exit;
+        }
+
         $hospitalTransferTypeId = Treatment::getHospitalTransferTypeId();
         if ($hospitalTransferTypeId === null) {
             $_SESSION['error'] = 'O tratamento de envio para o hospital não está configurado.';
@@ -101,6 +119,19 @@ public function store(): void
 
         if (!in_array($hospitalTransferTypeId, $treatmentTypeIds, true)) {
             $treatmentTypeIds[] = $hospitalTransferTypeId;
+        }
+
+        $requiredHospitalFields = [
+            trim((string)($_POST['patient_nationality'] ?? '')),
+            trim((string)($_POST['patient_address'] ?? '')),
+            trim((string)($_POST['patient_postal_code'] ?? '')),
+            trim((string)($_POST['patient_city'] ?? '')),
+            trim((string)($_POST['patient_phone'] ?? '')),
+        ];
+        if (in_array('', $requiredHospitalFields, true)) {
+            $_SESSION['error'] = 'Preencha a nacionalidade, morada, código postal, cidade e telefone para o envio ao hospital.';
+            header('Location: ' . $this->baseUrl . '?route=treatments_new&incident_id=' . $incidentId);
+            exit;
         }
     }
 

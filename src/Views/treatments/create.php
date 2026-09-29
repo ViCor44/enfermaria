@@ -2,6 +2,9 @@
 $baseUrl = '/enfermaria/public/index.php';
 $nome = $_SESSION['user_name'] ?? 'Enfermeiro';
 $patientHospitalData = $patientHospitalData ?? [];
+$existingTreatments = $existingTreatments ?? [];
+$previousHospitalTransfers = $previousHospitalTransfers ?? [];
+$hasPreviousHospitalTransfer = $previousHospitalTransfers !== [];
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -216,6 +219,38 @@ $patientHospitalData = $patientHospitalData ?? [];
     .medium-field {
         max-width: 550px;
     }
+    .status-field { max-width: 240px; }
+
+    main { max-width: 1380px; text-align: left; }
+    .page-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; margin-bottom:1.25rem; }
+    .page-heading h1 { margin:0; color:#10213f; }
+    .page-heading p { margin:.45rem 0 0; color:#6b778c; }
+    .back-link { display:inline-flex; align-items:center; min-height:40px; padding:0 14px; border:1px solid #d7e1ed; border-radius:8px; background:#fff; color:#31506f; text-decoration:none; font-size:.85rem; font-weight:700; white-space:nowrap; }
+    .incident-box { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:1rem; margin-bottom:1.25rem; padding:1rem 1.25rem; border:1px solid #dce5f0; border-radius:12px; background:#f8fbff; color:#40536c; font-size:.88rem; text-align:left; }
+    .incident-detail { min-width:0; }
+    .incident-detail strong { display:block; margin-bottom:.2rem; color:#6b778c; font-size:.7rem; letter-spacing:.05em; text-transform:uppercase; }
+    form { border:1px solid #dce5f0; box-shadow:0 10px 28px rgba(26,54,93,.05); }
+
+    .history-card {
+        margin: 0 0 1.25rem;
+        padding: 1.25rem 1.4rem;
+        border: 1px solid #dce5f0;
+        border-radius: 12px;
+        background: #fff;
+        box-shadow: 0 8px 20px rgba(0,0,0,.04);
+        text-align: left;
+    }
+    .history-heading { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-bottom:1rem; }
+    .history-heading h2 { margin:0; color:#10213f; font-size:1.05rem; }
+    .history-count { padding:.3rem .65rem; border-radius:999px; background:#eef5ff; color:#245da8; font-size:.75rem; font-weight:700; }
+    .history-list { display:grid; gap:.65rem; }
+    .history-item { display:grid; grid-template-columns:minmax(180px, 1fr) auto auto; gap:1rem; align-items:center; padding:.8rem .9rem; border:1px solid #e5ebf3; border-radius:9px; background:#f9fbfe; }
+    .history-type { color:#172b4d; font-weight:700; }
+    .history-meta { color:#6b778c; font-size:.8rem; }
+    .history-status { padding:.28rem .55rem; border-radius:999px; background:#e8f8ef; color:#13734e; font-size:.73rem; font-weight:700; }
+    .history-status.in-progress { background:#fff4dc; color:#96620b; }
+    .hospital-history-alert { margin-bottom:1rem; padding:.85rem 1rem; border-left:3px solid #d97706; border-radius:7px; background:#fff8eb; color:#78450b; font-size:.86rem; line-height:1.45; }
+    .empty-history { margin:0; color:#6b778c; font-size:.88rem; }
 
 
     /* Responsividade */
@@ -226,28 +261,58 @@ $patientHospitalData = $patientHospitalData ?? [];
         form {
             padding: 1.5rem;
         }
+        .page-heading { flex-direction:column; }
+        .incident-box { grid-template-columns:1fr; }
+        .history-item { grid-template-columns:1fr; gap:.35rem; }
     }
 </style>
 </head>
 <body>
 <?php require __DIR__ . '/../layouts/header.php'; ?>
 <main>
-    <h1>Registar tratamento</h1>
-
-    <hr class="separator"> <!-- Adicionado para consistência -->
+    <div class="page-heading">
+        <div>
+            <h1>Registar tratamento</h1>
+            <p>Consulte o histórico do episódio antes de adicionar novos cuidados.</p>
+        </div>
+        <a class="back-link" href="<?= $baseUrl ?>?route=admin_incident_detail&id=<?= (int)$incident['id'] ?>">&larr; Voltar ao episódio</a>
+    </div>
 
     <div class="incident-box">
-        <strong>Acidente:</strong>
-        <?= htmlspecialchars($incident['incident_type_name']) ?>
-        em <span class="badge"><?= htmlspecialchars($incident['location_name']) ?></span><br>
-        <strong>Data/hora:</strong> <?= htmlspecialchars($incident['occurred_at']) ?><br>
-        <?php if (!empty($incident['patient_dob'])): ?>
-            <strong>Data de nascimento:</strong> <?= htmlspecialchars($incident['patient_dob']) ?> ·
-        <?php endif; ?>
-        <?php if (!empty($incident['patient_gender'])): ?>
-            <strong>Género:</strong> <?= htmlspecialchars($incident['patient_gender']) ?>
-        <?php endif; ?>
+        <div class="incident-detail"><strong>Ocorrência</strong><?= htmlspecialchars($incident['incident_type_name']) ?> · <?= htmlspecialchars($incident['location_name']) ?></div>
+        <div class="incident-detail"><strong>Data e hora</strong><?= htmlspecialchars($incident['occurred_at']) ?></div>
+        <div class="incident-detail"><strong>Utente</strong><?= !empty($incident['patient_dob']) ? htmlspecialchars($incident['patient_dob']) : 'Data não indicada' ?><?= !empty($incident['patient_gender']) ? ' · ' . htmlspecialchars($incident['patient_gender']) : '' ?></div>
     </div>
+
+    <section class="history-card" aria-labelledby="treatment-history-title">
+        <div class="history-heading">
+            <h2 id="treatment-history-title">Tratamentos já aplicados</h2>
+            <span class="history-count"><?= count($existingTreatments) ?> registado<?= count($existingTreatments) === 1 ? '' : 's' ?></span>
+        </div>
+        <?php if ($hasPreviousHospitalTransfer): ?>
+            <?php $lastHospitalTransfer = end($previousHospitalTransfers); ?>
+            <div class="hospital-history-alert">
+                Este episódio já tem <?= count($previousHospitalTransfers) ?> encaminhamento<?= count($previousHospitalTransfers) === 1 ? '' : 's' ?> hospitalar<?= count($previousHospitalTransfers) === 1 ? '' : 'es' ?> registado<?= count($previousHospitalTransfers) === 1 ? '' : 's' ?>.
+                Último registo em <?= htmlspecialchars((string)$lastHospitalTransfer['created_at']) ?> por <?= htmlspecialchars((string)($lastHospitalTransfer['nurse_name'] ?? 'enfermeiro não identificado')) ?>.
+            </div>
+        <?php endif; ?>
+        <?php if ($existingTreatments === []): ?>
+            <p class="empty-history">Ainda não existem tratamentos registados neste episódio.</p>
+        <?php else: ?>
+            <div class="history-list">
+                <?php foreach ($existingTreatments as $existingTreatment): ?>
+                    <div class="history-item">
+                        <div>
+                            <div class="history-type"><?= htmlspecialchars((string)$existingTreatment['treatment_type_name']) ?></div>
+                            <?php if (!empty($existingTreatment['notes'])): ?><div class="history-meta"><?= htmlspecialchars(mb_strimwidth((string)$existingTreatment['notes'], 0, 110, '…')) ?></div><?php endif; ?>
+                        </div>
+                        <div class="history-meta"><?= htmlspecialchars((string)$existingTreatment['created_at']) ?><br><?= htmlspecialchars((string)($existingTreatment['nurse_name'] ?? '')) ?></div>
+                        <span class="history-status <?= $existingTreatment['status'] === 'em_curso' ? 'in-progress' : '' ?>"><?= $existingTreatment['status'] === 'em_curso' ? 'Em curso' : 'Concluído' ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+    </section>
 
     <?php if (!empty($_SESSION['error'])): ?>
         <div class="flash-error">
@@ -257,6 +322,7 @@ $patientHospitalData = $patientHospitalData ?? [];
 
     <form method="post" action="<?= $baseUrl ?>?route=treatments_store" id="treatments-form">
         <input type="hidden" name="incident_id" value="<?= (int)$incident['id'] ?>">
+        <input type="hidden" name="repeat_hospital_transfer_confirmed" id="repeat_hospital_transfer_confirmed" value="0">
 
         <label class="required">Tipos de tratamento</label>
         <div class="treatment-list" id="treatment-list">
@@ -280,18 +346,20 @@ $patientHospitalData = $patientHospitalData ?? [];
         </div>
         <div class="small">Escolha um tratamento existente.</div>
         <div class="small error" id="treatment-selection-error" style="display:none;">Selecione pelo menos um tratamento.</div>
-        <div class="treatment-actions">
-            <button type="button" class="secondary-button" id="add-treatment">Adicionar outro tratamento</button>
+        <div class="status-field">
+            <label for="status">Estado</label>
+            <select name="status" id="status">
+                <option value="concluido">Concluído</option>
+                <option value="em_curso">Em curso</option>
+            </select>
         </div>
-
-        <label>Estado</label>
-        <select name="status">            
-            <option value="concluido">Concluído</option>
-            <option value="em_curso">Em curso</option>
-        </select>
         <div style="margin-right: 24px;">
             <label>Notas / Observações (opcional)</label>
             <textarea name="notes" placeholder="Descrição do tratamento realizado. Evite dados pessoais desnecessários. Se incluir 'Enviado para hospital', este texto poderá aparecer no termo de seguro."></textarea>
+        </div>
+
+        <div class="treatment-actions">
+            <button type="button" class="secondary-button" id="add-treatment">Adicionar outro tratamento</button>
         </div>
 
             <div class="form-check" style="margin-top:1rem;">
@@ -306,30 +374,30 @@ $patientHospitalData = $patientHospitalData ?? [];
 
                 <div class="row">
                     <div style="margin-right: 24px; max-width: 400px;">
-                        <label>Nacionalidade</label>
-                        <input type="text" name="patient_nationality" value="<?= htmlspecialchars((string)($patientHospitalData['nationality'] ?? '')) ?>">
+                        <label class="required">Nacionalidade</label>
+                        <input type="text" name="patient_nationality" data-hospital-required value="<?= htmlspecialchars((string)($patientHospitalData['nationality'] ?? '')) ?>">
                     </div>
                 </div>
 
                 <div class="row address-row">
                     <div style="margin-right: 24px;">
                         <label class="required">Morada</label>
-                        <input type="text" name="patient_address" id="patient_address" value="<?= htmlspecialchars((string)($patientHospitalData['address'] ?? '')) ?>">
+                        <input type="text" name="patient_address" id="patient_address" data-hospital-required value="<?= htmlspecialchars((string)($patientHospitalData['address'] ?? '')) ?>">
                     </div>
              
                     <div style="margin-right: 24px;">
                         <label class="required">Código Postal</label>
-                        <input type="text" name="patient_postal_code" id="patient_postal_code" value="<?= htmlspecialchars((string)($patientHospitalData['postal_code'] ?? '')) ?>">
+                        <input type="text" name="patient_postal_code" id="patient_postal_code" data-hospital-required value="<?= htmlspecialchars((string)($patientHospitalData['postal_code'] ?? '')) ?>">
                     </div>
                     
                     <div style="margin-right: 24px;">
                         <label class="required">Cidade</label>
-                        <input type="text" name="patient_city" id="patient_city" value="<?= htmlspecialchars((string)($patientHospitalData['city'] ?? '')) ?>">
+                        <input type="text" name="patient_city" id="patient_city" data-hospital-required value="<?= htmlspecialchars((string)($patientHospitalData['city'] ?? '')) ?>">
                     </div>
 
                     <div style="margin-right: 24px;">
                         <label class="required">Telefone</label>
-                        <input type="text" name="patient_phone" id="patient_phone" placeholder="+351 912 345 678" value="<?= htmlspecialchars((string)($patientHospitalData['phone'] ?? '')) ?>">
+                        <input type="text" name="patient_phone" id="patient_phone" data-hospital-required placeholder="+351 912 345 678" value="<?= htmlspecialchars((string)($patientHospitalData['phone'] ?? '')) ?>">
                     </div>
                 </div>
 
@@ -389,6 +457,9 @@ $patientHospitalData = $patientHospitalData ?? [];
     const selectionError = document.getElementById('treatment-selection-error');
     const patientBlock = document.getElementById('patient-block');
     const hospitalTransfer = document.getElementById('hospital_transfer');
+    const repeatHospitalTransferConfirmed = document.getElementById('repeat_hospital_transfer_confirmed');
+    const hospitalRequiredFields = patientBlock.querySelectorAll('[data-hospital-required]');
+    const hasPreviousHospitalTransfer = <?= $hasPreviousHospitalTransfer ? 'true' : 'false' ?>;
 
     function wireBirthDateField(inputId) {
         const input = document.getElementById(inputId);
@@ -572,15 +643,58 @@ $patientHospitalData = $patientHospitalData ?? [];
 
     function togglePatientBlock() {
         patientBlock.style.display = hospitalTransfer.checked ? 'block' : 'none';
+        hospitalRequiredFields.forEach((field) => {
+            field.required = hospitalTransfer.checked;
+        });
+
+        if (!hospitalTransfer.checked) {
+            repeatHospitalTransferConfirmed.value = '0';
+        }
     }
 
-    hospitalTransfer.addEventListener('change', togglePatientBlock);
+    async function confirmRepeatHospitalTransfer() {
+        if (!hasPreviousHospitalTransfer || repeatHospitalTransferConfirmed.value === '1') {
+            return true;
+        }
+
+        let confirmed = false;
+        if (typeof Swal !== 'undefined') {
+            const result = await Swal.fire({
+                icon: 'warning',
+                title: 'Encaminhamento já registado',
+                text: 'Este episódio já tem um encaminhamento hospitalar registado. Pretende registar um novo encaminhamento?',
+                showCancelButton: true,
+                confirmButtonText: 'Sim, enviar novamente',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#b45309',
+                reverseButtons: true
+            });
+            confirmed = result.isConfirmed;
+        } else {
+            confirmed = window.confirm('Este episódio já tem um encaminhamento hospitalar registado. Pretende registar um novo encaminhamento?');
+        }
+
+        repeatHospitalTransferConfirmed.value = confirmed ? '1' : '0';
+        if (!confirmed) {
+            hospitalTransfer.checked = false;
+        }
+        togglePatientBlock();
+        return confirmed;
+    }
+
+    hospitalTransfer.addEventListener('change', async () => {
+        if (hospitalTransfer.checked && hasPreviousHospitalTransfer) {
+            await confirmRepeatHospitalTransfer();
+        } else {
+            togglePatientBlock();
+        }
+    });
 
     addTreatmentButton.addEventListener('click', () => {
         createTreatmentEntry();
     });
 
-    form.addEventListener('submit', (event) => {
+    form.addEventListener('submit', async (event) => {
         updateSelectionValidity();
 
         if (!hasSelectedTreatments()) {
@@ -588,6 +702,19 @@ $patientHospitalData = $patientHospitalData ?? [];
             const firstSelect = treatmentList.querySelector('select[data-treatment-select]');
             if (firstSelect) {
                 firstSelect.reportValidity();
+            }
+            return;
+        }
+
+        if (
+            hospitalTransfer.checked
+            && hasPreviousHospitalTransfer
+            && repeatHospitalTransferConfirmed.value !== '1'
+        ) {
+            event.preventDefault();
+            const confirmed = await confirmRepeatHospitalTransfer();
+            if (confirmed) {
+                form.requestSubmit();
             }
         }
     });

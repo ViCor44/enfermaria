@@ -64,6 +64,10 @@ public function store(): void
     if (!is_array($rawTreatmentNotes)) {
         $rawTreatmentNotes = [$rawTreatmentNotes];
     }
+    $rawTreatmentStatuses = $_POST['treatment_status'] ?? [];
+    if (!is_array($rawTreatmentStatuses)) {
+        $rawTreatmentStatuses = [$rawTreatmentStatuses];
+    }
 
     $patientNationality = trim($_POST['patient_nationality'] ?? '') ?: null;
     $patientAddress     = trim($_POST['patient_address'] ?? '') ?: null;
@@ -127,7 +131,14 @@ public function store(): void
             && !isset($treatmentsToCreate[$treatmentTypeId])
         ) {
             $notes = trim((string)($rawTreatmentNotes[$index] ?? ''));
-            $treatmentsToCreate[$treatmentTypeId] = $notes !== '' ? $notes : null;
+            $status = (string)($rawTreatmentStatuses[$index] ?? 'concluido');
+            if (!in_array($status, ['concluido', 'em_curso'], true)) {
+                $status = 'concluido';
+            }
+            $treatmentsToCreate[$treatmentTypeId] = [
+                'notes' => $notes !== '' ? $notes : null,
+                'status' => $status,
+            ];
         }
     }
 
@@ -237,13 +248,13 @@ public function store(): void
             ':incident_id' => $incidentId,
         ]);
 
-        foreach ($treatmentsToCreate as $treatmentTypeId => $treatmentNotes) {
+        foreach ($treatmentsToCreate as $treatmentTypeId => $treatmentData) {
             Treatment::create([
                 'incident_id'       => $incidentId,
                 'user_id'           => $userId,
                 'treatment_type_id' => $treatmentTypeId,
-                'status'            => 'concluido',
-                'notes'             => $treatmentNotes,
+                'status'            => $treatmentData['status'],
+                'notes'             => $treatmentData['notes'],
             ]);
         }
 
