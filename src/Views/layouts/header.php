@@ -274,12 +274,16 @@ $pendingUserRequestsLabel = sprintf(
     }
 
     :root {
-        --app-sidebar-width: 272px;
+        --app-sidebar-width: 292px;
+        --app-sidebar-compact: 84px;
+        --nav-ink: #eaf4ff;
+        --nav-muted: #92abc4;
+        --nav-accent: #58d6b0;
     }
 
     body {
         padding-left: var(--app-sidebar-width);
-        transition: padding-left 0.2s ease;
+        transition: padding-left 0.28s cubic-bezier(.22, 1, .36, 1);
     }
 
     .topbar {
@@ -290,8 +294,21 @@ $pendingUserRequestsLabel = sprintf(
         height: 100vh;
         padding: 0;
         overflow: hidden;
-        background: #123f72;
-        box-shadow: 8px 0 28px rgba(18, 45, 77, 0.14);
+        isolation: isolate;
+        background: #102f4f;
+        box-shadow: 10px 0 32px rgba(9, 31, 54, 0.16);
+        transition: width 0.28s cubic-bezier(.22, 1, .36, 1), transform 0.28s cubic-bezier(.22, 1, .36, 1);
+    }
+
+    .topbar::before {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        content: '';
+        background:
+            radial-gradient(circle at 18% 8%, rgba(88, 214, 176, .16), transparent 28%),
+            linear-gradient(165deg, rgba(255,255,255,.035), transparent 42%);
+        pointer-events: none;
     }
 
     .topbar-inner {
@@ -299,23 +316,25 @@ $pendingUserRequestsLabel = sprintf(
         height: 100%;
         max-width: none;
         margin: 0;
-        padding: 22px 16px 16px;
+        padding: 20px 15px 14px;
         flex-direction: column;
         align-items: stretch;
         justify-content: flex-start;
-        gap: 22px;
+        gap: 18px;
     }
 
     .brand {
-        min-height: 58px;
-        padding: 0 6px 18px;
+        min-height: 62px;
+        padding: 0 7px 16px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.13);
     }
 
-    .brand-logo { margin-right: 11px; }
-    .logo-sae { width: 42px; height: 42px; object-fit: contain; }
-    .brand-text-title { font-size: 0.98rem; line-height: 1.25; letter-spacing: 0; }
-    .brand-text-sub { margin-top: 3px; font-size: 0.7rem; line-height: 1.3; }
+    .brand-logo { flex: 0 0 44px; margin-right: 11px; }
+    .brand-logo a { display: grid; place-items: center; }
+    .logo-sae { width: 44px; height: 44px; object-fit: contain; }
+    .brand-copy { min-width: 0; }
+    .brand-text-title { font-size: 0.92rem; line-height: 1.28; letter-spacing: 0; }
+    .brand-text-sub { margin-top: 4px; color: #9db4ca; font-size: 0.67rem; line-height: 1.3; }
 
     .main-nav {
         display: flex;
@@ -324,41 +343,89 @@ $pendingUserRequestsLabel = sprintf(
         flex-direction: column;
         align-items: stretch;
         justify-content: flex-start;
-        gap: 5px;
+        gap: 4px;
         overflow-y: auto;
         scrollbar-width: thin;
         scrollbar-color: rgba(255,255,255,.25) transparent;
     }
 
+    .nav-section-label {
+        margin: 11px 12px 5px;
+        color: var(--nav-muted);
+        font-size: 0.65rem;
+        font-weight: 800;
+        letter-spacing: .11em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
     .nav-link,
     .nav-btn {
+        position: relative;
         display: flex;
         align-items: center;
         justify-content: flex-start;
-        min-height: 43px;
-        padding: 0 13px;
+        gap: 12px;
+        min-height: 46px;
+        padding: 0 12px;
         border: 1px solid transparent;
-        border-radius: 7px;
-        color: #e8f1fb;
-        font-size: 0.9rem;
+        border-radius: 8px;
+        color: var(--nav-ink);
+        font-size: 0.88rem;
+        font-weight: 600;
+        text-decoration: none;
         white-space: nowrap;
-        transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+    }
+
+    .nav-icon {
+        display: grid;
+        flex: 0 0 22px;
+        width: 22px;
+        height: 22px;
+        place-items: center;
+        color: #9dbbd6;
+    }
+
+    .nav-icon svg { width: 19px; height: 19px; stroke-width: 1.8; }
+    .nav-label { overflow: hidden; text-overflow: ellipsis; }
+
+    .nav-chevron {
+        width: 16px;
+        height: 16px;
+        margin-left: auto;
+        transition: transform .18s ease;
     }
 
     .nav-link:hover,
     .nav-btn:hover {
-        border-color: rgba(255,255,255,.12);
-        background: rgba(255,255,255,.09);
-        transform: none;
+        border-color: rgba(255,255,255,.1);
+        background: rgba(255,255,255,.07);
+        transform: translateX(3px);
     }
 
     .nav-link.active,
     .nav-dropdown.active > .nav-btn {
-        border-color: rgba(255,255,255,.2);
-        background: #fff;
-        color: #174f8c;
+        border-color: rgba(88, 214, 176, .34);
+        background: rgba(88, 214, 176, .12);
+        color: #fff;
         font-weight: 700;
     }
+
+    .nav-link.active::before,
+    .nav-dropdown.active > .nav-btn::before {
+        position: absolute;
+        left: -16px;
+        width: 4px;
+        height: 25px;
+        border-radius: 0 4px 4px 0;
+        background: var(--nav-accent);
+        box-shadow: 0 0 14px rgba(88, 214, 176, .7);
+        content: '';
+    }
+
+    .nav-link.active .nav-icon,
+    .nav-dropdown.active > .nav-btn .nav-icon { color: var(--nav-accent); }
 
     .nav-dropdown { position: static; }
 
@@ -389,34 +456,66 @@ $pendingUserRequestsLabel = sprintf(
         display: grid;
     }
 
+    .nav-dropdown:hover .nav-chevron,
+    .nav-dropdown:focus-within .nav-chevron,
+    .nav-dropdown.submenu-open .nav-chevron { transform: rotate(180deg); }
+
     .nav-menu a {
         padding: 9px 11px;
         border-radius: 6px;
-        color: #d4e5f6;
+        color: #c8d9e9;
         font-size: 0.84rem;
     }
 
     .nav-menu a:hover,
     .nav-menu a.active {
-        background: rgba(255,255,255,.1);
-        color: #fff;
+        background: rgba(88,214,176,.1);
+        color: #dffff5;
     }
 
     .user-area {
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 8px;
-        padding-top: 15px;
+        padding-top: 13px;
         border-top: 1px solid rgba(255,255,255,.13);
     }
 
     .user-pill {
         grid-column: 1 / -1;
-        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 9px 10px;
         border-radius: 7px;
         background: rgba(255,255,255,.09);
         font-size: 0.84rem;
         text-align: left;
+    }
+
+    .user-avatar {
+        display: grid;
+        flex: 0 0 35px;
+        width: 35px;
+        height: 35px;
+        place-items: center;
+        border: 1px solid rgba(88,214,176,.35);
+        border-radius: 50%;
+        background: rgba(88,214,176,.13);
+        color: #bff6e5;
+        font-size: .76rem;
+        font-weight: 800;
+    }
+
+    .user-copy { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .user-role { color: #a8bdd0; }
+
+    .account-icon { width: 16px; height: 16px; margin-right: 6px; }
+
+    .nav-badge {
+        margin-left: auto;
+        background: #ff6b6b;
+        box-shadow: 0 0 0 3px rgba(255,107,107,.12);
     }
 
     .btn-logout,
@@ -451,7 +550,7 @@ $pendingUserRequestsLabel = sprintf(
         color: #234a75;
         box-shadow: 0 5px 14px rgba(27, 56, 88, 0.18);
         cursor: pointer;
-        transition: left 0.2s ease, transform 0.2s ease;
+        transition: left 0.28s cubic-bezier(.22, 1, .36, 1), transform 0.28s ease;
     }
 
     .sidebar-toggle svg { width: 18px; height: 18px; }
@@ -464,19 +563,44 @@ $pendingUserRequestsLabel = sprintf(
         background: rgba(12, 27, 45, 0.48);
     }
 
-    body.sidebar-collapsed { padding-left: 0; }
-    body.sidebar-collapsed .topbar { transform: translateX(-100%); }
-    body.sidebar-collapsed .sidebar-toggle { left: 16px; transform: rotate(180deg); }
-    .topbar { transition: transform 0.2s ease; }
+    body.sidebar-collapsed { padding-left: var(--app-sidebar-compact); }
+    body.sidebar-collapsed .topbar { width: var(--app-sidebar-compact); }
+    body.sidebar-collapsed .sidebar-toggle { left: calc(var(--app-sidebar-compact) - 17px); transform: rotate(180deg); }
+    body.sidebar-collapsed .topbar-inner { padding-inline: 13px; }
+    body.sidebar-collapsed .brand { justify-content: center; padding-inline: 0; }
+    body.sidebar-collapsed .brand-logo { flex-basis: 44px; margin-right: 0; }
+    body.sidebar-collapsed .brand-copy,
+    body.sidebar-collapsed .nav-section-label,
+    body.sidebar-collapsed .nav-label,
+    body.sidebar-collapsed .nav-chevron,
+    body.sidebar-collapsed .user-copy,
+    body.sidebar-collapsed .btn-label { display: none; }
+    body.sidebar-collapsed .nav-link,
+    body.sidebar-collapsed .nav-btn { justify-content: center; padding-inline: 0; }
+    body.sidebar-collapsed .nav-link:hover,
+    body.sidebar-collapsed .nav-btn:hover { transform: none; }
+    body.sidebar-collapsed .nav-link.active::before,
+    body.sidebar-collapsed .nav-dropdown.active > .nav-btn::before { left: -13px; }
+    body.sidebar-collapsed .nav-menu { display: none; }
+    body.sidebar-collapsed .nav-badge { position: absolute; top: 3px; right: 3px; min-width: 17px; height: 17px; padding: 0 4px; font-size: .65rem; }
+    body.sidebar-collapsed .user-area { grid-template-columns: 1fr; }
+    body.sidebar-collapsed .user-pill { justify-content: center; padding-inline: 0; }
+    body.sidebar-collapsed .btn-logout,
+    body.sidebar-collapsed .btn-restore-session { padding: 0; }
+    body.sidebar-collapsed .account-icon { margin-right: 0; }
 
     @media (max-width: 900px) {
         body { padding-left: 0; }
-        .topbar { transform: translateX(-100%); }
+        .topbar { width: min(var(--app-sidebar-width), calc(100vw - 44px)); transform: translateX(-100%); }
         .sidebar-toggle { left: 16px; transform: rotate(180deg); }
         body.sidebar-open { overflow: hidden; }
         body.sidebar-open .topbar { transform: translateX(0); }
-        body.sidebar-open .sidebar-toggle { left: calc(var(--app-sidebar-width) - 17px); transform: none; }
+        body.sidebar-open .sidebar-toggle { left: min(calc(var(--app-sidebar-width) - 17px), calc(100vw - 61px)); transform: none; }
         body.sidebar-open .sidebar-backdrop { display: block; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        body, .topbar, .sidebar-toggle, .nav-link, .nav-btn { transition: none; }
     }
 </style>
 <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Recolher menu" aria-controls="appSidebar" aria-expanded="true">
@@ -494,7 +618,7 @@ $pendingUserRequestsLabel = sprintf(
                     <img src="/enfermaria/public/assets/img/logo-sae.png" alt="SAE" class="logo-sae">
                 </a>
             </div>
-            <div>
+            <div class="brand-copy">
                 <div class="brand-text-title">Sistema de Apoio à Enfermaria</div>
                 <div class="brand-text-sub">Gestão de Ocorrências e Tratamentos</div>
             </div>
@@ -502,38 +626,47 @@ $pendingUserRequestsLabel = sprintf(
 
         <!-- Navegação principal -->
         <nav class="main-nav">
+            <div class="nav-section-label">Visão geral</div>
             <a href="<?= $baseUrl ?>?route=dashboard"
-               class="nav-link <?= $route === 'dashboard' ? 'active' : '' ?>">
-                Dashboard
+               class="nav-link <?= $route === 'dashboard' ? 'active' : '' ?>" title="Dashboard">
+                <span class="nav-icon"><i data-lucide="layout-dashboard"></i></span>
+                <span class="nav-label">Dashboard</span>
             </a>
 
             <?php if (in_array($role, ['Administrador', 'Enfermeiro', 'Manager'], true)): ?>
                 <a href="<?= $baseUrl ?>?route=park_schedule"
-                   class="nav-link <?= in_array($route, ['park_schedule', 'park_schedule_save'], true) ? 'active' : '' ?>">
-                    Escala
+                   class="nav-link <?= in_array($route, ['park_schedule', 'park_schedule_save'], true) ? 'active' : '' ?>" title="Escala">
+                    <span class="nav-icon"><i data-lucide="calendar-days"></i></span>
+                    <span class="nav-label">Escala</span>
                 </a>
             <?php endif; ?>
+
+            <div class="nav-section-label">Operações</div>
 
             <?php if ($role === 'Administrador'): ?>
                 
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
-                class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
-                    Ocorrências
+                class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>" title="Ocorrências">
+                    <span class="nav-icon"><i data-lucide="siren"></i></span>
+                    <span class="nav-label">Ocorrências</span>
                 </a>
 
                 <a href="<?= $baseUrl ?>?route=admin_internal_records"
-                class="nav-link <?= $route === 'admin_internal_records' ? 'active' : '' ?>">
-                    Registos Internos
+                class="nav-link <?= $route === 'admin_internal_records' ? 'active' : '' ?>" title="Registos Internos">
+                    <span class="nav-icon"><i data-lucide="clipboard-list"></i></span>
+                    <span class="nav-label">Registos Internos</span>
                 </a>
 
                 <a href="<?= $baseUrl ?>?route=admin_treatments"
-                class="nav-link <?= $route === 'admin_treatments' ? 'active' : '' ?>">
-                    Tratamentos
+                class="nav-link <?= $route === 'admin_treatments' ? 'active' : '' ?>" title="Tratamentos">
+                    <span class="nav-icon"><i data-lucide="heart-pulse"></i></span>
+                    <span class="nav-label">Tratamentos</span>
                 </a>
 
                 <a href="<?= $baseUrl ?>?route=admin_users"
-                class="nav-link nav-link-with-badge <?= $route === 'admin_users' ? 'active' : '' ?>">
-                    Utilizadores
+                class="nav-link nav-link-with-badge <?= $route === 'admin_users' ? 'active' : '' ?>" title="Utilizadores">
+                    <span class="nav-icon"><i data-lucide="users"></i></span>
+                    <span class="nav-label">Utilizadores</span>
                     <?php if ($pendingUserRequestsCount > 0): ?>
                         <span class="nav-badge" title="<?= htmlspecialchars($pendingUserRequestsLabel, ENT_QUOTES, 'UTF-8') ?>"
                               aria-label="<?= htmlspecialchars($pendingUserRequestsLabel, ENT_QUOTES, 'UTF-8') ?>">
@@ -543,8 +676,9 @@ $pendingUserRequestsLabel = sprintf(
                 </a>
 
                 <a href="<?= $baseUrl ?>?route=admin_stats"
-                class="nav-link <?= $route === 'admin_stats' ? 'active' : '' ?>">
-                    Estatísticas
+                class="nav-link <?= $route === 'admin_stats' ? 'active' : '' ?>" title="Estatísticas">
+                    <span class="nav-icon"><i data-lucide="chart-no-axes-combined"></i></span>
+                    <span class="nav-label">Estatísticas</span>
                 </a>
             <?php endif; ?>
 
@@ -552,8 +686,10 @@ $pendingUserRequestsLabel = sprintf(
             <?php if ($role === 'Enfermeiro'): ?>
                 <div class="nav-dropdown <?= in_array($route, ['incidents_new','internal_new']) ? 'active' : '' ?>">
 
-                    <button class="nav-link nav-btn" type="button" aria-expanded="false" aria-controls="newRecordMenu">
-                        Novo
+                    <button class="nav-link nav-btn" type="button" aria-expanded="false" aria-controls="newRecordMenu" title="Novo registo">
+                        <span class="nav-icon"><i data-lucide="circle-plus"></i></span>
+                        <span class="nav-label">Novo registo</span>
+                        <i class="nav-chevron" data-lucide="chevron-down"></i>
                     </button>
 
                     <div class="nav-menu" id="newRecordMenu">
@@ -570,29 +706,34 @@ $pendingUserRequestsLabel = sprintf(
                 </div>
                 
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
-                class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
-                    Ocorrências
+                class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>" title="Ocorrências">
+                    <span class="nav-icon"><i data-lucide="siren"></i></span>
+                    <span class="nav-label">Ocorrências</span>
                 </a>
                 <a href="<?= $baseUrl ?>?route=admin_treatments"
-                class="nav-link <?= $route === 'admin_treatments' ? 'active' : '' ?>">
-                    Tratamentos
+                class="nav-link <?= $route === 'admin_treatments' ? 'active' : '' ?>" title="Tratamentos">
+                    <span class="nav-icon"><i data-lucide="heart-pulse"></i></span>
+                    <span class="nav-label">Tratamentos</span>
                 </a>
             <?php endif; ?>
 
             <?php if ($role === 'Manager'): ?>
 
                 <a href="<?= $baseUrl ?>?route=admin_internal_records"
-                class="nav-link <?= $route === 'admin_internal_records' ? 'active' : '' ?>">
-                    Registos Internos
+                class="nav-link <?= $route === 'admin_internal_records' ? 'active' : '' ?>" title="Registos Internos">
+                    <span class="nav-icon"><i data-lucide="clipboard-list"></i></span>
+                    <span class="nav-label">Registos Internos</span>
                 </a>
 
                 <a href="<?= $baseUrl ?>?route=admin_incidents"
-                   class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>">
-                    Ocorrências
+                   class="nav-link <?= $route === 'admin_incidents' ? 'active' : '' ?>" title="Ocorrências">
+                    <span class="nav-icon"><i data-lucide="siren"></i></span>
+                    <span class="nav-label">Ocorrências</span>
                 </a>
                 <a href="<?= $baseUrl ?>?route=admin_stats"
-                    class="nav-link <?= $route === 'admin_stats' ? 'active' : '' ?>">
-                    Estatísticas
+                    class="nav-link <?= $route === 'admin_stats' ? 'active' : '' ?>" title="Estatísticas">
+                    <span class="nav-icon"><i data-lucide="chart-no-axes-combined"></i></span>
+                    <span class="nav-label">Estatísticas</span>
                 </a>
             <?php endif; ?>
         </nav>
@@ -605,17 +746,21 @@ $pendingUserRequestsLabel = sprintf(
                 </a>
             <?php endif; ?>
             <div class="user-pill">
-                <?= htmlspecialchars($nome) ?><br>
-                <span class="user-role"><?= htmlspecialchars($roleLabel) ?></span>
+                <span class="user-avatar" aria-hidden="true"><?= htmlspecialchars(mb_strtoupper(mb_substr(trim($nome), 0, 2))) ?></span>
+                <span class="user-copy"><?= htmlspecialchars($nome) ?><br>
+                    <span class="user-role"><?= htmlspecialchars($roleLabel) ?></span>
+                </span>
             </div>
-            <a href="<?= $baseUrl ?>?route=user_settings" class="btn-logout" title="Definições da conta">Definições</a>
-            <a href="<?= $baseUrl ?>?route=logout" class="btn-logout" id="logoutLink">Sair</a>
+            <a href="<?= $baseUrl ?>?route=user_settings" class="btn-logout" title="Definições da conta"><i class="account-icon" data-lucide="settings"></i><span class="btn-label">Definições</span></a>
+            <a href="<?= $baseUrl ?>?route=logout" class="btn-logout" id="logoutLink" title="Terminar sessão"><i class="account-icon" data-lucide="log-out"></i><span class="btn-label">Sair</span></a>
         </div>
     </div>
 </header>
+<script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 (() => {
+    if (window.lucide) window.lucide.createIcons();
     const toggle = document.getElementById('sidebarToggle');
     const backdrop = document.getElementById('sidebarBackdrop');
     const sidebar = document.getElementById('appSidebar');
@@ -640,6 +785,7 @@ $pendingUserRequestsLabel = sprintf(
             document.body.classList.toggle('sidebar-open');
         } else {
             document.body.classList.toggle('sidebar-collapsed');
+            localStorage.setItem('saeSidebarCompact', document.body.classList.contains('sidebar-collapsed') ? '1' : '0');
         }
         syncState();
     }
@@ -672,6 +818,9 @@ $pendingUserRequestsLabel = sprintf(
         newRecordButton?.setAttribute('aria-expanded', 'false');
         syncState();
     });
+    if (!mobileQuery.matches && localStorage.getItem('saeSidebarCompact') === '1') {
+        document.body.classList.add('sidebar-collapsed');
+    }
     syncState();
 })();
 
