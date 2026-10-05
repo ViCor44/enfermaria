@@ -1,16 +1,52 @@
 parameters:
 	ignoreErrors:
 		-
-			message: '#^Property App\\Controllers\\AdminTreatmentController\:\:\$baseUrl is never read, only written\.$#'
-			identifier: property.onlyWritten
-			count: 1
-			path: src/Controllers/AdminTreatmentController.php
+			message: '#^Variable \$user might not be defined\.$#'
+			identifier: variable.undefined
+			count: 5
+			path: src/Views/account/sms_preferences.php
 
 		-
 			message: '#^Variable \$incident might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2
 			path: src/Views/admin/hospital_followup_form.php
+
+		-
+			message: '#^Variable \$fromDate might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/hospital_transfers.php
+
+		-
+			message: '#^Variable \$incidents might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: src/Views/admin/hospital_transfers.php
+
+		-
+			message: '#^Variable \$toDate might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/hospital_transfers.php
+
+		-
+			message: '#^Variable \$fromDate might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/hospital_transfers_pdf.php
+
+		-
+			message: '#^Variable \$incidents might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: src/Views/admin/hospital_transfers_pdf.php
+
+		-
+			message: '#^Variable \$toDate might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/hospital_transfers_pdf.php
 
 		-
 			message: '#^Variable \$canSeePatient might not be defined\.$#'
@@ -21,7 +57,7 @@ parameters:
 		-
 			message: '#^Variable \$incident might not be defined\.$#'
 			identifier: variable.undefined
-			count: 8
+			count: 4
 			path: src/Views/admin/incident_pdf.php
 
 		-
@@ -43,6 +79,12 @@ parameters:
 			path: src/Views/admin/incidents_detail.php
 
 		-
+			message: '#^Variable \$incidents might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/incidents_list.php
+
+		-
 			message: '#^Variable \$locations might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
@@ -61,9 +103,45 @@ parameters:
 			path: src/Views/admin/internal_list.php
 
 		-
+			message: '#^Variable \$incident might not be defined\.$#'
+			identifier: variable.undefined
+			count: 5
+			path: src/Views/admin/patient_edit.php
+
+		-
+			message: '#^Variable \$patient might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: src/Views/admin/patient_edit.php
+
+		-
 			message: '#^Variable \$ageStats might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2
+			path: src/Views/admin/stats.php
+
+		-
+			message: '#^Variable \$comparison might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/stats.php
+
+		-
+			message: '#^Variable \$exportPdfUrl might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/stats.php
+
+		-
+			message: '#^Variable \$exportUrl might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/stats.php
+
+		-
+			message: '#^Variable \$filters might not be defined\.$#'
+			identifier: variable.undefined
+			count: 16
 			path: src/Views/admin/stats.php
 
 		-
@@ -73,7 +151,19 @@ parameters:
 			path: src/Views/admin/stats.php
 
 		-
+			message: '#^Variable \$insights might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/stats.php
+
+		-
 			message: '#^Variable \$locationStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: src/Views/admin/stats.php
+
+		-
+			message: '#^Variable \$summary might not be defined\.$#'
 			identifier: variable.undefined
 			count: 2
 			path: src/Views/admin/stats.php
@@ -87,13 +177,109 @@ parameters:
 		-
 			message: '#^Variable \$typeStats might not be defined\.$#'
 			identifier: variable.undefined
-			count: 2
+			count: 3
 			path: src/Views/admin/stats.php
 
 		-
-			message: '#^Variable \$role might not be defined\.$#'
+			message: '#^Variable \$ageStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/stats_internal.php
+
+		-
+			message: '#^Variable \$comparison might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
+			path: src/Views/admin/stats_internal.php
+
+		-
+			message: '#^Variable \$employeeStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 4
+			path: src/Views/admin/stats_internal.php
+
+		-
+			message: '#^Variable \$exportUrl might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/stats_internal.php
+
+		-
+			message: '#^Variable \$filters might not be defined\.$#'
+			identifier: variable.undefined
+			count: 15
+			path: src/Views/admin/stats_internal.php
+
+		-
+			message: '#^Variable \$genderStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/stats_internal.php
+
+		-
+			message: '#^Variable \$locationStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 3
+			path: src/Views/admin/stats_internal.php
+
+		-
+			message: '#^Variable \$summary might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/stats_internal.php
+
+		-
+			message: '#^Variable \$treatmentStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
+			path: src/Views/admin/stats_internal.php
+
+		-
+			message: '#^Variable \$ageStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/stats_pdf.php
+
+		-
+			message: '#^Variable \$filters might not be defined\.$#'
+			identifier: variable.undefined
+			count: 4
+			path: src/Views/admin/stats_pdf.php
+
+		-
+			message: '#^Variable \$genderStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/stats_pdf.php
+
+		-
+			message: '#^Variable \$generatedAt might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/stats_pdf.php
+
+		-
+			message: '#^Variable \$locationStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/stats_pdf.php
+
+		-
+			message: '#^Variable \$treatmentStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/stats_pdf.php
+
+		-
+			message: '#^Variable \$typeStats might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/admin/stats_pdf.php
+
+		-
+			message: '#^Variable \$treatments might not be defined\.$#'
+			identifier: variable.undefined
+			count: 2
 			path: src/Views/admin/treatments_list.php
 
 		-
@@ -127,19 +313,7 @@ parameters:
 			path: src/Views/admin/users_pending.php
 
 		-
-			message: '#^Variable \$locations might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: src/Views/incidents/create.php
-
-		-
 			message: '#^Variable \$treatmentTypes might not be defined\.$#'
-			identifier: variable.undefined
-			count: 1
-			path: src/Views/incidents/create.php
-
-		-
-			message: '#^Variable \$types might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
 			path: src/Views/incidents/create.php
@@ -152,6 +326,12 @@ parameters:
 
 		-
 			message: '#^Variable \$locations might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/internal/create.php
+
+		-
+			message: '#^Variable \$treatmentTypes might not be defined\.$#'
 			identifier: variable.undefined
 			count: 1
 			path: src/Views/internal/create.php
@@ -187,9 +367,33 @@ parameters:
 			path: src/Views/pdfs/termo_recusa_pt.php
 
 		-
+			message: '#^Variable \$baseUrl might not be defined\.$#'
+			identifier: variable.undefined
+			count: 4
+			path: src/Views/schedules/calendar.php
+
+		-
+			message: '#^Variable \$month might not be defined\.$#'
+			identifier: variable.undefined
+			count: 5
+			path: src/Views/schedules/calendar.php
+
+		-
+			message: '#^Variable \$nurses might not be defined\.$#'
+			identifier: variable.undefined
+			count: 1
+			path: src/Views/schedules/calendar.php
+
+		-
+			message: '#^Variable \$year might not be defined\.$#'
+			identifier: variable.undefined
+			count: 5
+			path: src/Views/schedules/calendar.php
+
+		-
 			message: '#^Variable \$incident might not be defined\.$#'
 			identifier: variable.undefined
-			count: 6
+			count: 5
 			path: src/Views/treatments/create.php
 
 		-

@@ -329,7 +329,7 @@ class AdminStatsController
         return $rows;
     }
 
-    private function calculateDelta(int $current, int $previous): ?array
+    private function calculateDelta(int $current, int $previous): array
     {
         if ($previous === 0 && $current === 0) {
             return ['direction' => 'neutral', 'value' => '0%'];

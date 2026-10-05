@@ -76,7 +76,7 @@ public function store(): void
     $incidentId = (int)($_POST['incident_id'] ?? 0);
     $status     = $_POST['status'] ?? 'concluido';
     $notes      = trim($_POST['notes'] ?? '') ?: null;
-    $isHospitalTransfer = isset($_POST['hospital_transfer']);
+    $isHospitalTransfer = filter_var($_POST['hospital_transfer'] ?? false, FILTER_VALIDATE_BOOLEAN);
     $repeatHospitalTransferConfirmed = ($_POST['repeat_hospital_transfer_confirmed'] ?? '') === '1';
 
     $rawTreatmentTypeIds = $_POST['treatment_type_id'] ?? ($_POST['treatment_type_ids'] ?? []);
@@ -161,7 +161,7 @@ public function store(): void
 
         /* -------------------- UPDATE PACIENTE -------------------- */
 
-        if ($isHospitalTransfer) {
+        if (filter_var($_POST['hospital_transfer'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
 
             $patientNationality = trim($_POST['patient_nationality'] ?? '') ?: null;
             $patientAddress     = trim($_POST['patient_address'] ?? '') ?: null;
@@ -174,7 +174,7 @@ public function store(): void
 
             $patientRefusedHospital = isset($_POST['patient_refused_hospital']) ? 1 : 0;
 
-            if ($patientDob !== '') {
+            if ($patientDob !== null) {
                 $dobDate = \DateTimeImmutable::createFromFormat('Y-m-d', $patientDob);
                 $dobErrors = \DateTimeImmutable::getLastErrors();
 

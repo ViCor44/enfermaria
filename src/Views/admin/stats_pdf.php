@@ -8,18 +8,18 @@ $summaryRows = [
 ];
 
 $tables = [
-    ['title' => 'Ocorrências por Faixa Etária', 'rows' => $ageStats, 'key' => 'faixa', 'label' => 'Faixa'],
-    ['title' => 'Ocorrências por Género', 'rows' => $genderStats, 'key' => 'genero', 'label' => 'Género'],
-    ['title' => 'Ocorrências por Local', 'rows' => $locationStats, 'key' => 'local', 'label' => 'Local'],
-    ['title' => 'Tipo de Ocorrência', 'rows' => $typeStats, 'key' => 'tipo', 'label' => 'Tipo'],
-    ['title' => 'Tipo de Tratamento', 'rows' => $treatmentStats, 'key' => 'tipo', 'label' => 'Tipo'],
+    ['title' => 'Ocorrências por Faixa Etária', 'rows' => $ageStats, 'key' => 'faixa', 'label' => 'Faixa', 'max' => 0],
+    ['title' => 'Ocorrências por Género', 'rows' => $genderStats, 'key' => 'genero', 'label' => 'Género', 'max' => 0],
+    ['title' => 'Ocorrências por Local', 'rows' => $locationStats, 'key' => 'local', 'label' => 'Local', 'max' => 0],
+    ['title' => 'Tipo de Ocorrência', 'rows' => $typeStats, 'key' => 'tipo', 'label' => 'Tipo', 'max' => 0],
+    ['title' => 'Tipo de Tratamento', 'rows' => $treatmentStats, 'key' => 'tipo', 'label' => 'Tipo', 'max' => 0],
 ];
 
-foreach ($tables as &$table) {
+$tables = array_map(static function (array $table): array {
     $totals = array_map(static fn(array $row): int => (int)($row['total'] ?? 0), $table['rows']);
     $table['max'] = $totals === [] ? 0 : max($totals);
-}
-unset($table);
+    return $table;
+}, $tables);
 ?>
 <!DOCTYPE html>
 <html lang="pt">

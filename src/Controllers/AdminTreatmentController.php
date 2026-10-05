@@ -8,7 +8,6 @@ use App\Models\Location;
 
 class AdminTreatmentController
 {
-    private string $baseUrl = '/enfermaria/public/index.php';
     private static array $columnExistsCache = [];
 
     public function index(): void

@@ -27,8 +27,8 @@ jobs:
               php -l $_.FullName
             }
 
-      - name: Skip PHPStan
-        run: echo "PHPStan disabled"
+      - name: PHPStan
+        run: vendor/bin/phpstan.bat analyse --no-progress
 
       # DEPLOY SÓ SE PASSAR TUDO
       - name: Deploy to production
