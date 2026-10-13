@@ -33,6 +33,7 @@ class User
                 u.id,
                 u.email,
                 u.full_name,
+                u.phone,
                 u.last_login,
                 u.approved,
                 u.role_id,

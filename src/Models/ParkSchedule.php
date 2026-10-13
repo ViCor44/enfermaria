@@ -24,10 +24,10 @@ class ParkSchedule
         return $days;
     }
 
-    public static function isAssignedToday(string $fullName, string $phone): bool
+    public static function isAssignedToday(string $fullName, string $phone, ?int $userId = null): bool
     {
         $stmt = Database::getConnection()->prepare(
-            "SELECT staff.full_name AS staff_name,staff.phone AS staff_phone,scheduled_user.full_name AS user_name,scheduled_user.phone AS user_phone
+            "SELECT staff.user_id,staff.full_name AS staff_name,staff.phone AS staff_phone,scheduled_user.full_name AS user_name,scheduled_user.phone AS user_phone
              FROM park_schedule_assignments a
              INNER JOIN park_schedules ps ON ps.id=a.schedule_id
              INNER JOIN park_schedule_staff staff ON staff.id=a.staff_id
@@ -39,6 +39,13 @@ class ParkSchedule
         $normalizedPhone = preg_replace('/\D+/', '', $phone);
 
         foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if ($userId !== null && $row['user_id'] !== null) {
+                if ((int)$row['user_id'] === $userId) {
+                    return true;
+                }
+                continue;
+            }
+
             foreach ([$row['staff_name'], $row['user_name']] as $scheduledName) {
                 if ($scheduledName !== null && \App\Services\PdfScheduleImporter::normalize($scheduledName) === $normalizedName) {
                     return true;

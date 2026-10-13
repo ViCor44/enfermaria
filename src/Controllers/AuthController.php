@@ -11,6 +11,12 @@ class AuthController
 
     public function showLoginForm(): void
     {
+        $scheduleConfirmation = $_SESSION['login_schedule_confirmation'] ?? null;
+        if (is_array($scheduleConfirmation) && (int)$scheduleConfirmation['expires_at'] < time()) {
+            unset($_SESSION['login_schedule_confirmation']);
+            $scheduleConfirmation = null;
+            $_SESSION['error'] = 'A confirmação expirou. Inicie sessão novamente.';
+        }
         require __DIR__ . '/../Views/auth/login.php';
     }
 
@@ -52,20 +58,106 @@ class AuthController
             exit;
         }
 
+        $this->requireLoginScheduleConfirmation($user, 'login');
+
         // SUCESSO
         \App\Helpers\Logger::login("SUCCESS | email='{$email}' | user_id='{$user['id']}' | ip='{$ip}'");
 
-        // Sessão
-        session_regenerate_id(true);
+        $this->openLoginSession($user);
+    }
 
-        $_SESSION['last_login'] = $user['last_login'];
-        $_SESSION['user_id']   = $user['id'];
-        $_SESSION['role']      = $user['role_name'];
+    public function confirmLoginSchedule(): void
+    {
+        $pending = $_SESSION['login_schedule_confirmation'] ?? null;
+        $token = (string)($_POST['schedule_confirmation_token'] ?? '');
+        if (!is_array($pending) || (int)$pending['expires_at'] < time() ||
+            !hash_equals((string)$pending['token'], $token)) {
+            unset($_SESSION['login_schedule_confirmation']);
+            $_SESSION['error'] = 'A confirmação é inválida ou expirou. Inicie sessão novamente.';
+            header('Location: ' . $this->baseUrl . '?route=login');
+            exit;
+        }
+
+        if (($_POST['decision'] ?? '') !== 'continue') {
+            unset($_SESSION['login_schedule_confirmation']);
+            header('Location: ' . $this->baseUrl . '?route=login');
+            exit;
+        }
+
+        if ($pending['source'] === 'remote') {
+            $this->consumeRemoteAccess((string)$pending['grant_token']);
+            return;
+        }
+
+        $user = User::findByIdWithPassword((int)$pending['user_id']);
+        if (!$user || (int)$user['approved'] !== 1 || !empty($user['deleted_at'])) {
+            unset($_SESSION['login_schedule_confirmation']);
+            $_SESSION['error'] = 'A conta já não está disponível. Inicie sessão novamente.';
+            header('Location: ' . $this->baseUrl . '?route=login');
+            exit;
+        }
+
+        $this->requireLoginScheduleConfirmation($user, (string)$pending['source']);
+        \App\Helpers\Logger::login("SUCCESS (schedule confirmed) | user_id='{$user['id']}' | source='{$pending['source']}'");
+        $this->openLoginSession($user);
+    }
+
+    private function requireLoginScheduleConfirmation(array $user, string $source, ?string $grantToken = null): void
+    {
+        if (($user['role_name'] ?? '') !== 'Enfermeiro') {
+            return;
+        }
+
+        try {
+            $isScheduled = ParkSchedule::isAssignedToday(
+                (string)$user['full_name'],
+                (string)($user['phone'] ?? ''),
+                (int)$user['id']
+            );
+        } catch (\Throwable $e) {
+            \App\Helpers\Logger::login("LOGIN SCHEDULE CHECK FAILED | user_id='{$user['id']}' | error='" . $e->getMessage() . "'");
+            unset($_SESSION['login_schedule_confirmation']);
+            $_SESSION['error'] = 'Não foi possível verificar a escala. Tente novamente mais tarde.';
+            header('Location: ' . $this->baseUrl . '?route=login');
+            exit;
+        }
+
+        $pending = $_SESSION['login_schedule_confirmation'] ?? null;
+        $confirmed = is_array($pending) &&
+            (int)$pending['user_id'] === (int)$user['id'] &&
+            $pending['source'] === $source &&
+            ($pending['grant_token'] ?? null) === $grantToken &&
+            (int)$pending['expires_at'] >= time() &&
+            ($_POST['decision'] ?? '') === 'continue' &&
+            hash_equals((string)$pending['token'], (string)($_POST['schedule_confirmation_token'] ?? ''));
+
+        if ($isScheduled || $confirmed) {
+            unset($_SESSION['login_schedule_confirmation']);
+            return;
+        }
+
+        $_SESSION['login_schedule_confirmation'] = [
+            'user_id' => (int)$user['id'],
+            'source' => $source,
+            'grant_token' => $grantToken,
+            'expires_at' => time() + 300,
+            'token' => bin2hex(random_bytes(32)),
+        ];
+        header('Location: ' . $this->baseUrl . '?route=login');
+        exit;
+    }
+
+    private function openLoginSession(array $user): void
+    {
+        unset($_SESSION['login_schedule_confirmation']);
+        session_regenerate_id(true);
+        $_SESSION['last_login'] = $user['last_login'] ?? null;
+        $_SESSION['user_id'] = (int)$user['id'];
+        $_SESSION['role'] = $user['role_name'];
         $_SESSION['user_name'] = $user['full_name'];
 
-        User::updateLastLogin($user['id']);
+        User::updateLastLogin((int)$user['id']);
         $this->notifyNurseServiceRegistration($user);
-
         header('Location: ' . $this->baseUrl . '?route=dashboard');
         exit;
     }
@@ -311,42 +403,7 @@ class AuthController
 
     public function login_submit()
     {
-        $email = trim($_POST['email']);
-        $password = $_POST['password'];
-        $ip = \App\Helpers\IP::get();
-
-        $db = \App\Core\Database::getConnection();
-
-        // Procurar utilizador
-        $stmt = $db->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
-        $stmt->execute(['email' => $email]);
-        $user = $stmt->fetch();
-
-        // Falha: email não existe
-        if (!$user) {
-            \App\Helpers\Logger::login("FAIL (email not found) | email={$email} | ip={$ip}");
-            $_SESSION['error'] = "Credenciais inválidas.";
-            header("Location: index.php?route=login");
-            exit;
-        }
-
-        // Falha: password errada
-        if (!password_verify($password, $user['password'])) {
-            \App\Helpers\Logger::login("FAIL (wrong password) | email={$email} | user_id={$user['id']} | ip={$ip}");
-            $_SESSION['error'] = "Credenciais inválidas.";
-            header("Location: index.php?route=login");
-            exit;
-        }
-
-        // Sucesso
-        \App\Helpers\Logger::login("SUCCESS | email={$email} | user_id={$user['id']} | ip={$ip}");
-
-        $_SESSION['user_id'] = $user['id'];
-        $_SESSION['user_name'] = $user['full_name'];
-        $_SESSION['role'] = $user['role'];
-
-        header("Location: index.php?route=dashboard");
-        exit;
+        $this->login();
     }
 
     public function ssoLogin(): void
@@ -415,23 +472,14 @@ class AuthController
             exit;
         }
 
+        $this->requireLoginScheduleConfirmation($user, 'sso');
+
         // 5️⃣ SUCESSO (igual ao login normal)
         \App\Helpers\Logger::login(
             "SSO SUCCESS | admin_id='{$t['admin_id']}' | user_id='{$user['id']}' | ip='{$ip}'"
         );
 
-        session_regenerate_id(true);
-
-        $_SESSION['last_login'] = $user['last_login'];
-        $_SESSION['user_id']    = $user['id'];
-        $_SESSION['role']       = $user['role_name'];
-        $_SESSION['user_name']  = $user['full_name'];
-
-        User::updateLastLogin($user['id']);
-        $this->notifyNurseServiceRegistration($user);
-
-        header('Location: ' . $this->baseUrl . '?route=dashboard');
-        exit;
+        $this->openLoginSession($user);
     }
 
     public function createRemoteAccessRequest(): void
@@ -544,9 +592,9 @@ class AuthController
         }
     }
 
-    public function consumeRemoteAccess(): void
+    public function consumeRemoteAccess(?string $grantToken = null): void
     {
-        $token = trim((string)($_GET['token'] ?? ''));
+        $token = $grantToken ?? trim((string)($_GET['token'] ?? ''));
         $ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
 
         if ($token === '') {
@@ -558,33 +606,38 @@ class AuthController
         try {
             $request = RemoteAccessRequest::findApprovedByGrantToken($token);
             if (!$request) {
+                unset($_SESSION['login_schedule_confirmation']);
                 $_SESSION['error'] = 'Pedido remoto invalido ou expirado.';
                 header('Location: ' . $this->baseUrl . '?route=login');
                 exit;
             }
 
             if ((int)($request['approved'] ?? 0) !== 1 || !empty($request['deleted_at']) || ($request['role_name'] ?? '') !== 'Enfermeiro') {
+                unset($_SESSION['login_schedule_confirmation']);
                 $_SESSION['error'] = 'Conta alvo indisponivel para acesso remoto.';
                 header('Location: ' . $this->baseUrl . '?route=login');
                 exit;
             }
 
-            session_regenerate_id(true);
+            $this->requireLoginScheduleConfirmation([
+                'id' => (int)$request['nurse_user_id'],
+                'full_name' => (string)$request['nurse_full_name'],
+                'phone' => (string)($request['nurse_phone'] ?? ''),
+                'role_name' => (string)$request['role_name'],
+            ], 'remote', $token);
 
-            $_SESSION['last_login'] = null;
-            $_SESSION['user_id'] = (int)$request['nurse_user_id'];
-            $_SESSION['role'] = (string)$request['role_name'];
-            $_SESSION['user_name'] = (string)$request['nurse_full_name'];
-
-            User::updateLastLogin((int)$request['nurse_user_id']);
-            $this->notifyNurseServiceRegistration($request);
             RemoteAccessRequest::markConsumed((int)$request['id']);
 
             \App\Helpers\Logger::login("REMOTE ACCESS CONSUMED | request_id='{$request['id']}' | nurse_id='{$request['nurse_user_id']}' | ip='{$ip}'");
 
-            header('Location: ' . $this->baseUrl . '?route=dashboard');
-            exit;
+            $this->openLoginSession([
+                'id' => (int)$request['nurse_user_id'],
+                'full_name' => (string)$request['nurse_full_name'],
+                'role_name' => (string)$request['role_name'],
+            ]);
         } catch (\Throwable $e) {
+            \App\Helpers\Logger::login("REMOTE ACCESS CONSUME FAILED | error='" . $e->getMessage() . "'");
+            unset($_SESSION['login_schedule_confirmation']);
             $_SESSION['error'] = 'Nao foi possivel abrir a sessao remota.';
             header('Location: ' . $this->baseUrl . '?route=login');
             exit;

@@ -136,7 +136,7 @@ class RemoteAccessRequest
     {
         $pdo = Database::getConnection();
         $stmt = $pdo->prepare(
-            "SELECT rar.*, u.full_name AS nurse_full_name, u.role_id, u.approved, u.deleted_at, r.name AS role_name
+            "SELECT rar.*, u.full_name AS nurse_full_name, u.phone AS nurse_phone, u.role_id, u.approved, u.deleted_at, r.name AS role_name
              FROM remote_access_requests rar
              JOIN users u ON u.id = rar.nurse_user_id
              JOIN roles r ON r.id = u.role_id

@@ -1,5 +1,6 @@
 <?php
 $baseUrl = '/enfermaria/public/index.php';
+$scheduleConfirmation = $scheduleConfirmation ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="pt">
@@ -540,6 +541,14 @@ $baseUrl = '/enfermaria/public/index.php';
                 <?php unset($_SESSION['error']); ?>
             <?php endif; ?>
 
+            <?php if (is_array($scheduleConfirmation)): ?>
+                <form id="scheduleConfirmationForm" method="post" action="<?= $baseUrl ?>?route=login_schedule_confirm">
+                    <div class="error" role="alert">Não tem turno atribuído na escala de hoje. Pretende continuar e iniciar sessão?</div>
+                    <input type="hidden" name="schedule_confirmation_token" value="<?= htmlspecialchars($scheduleConfirmation['token'], ENT_QUOTES, 'UTF-8') ?>">
+                    <button type="submit" name="decision" value="continue" class="primary-button">Sim, continuar</button>
+                    <button type="submit" name="decision" value="cancel" class="primary-button">Cancelar</button>
+                </form>
+            <?php else: ?>
             <form method="post" action="/enfermaria/public/index.php?route=login_submit">
 
                 <label for="loginEmail">Email</label>
@@ -550,6 +559,7 @@ $baseUrl = '/enfermaria/public/index.php';
 
                 <button type="submit" class="primary-button">Entrar</button>
             </form>
+            <?php endif; ?>
 
             <footer>
                 <div class="account-links">
@@ -567,6 +577,26 @@ $baseUrl = '/enfermaria/public/index.php';
     </div>
 
 </div>
+
+<?php if (is_array($scheduleConfirmation)): ?>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    if (typeof Swal === 'undefined') return;
+    const result = await Swal.fire({
+        icon: 'warning',
+        title: 'Sem turno atribuído hoje',
+        text: 'Não tem turno atribuído na escala de hoje. Pretende continuar e iniciar sessão?',
+        showCancelButton: true,
+        confirmButtonText: 'Sim, continuar',
+        cancelButtonText: 'Cancelar',
+        reverseButtons: true
+    });
+    const form = document.getElementById('scheduleConfirmationForm');
+    form.requestSubmit(form.querySelector(result.isConfirmed ? '[value="continue"]' : '[value="cancel"]'));
+});
+</script>
+<?php endif; ?>
 
 <div class="modal-overlay" id="remoteAccessModal" aria-hidden="true">
     <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="remoteAccessTitle">

@@ -56,6 +56,8 @@ if ($route === 'login') {
 } elseif ($route === 'login_submit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new App\Controllers\AuthController();
     $controller->login();
+} elseif ($route === 'login_schedule_confirm' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    (new App\Controllers\AuthController())->confirmLoginSchedule();
 } elseif ($route === 'remote_access_request_create' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new App\Controllers\AuthController();
     $controller->createRemoteAccessRequest();
