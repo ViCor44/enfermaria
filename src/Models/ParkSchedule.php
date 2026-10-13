@@ -24,6 +24,39 @@ class ParkSchedule
         return $days;
     }
 
+    public static function isAssignedToday(string $fullName, string $phone): bool
+    {
+        $stmt = Database::getConnection()->prepare(
+            "SELECT staff.full_name AS staff_name,staff.phone AS staff_phone,scheduled_user.full_name AS user_name,scheduled_user.phone AS user_phone
+             FROM park_schedule_assignments a
+             INNER JOIN park_schedules ps ON ps.id=a.schedule_id
+             INNER JOIN park_schedule_staff staff ON staff.id=a.staff_id
+             LEFT JOIN users scheduled_user ON scheduled_user.id=staff.user_id
+             WHERE a.work_date=? AND staff.active=1"
+        );
+        $stmt->execute([(new \DateTimeImmutable('today'))->format('Y-m-d')]);
+        $normalizedName = \App\Services\PdfScheduleImporter::normalize($fullName);
+        $normalizedPhone = preg_replace('/\D+/', '', $phone);
+
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            foreach ([$row['staff_name'], $row['user_name']] as $scheduledName) {
+                if ($scheduledName !== null && \App\Services\PdfScheduleImporter::normalize($scheduledName) === $normalizedName) {
+                    return true;
+                }
+            }
+
+            if ($normalizedPhone !== '') {
+                foreach ([$row['staff_phone'], $row['user_phone']] as $scheduledPhone) {
+                    if ($scheduledPhone !== null && preg_replace('/\D+/', '', $scheduledPhone) === $normalizedPhone) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     public static function replaceDay(int $year, int $month, string $date, int $creatorId, array $assignments): void
     {
         $pdo = Database::getConnection();

@@ -70,6 +70,9 @@ if ($route === 'login') {
     $controller = new App\Controllers\AuthController();
     $controller->showRegisterForm();
 
+} elseif ($route === 'register_check_schedule' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+    (new App\Controllers\AuthController())->checkNurseSchedule();
+
 } elseif ($route === 'register_submit' && $_SERVER['REQUEST_METHOD'] === 'POST') {
     $controller = new App\Controllers\AuthController();
     $controller->register();

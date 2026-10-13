@@ -6,6 +6,7 @@ $baseUrl = '/enfermaria/public/index.php';
 <head>
 <meta charset="UTF-8">
 <title>SAE | Registo</title>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <style>
     body {
@@ -187,14 +188,15 @@ $baseUrl = '/enfermaria/public/index.php';
             <?php endif; ?>
 
             <form method="post" action="<?= $baseUrl ?>?route=register_submit">
+                <input type="hidden" name="schedule_warning_confirmed" value="0">
                 <label>Nome completo</label>
-                <input type="text" name="full_name" required>
+                <input type="text" name="full_name" required autocomplete="name">
 
                 <label>Telefone</label>
-                <input type="text" name="phone" required>
+                <input type="text" name="phone" required autocomplete="tel">
 
                 <label>Email</label>
-                <input type="email" name="email" required>
+                <input type="email" name="email" required autocomplete="email">
 
                 <label>Cartão de Identificação</label>
                 <input type="password" name="password" required>
@@ -214,6 +216,71 @@ $baseUrl = '/enfermaria/public/index.php';
     </div>
 
 </div>
+
+<script>
+(() => {
+    const form = document.querySelector('form');
+    const confirmation = form.querySelector('[name="schedule_warning_confirmed"]');
+    let checkingSchedule = false;
+
+    form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (checkingSchedule) return;
+
+        checkingSchedule = true;
+        confirmation.value = '0';
+        const submitButton = form.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        try {
+            const response = await fetch('<?= $baseUrl ?>?route=register_check_schedule', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' },
+                body: new URLSearchParams({
+                    full_name: form.elements.full_name.value,
+                    phone: form.elements.phone.value
+                }),
+                credentials: 'same-origin'
+            });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Não foi possível verificar a escala.');
+
+            if (!result.isScheduled) {
+                let confirmed;
+                if (typeof Swal !== 'undefined') {
+                    const answer = await Swal.fire({
+                        icon: 'warning',
+                        title: 'Sem turno atribuído hoje',
+                        text: 'O nome e o telefone indicados não correspondem a um enfermeiro na escala de hoje. Pretende continuar com o registo?',
+                        showCancelButton: true,
+                        confirmButtonText: 'Sim, continuar',
+                        cancelButtonText: 'Voltar e corrigir',
+                        reverseButtons: true
+                    });
+                    confirmed = answer.isConfirmed;
+                } else {
+                    confirmed = window.confirm('Não encontramos este enfermeiro na escala de hoje. Pretende continuar com o registo?');
+                }
+
+                if (!confirmed) return;
+                confirmation.value = '1';
+            }
+
+            form.submit();
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Não foi possível verificar a escala.';
+            if (typeof Swal !== 'undefined') {
+                await Swal.fire({ icon: 'error', title: 'Erro ao verificar a escala', text: message });
+            } else {
+                window.alert(message);
+            }
+        } finally {
+            checkingSchedule = false;
+            submitButton.disabled = false;
+        }
+    });
+})();
+</script>
 
 </body>
 </html>

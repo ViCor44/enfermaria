@@ -3,6 +3,7 @@ namespace App\Controllers;
 
 use App\Models\User;
 use App\Models\RemoteAccessRequest;
+use App\Models\ParkSchedule;
 
 class AuthController
 {
@@ -98,6 +99,28 @@ class AuthController
         require __DIR__ . '/../Views/auth/register.php';
     }
 
+    public function checkNurseSchedule(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $fullName = trim($_POST['full_name'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
+
+        if ($fullName === '' || $phone === '') {
+            http_response_code(422);
+            echo json_encode(['error' => 'Preencha o nome e o telefone para verificar a escala.'], JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        try {
+            echo json_encode(['isScheduled' => ParkSchedule::isAssignedToday($fullName, $phone)], JSON_UNESCAPED_UNICODE);
+        } catch (\Throwable $e) {
+            error_log('Erro ao verificar a escala durante o registo: ' . $e->getMessage());
+            http_response_code(500);
+            echo json_encode(['error' => 'Não foi possível verificar a escala. Tente novamente mais tarde.'], JSON_UNESCAPED_UNICODE);
+        }
+        exit;
+    }
+
     public function register(): void
     {
         $fullName = trim($_POST['full_name'] ?? '');
@@ -132,6 +155,21 @@ class AuthController
 
         if (strlen($password) < 6) {
             $_SESSION['error'] = 'A password deve ter pelo menos 6 caracteres.';
+            header('Location: ' . $this->baseUrl . '?route=register');
+            exit;
+        }
+
+        try {
+            $isScheduled = ParkSchedule::isAssignedToday($fullName, $phone);
+        } catch (\Throwable $e) {
+            error_log('Erro ao verificar a escala durante o registo: ' . $e->getMessage());
+            $_SESSION['error'] = 'Não foi possível verificar a escala. Tente novamente mais tarde.';
+            header('Location: ' . $this->baseUrl . '?route=register');
+            exit;
+        }
+
+        if (!$isScheduled && ($_POST['schedule_warning_confirmed'] ?? '') !== '1') {
+            $_SESSION['error'] = 'Confirme se pretende continuar com o registo sem turno atribuído para hoje.';
             header('Location: ' . $this->baseUrl . '?route=register');
             exit;
         }
